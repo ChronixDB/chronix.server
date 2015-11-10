@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="Chronix" version="1.5">
+
+    <!-- The minimal required field types -->
+    <types>
+        <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+        <fieldType name="binary" class="solr.BinaryField"/>
+
+
+        <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
+
+    </types>
+
+    <fields>
+        <!-- The required fields -->
+        <field name="id" type="string" indexed="true" stored="true" required="true"/>
+        <field name="_version_" type="long" indexed="true" stored="true"/>
+        <field name="start" type="long" indexed="true" stored="true" required="true"/>
+        <field name="end" type="long" indexed="true" stored="true" required="true"/>
+        <field name="data" type="binary" indexed="true" stored="true" required="false"/>
+
+        <!-- -->
+        <field name="host" type="string" indexed="true" stored="true" required="false"/>
+        <field name="process" type="string" indexed="true" stored="true" required="false"/>
+        <field name="max" type="int" indexed="true" stored="true" required="false"/>
+        <field name="min" type="int" indexed="true" stored="true" required="false"/>
+
+    </fields>
+
+    <uniqueKey>id</uniqueKey>
+    <solrQueryParser defaultOperator="OR"/>
+
+</schema>

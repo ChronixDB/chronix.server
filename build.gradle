@@ -1,0 +1,73 @@
+allprojects {
+
+    apply plugin: 'jacoco'
+
+    group 'de.qaware.chronix.server'
+
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    jacoco {
+        toolVersion = '0.7.2.201409121644'
+    }
+}
+
+
+subprojects {
+
+    version '0.0.1'
+
+    //Some plugins
+    apply plugin: 'base'
+    apply plugin: 'groovy'
+    apply plugin: 'java'
+
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    dependencies {
+        //Guava
+        compile 'com.google.guava:guava:18.0'
+
+        //Logging
+        compile 'org.slf4j:slf4j-api:1.7.12'
+        compile 'org.slf4j:jcl-over-slf4j:1.7.12'
+        compile 'org.apache.logging.log4j:log4j-api:2.4'
+        compile 'org.apache.logging.log4j:log4j-core:2.4'
+        compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.4'
+
+        //Testing
+        testCompile 'junit:junit:4.12'
+        testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+        testCompile 'com.blogspot.toomuchcoding:spock-subjects-collaborators-extension:1.0.1'
+        testCompile 'cglib:cglib-nodep:3.1'
+        testCompile 'org.objenesis:objenesis:2.1'
+    }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    // This disables the pedantic doclint feature of JDK8
+    if (JavaVersion.current().isJava8Compatible()) {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+
+    test {
+        jacoco {
+            append = false
+            destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+            classDumpFile = file("$buildDir/jacoco/classpathdumps")
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
+

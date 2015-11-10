@@ -1,0 +1,5 @@
+rootProject.name = 'chronix-server'
+
+include 'chronix-client'
+include 'chronix-kassiopeia'
+
