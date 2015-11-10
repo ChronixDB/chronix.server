@@ -12,7 +12,7 @@ A time series storage based on Apache Solr.
 
 Is there anything missing? Do you have ideas for new features or improvements? You are highly welcome to contribute
 your improvements, to the Chronix projects. All you have to do is to fork this repository,
-improve the code and issue a pull request. You can also have a look at the 
+improve the code and issue a pull request.
 
 ## Maintainer
 
