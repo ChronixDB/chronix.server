@@ -1,6 +1,23 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
+    }
+}
+
+
+
 allprojects {
 
     apply plugin: 'jacoco'
+    apply plugin: 'com.github.kt3k.coveralls'
+
 
     group 'de.qaware.chronix.server'
 
@@ -12,6 +29,7 @@ allprojects {
     jacoco {
         toolVersion = '0.7.2.201409121644'
     }
+
 }
 
 
@@ -23,6 +41,7 @@ subprojects {
     apply plugin: 'base'
     apply plugin: 'groovy'
     apply plugin: 'java'
+
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -41,14 +60,14 @@ subprojects {
         //Testing
         testCompile 'junit:junit:4.12'
         testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
-        testCompile 'com.blogspot.toomuchcoding:spock-subjects-collaborators-extension:1.0.1'
         testCompile 'cglib:cglib-nodep:3.1'
-        testCompile 'org.objenesis:objenesis:2.1'
     }
 
-    repositories {
-        mavenCentral()
-        jcenter()
+    test {
+        reports {
+            junitXml.enabled = false
+            html.enabled = true
+        }
     }
 
     // This disables the pedantic doclint feature of JDK8
@@ -58,13 +77,57 @@ subprojects {
         }
     }
 
-    test {
-        jacoco {
-            append = false
-            destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-            classDumpFile = file("$buildDir/jacoco/classpathdumps")
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    jacocoTestReport {
+        group = 'Coverage'
+        description = 'Generate Jacoco coverage report for subproject'
+
+        additionalSourceDirs = project.files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories = project.files(sourceSets.main.allSource.srcDirs)
+        classDirectories =  project.files(sourceSets.main.output)
+
+        reports {
+            xml.enabled = true
+            html.enabled = true
         }
     }
+}
+
+task jacocoRootReport(type: JacocoReport, group: 'Coverage') {
+    description = 'Generates aggregate Jacoco coverage report from all subprojects'
+    dependsOn(subprojects.test)
+
+    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories = files(subprojects.sourceSets.main.output)
+    executionData = files(subprojects.jacocoTestReport.executionData)
+
+    reports {
+        html.enabled = true
+        xml.enabled = true
+    }
+
+    doFirst {
+        executionData = files(executionData.findAll { it.exists() })
+    }
+}
+
+coveralls {
+    sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
+    jacocoReportPath = "${buildDir}/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
+}
+
+def isCI = System.env.'CI' == 'true'
+tasks.coveralls {
+    group = 'Coverage'
+    description = 'Upload aggregate Jacoco coverage report to Coveralls'
+
+    dependsOn jacocoRootReport
+    onlyIf { isCI }
 }
 
 task wrapper(type: Wrapper) {
