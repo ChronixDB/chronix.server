@@ -8,6 +8,21 @@
 
 A time series storage based on Apache Solr.
 
+## Usage
+Build script snippet for use in all Gradle versions, using the Bintray Maven repository:
+
+```groovy
+repositories {
+    mavenCentral()
+    maven { 
+        url "http://dl.bintray.com/chronix/maven" 
+    }
+}
+dependencies {
+   compile 'de.qaware.chronix:chronix-server:0.0.1'
+}
+```
+
 ## Contributing
 
 Is there anything missing? Do you have ideas for new features or improvements? You are highly welcome to contribute
@@ -16,7 +31,7 @@ improve the code and issue a pull request.
 
 ## Maintainer
 
-Florian Lautenschlager
+Florian Lautenschlager @flolaut
 
 ## License
 
