@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.helper;
+package de.qaware.chronix.test.extensions;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -26,6 +26,10 @@ import java.lang.reflect.Modifier;
  */
 public class ReflectionHelper {
 
+    private ReflectionHelper() {
+        //avoid instances
+    }
+
     /**
      * Makes the field of the given class modifiable
      *
@@ -35,7 +39,14 @@ public class ReflectionHelper {
      * @throws Exception if any error occurs
      */
     public static Field makeFieldModifiable(String field, Class clazz) throws Exception {
-        Field fieldInstance = clazz.getDeclaredField(field);
+        Field fieldInstance;
+        try {
+            fieldInstance = clazz.getDeclaredField(field);
+        } catch (NoSuchFieldException e) {
+            //try superclass
+            fieldInstance = clazz.getSuperclass().getDeclaredField(field);
+        }
+
         fieldInstance.setAccessible(true);
         int modifiers = fieldInstance.getModifiers();
 

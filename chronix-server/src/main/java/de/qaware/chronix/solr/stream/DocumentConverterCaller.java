@@ -63,7 +63,12 @@ public class DocumentConverterCaller<T> implements Callable<T> {
 
             Object valueType = mapEntry.getValue();
 
-            if (valueType instanceof Field) {
+            //If we use the default remote solr server, we get pojo's
+            if (isPOJO(valueType)) {
+                timeSeriesBuilder.field(mapEntry.getKey(), mapEntry.getValue());
+            }
+            //If we use an embedded solr we get lucene fields
+            else if (valueType instanceof Field) {
                 //a single value field
                 Field value = (Field) mapEntry.getValue();
                 timeSeriesBuilder.field(mapEntry.getKey(), evaluateRawType(value));
@@ -79,6 +84,10 @@ public class DocumentConverterCaller<T> implements Callable<T> {
 
         });
         return documentConverter.from(timeSeriesBuilder.build(), queryStart, queryEnd);
+    }
+
+    private boolean isPOJO(Object valueType) {
+        return valueType instanceof byte[] || valueType instanceof String || valueType instanceof Number;
     }
 
     private Collection evaluateMultiValueField(Collection multiValue) {

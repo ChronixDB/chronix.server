@@ -31,7 +31,7 @@ import java.time.temporal.ChronoUnit
  */
 class DocumentConverterCallerTest extends Specification {
 
-    def "test call convert document"() {
+    def "test call convert document for an embedded solr"() {
         given:
         def start = Instant.now().toEpochMilli()
         def end = Instant.now().plusSeconds(180).toEpochMilli()
@@ -42,6 +42,30 @@ class DocumentConverterCallerTest extends Specification {
         solrDocument.addField(Schema.END, new StoredField(Schema.END, end))
         solrDocument.addField(Schema.DATA, new StoredField(Schema.DATA, "someBytes".bytes))
         solrDocument.addField("SomeField", new StoredField("SomeField", ChronoUnit.SECONDS.toString()));
+
+        def converter = new DocumentConverterCaller(solrDocument, new DefaultDocumentConverter(), start, end)
+
+        when:
+        BinaryStorageDocument ts = converter.call()
+
+        then:
+        ts.get(Schema.START) == start
+        ts.get(Schema.END) == end
+        ts.get(Schema.DATA) == "someBytes".bytes
+        ts.get("SomeField") == ChronoUnit.SECONDS.toString()
+    }
+
+    def "test call convert document for an remote solr"() {
+        given:
+        def start = Instant.now().toEpochMilli()
+        def end = Instant.now().plusSeconds(180).toEpochMilli()
+
+        //Create a solr document
+        def solrDocument = new SolrDocument()
+        solrDocument.addField(Schema.START, start)
+        solrDocument.addField(Schema.END, end)
+        solrDocument.addField(Schema.DATA, "someBytes".bytes)
+        solrDocument.addField("SomeField", ChronoUnit.SECONDS.toString());
 
         def converter = new DocumentConverterCaller(solrDocument, new DefaultDocumentConverter(), start, end)
 

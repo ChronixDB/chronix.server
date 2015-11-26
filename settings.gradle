@@ -1,3 +1,8 @@
 rootProject.name = 'chronix.server'
 
 include 'chronix-server'
+include 'chronix-server-retention'
+include 'chronix-analysis'
+include 'chronix-server-range-query'
+include 'chronix-test-extensions'
+

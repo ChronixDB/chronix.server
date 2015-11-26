@@ -20,11 +20,15 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url "http://dl.bintray.com/chronix/maven"
+        }
     }
     dependencies {
         classpath 'com.gradle.publish:plugin-publish-plugin:0.9.1'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
     }
 }
 
@@ -39,8 +43,8 @@ allprojects {
     group 'de.qaware.chronix'
 
     repositories {
-        jcenter()
         mavenCentral()
+        jcenter()
         maven {
             url "http://dl.bintray.com/chronix/maven"
         }
@@ -65,7 +69,15 @@ subprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'com.gradle.plugin-publish'
     apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'com.github.hierynomus.license'
 
+    license {
+        includes(["**/*.java", "**/*.groovy"])
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+            groovy = 'SLASHSTAR_STYLE'
+        }
+    }
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -82,9 +94,9 @@ subprojects {
         compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.4'
 
         //Testing
-        testCompile 'junit:junit:4.12'
         testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
         testCompile 'cglib:cglib-nodep:3.2.0'
+        testCompile 'org.objenesis:objenesis:2.2'
     }
 
     test {

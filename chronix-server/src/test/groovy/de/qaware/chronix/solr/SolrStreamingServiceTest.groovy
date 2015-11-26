@@ -17,8 +17,8 @@ package de.qaware.chronix.solr
 
 import de.qaware.chronix.converter.BinaryStorageDocument
 import de.qaware.chronix.converter.DefaultDocumentConverter
-import de.qaware.chronix.helper.ReflectionHelper
 import de.qaware.chronix.solr.stream.SolrStreamingService
+import de.qaware.chronix.test.extensions.ReflectionHelper
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrServerException
