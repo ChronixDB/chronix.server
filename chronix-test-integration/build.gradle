@@ -85,7 +85,7 @@ task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
         ready "Started Solr server on port 8983. Happy searching!"
         directory "$buildDir/solr-5.3.1/bin/"
     } else {
-        command 'solr start'
+        command 'bash solr start'
         ready "Started Solr server on port 8983. Happy searching!"
         directory "$buildDir/solr-5.3.1/bin/"
     }
@@ -97,7 +97,7 @@ task stopSolr(type: ExecWait) {
         ready ""
         directory "$buildDir/solr-5.3.1/bin/"
     } else {
-        command 'solr stop -p 8983'
+        command 'bash solr stop -p 8983'
         ready ""
         directory "$buildDir/solr-5.3.1/bin/"
     }
