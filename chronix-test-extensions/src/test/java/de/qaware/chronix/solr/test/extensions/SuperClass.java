@@ -13,26 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.retention;
+package de.qaware.chronix.solr.test.extensions;
 
 /**
- * Constants for the retention query handler
+ * Class to test the reflection helper
  *
  * @author f.lautenschlager
  */
-public class RetentionConstants {
+public class SuperClass {
 
-    public static final String QUERY_FIELD = "queryField";
-    public static final String REMOVE_TIME_SERIES_OLDER = "timeSeriesAge";
-    public static final String OPTIMIZE_AFTER_DELETION = "optimizeAfterDeletion";
-    public static final String SOFT_COMMIT = "softCommit";
-    public static final String REMOVE_DAILY_AT = "removeDailyAt";
-    public static final String RETENTION_URL = "retentionUrl";
-
-    /**
-     * Private constructor to avoid instances
-     */
-    private RetentionConstants() {
-
-    }
+    protected String father = "Norbert";
 }

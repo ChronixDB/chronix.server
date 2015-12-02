@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="Chronix" version="1.5">
+
+    <types>
+        <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+        <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0"/>
+
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+        <fieldType name="binary" class="solr.BinaryField"/>
+    </types>
+
+    <fields>
+        <!-- The required fields -->
+        <field name="id" type="string" indexed="true" stored="true" required="true"/>
+        <field name="_version_" type="long" indexed="true" stored="true"/>
+        <field name="start" type="long" indexed="true" stored="true" required="true"/>
+        <field name="end" type="long" indexed="true" stored="true" required="true"/>
+        <field name="data" type="binary" indexed="true" stored="true" required="false"/>
+
+        <!-- The required field to use kassiopeia time series -->
+        <field name="metric" type="string" indexed="true" stored="true" required="true"/>
+
+
+        <field name="myIntField" type="int" indexed="true" stored="true" required="false"/>
+        <field name="myLongField" type="long" indexed="true" stored="true" required="false"/>
+        <field name="myDoubleField" type="double" indexed="true" stored="true" required="false"/>
+
+        <field name="myByteField" type="binary" indexed="true" stored="true" required="false"/>
+
+        <field name="myStringList" type="string" indexed="true" multiValued="true" stored="true" required="false"/>
+        <field name="myIntList" type="int" indexed="true" multiValued="true" stored="true" required="false"/>
+        <field name="myLongList" type="long" indexed="true" multiValued="true" stored="true" required="false"/>
+        <field name="myDoubleList" type="double" indexed="true" multiValued="true" stored="true" required="false"/>
+
+    </fields>
+
+    <uniqueKey>id</uniqueKey>
+    <solrQueryParser defaultOperator="OR"/>
+
+</schema>

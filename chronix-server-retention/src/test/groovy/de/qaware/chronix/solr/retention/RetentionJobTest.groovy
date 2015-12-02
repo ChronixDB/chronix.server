@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.retention
 
-import de.qaware.chronix.test.extensions.ReflectionHelper
+import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.CloseableHttpClient
 import org.quartz.JobDataMap

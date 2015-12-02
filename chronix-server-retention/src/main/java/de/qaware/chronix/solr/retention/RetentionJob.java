@@ -54,7 +54,8 @@ public class RetentionJob implements Job {
         String url = data.getString(RetentionConstants.RETENTION_URL);
         HttpGet httpget = new HttpGet(url);
 
-        try (CloseableHttpResponse response = httpClient.execute(httpget)) {
+        try {
+            CloseableHttpResponse response = httpClient.execute(httpget);
             LOGGER.info("Response was {}", response);
         } catch (IOException e) {
             throw new JobExecutionException("Could not execute http get request " + httpget, e);

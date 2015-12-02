@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!-- 
+     For more details about configurations options that may appear in
+     this file, see http://wiki.apache.org/solr/SolrConfigXml. 
+-->
+<config>
+
+    <luceneMatchVersion>5.3.1</luceneMatchVersion>
+
+    <lib dir="${solr.install.dir:../../../..}/contrib/extraction/lib" regex=".*\.jar"/>
+    <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-cell-\d.*\.jar"/>
+
+    <lib dir="${solr.install.dir:../../../..}/contrib/clustering/lib/" regex=".*\.jar"/>
+    <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-clustering-\d.*\.jar"/>
+
+    <lib dir="${solr.install.dir:../../../..}/contrib/langid/lib/" regex=".*\.jar"/>
+    <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-langid-\d.*\.jar"/>
+
+    <lib dir="${solr.install.dir:../../../..}/contrib/velocity/lib" regex=".*\.jar"/>
+    <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar"/>
+
+    <dataDir>${solr.data.dir:}</dataDir>
+
+
+    <directoryFactory name="DirectoryFactory"
+                      class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+
+
+    <codecFactory class="solr.SchemaCodecFactory"/>
+
+    <schemaFactory class="ClassicIndexSchemaFactory"/>
+
+    <indexConfig>
+
+        <lockType>${solr.lock.type:native}</lockType>
+
+    </indexConfig>
+
+
+    <jmx/>
+
+    <!-- The default high-performance update handler -->
+    <updateHandler class="solr.DirectUpdateHandler2">
+
+        <updateLog>
+            <str name="dir">${solr.ulog.dir:}</str>
+            <int name="numVersionBuckets">${solr.ulog.numVersionBuckets:65536}</int>
+        </updateLog>
+
+        <autoCommit>
+            <maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+            <openSearcher>false</openSearcher>
+        </autoCommit>
+
+        <autoSoftCommit>
+            <maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+        </autoSoftCommit>
+
+
+    </updateHandler>
+
+    <query>
+
+        <maxBooleanClauses>1024</maxBooleanClauses>
+
+        <filterCache class="solr.FastLRUCache"
+                     size="512"
+                     initialSize="512"
+                     autowarmCount="0"/>
+
+
+        <queryResultCache class="solr.LRUCache"
+                          size="512"
+                          initialSize="512"
+                          autowarmCount="0"/>
+
+
+        <documentCache class="solr.LRUCache"
+                       size="512"
+                       initialSize="512"
+                       autowarmCount="0"/>
+
+        <cache name="perSegFilter"
+               class="solr.search.LRUCache"
+               size="10"
+               initialSize="0"
+               autowarmCount="10"
+               regenerator="solr.NoOpRegenerator"/>
+
+        <enableLazyFieldLoading>true</enableLazyFieldLoading>
+
+        <queryResultWindowSize>20</queryResultWindowSize>
+
+        <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+
+        <listener event="newSearcher" class="solr.QuerySenderListener">
+            <arr name="queries">
+            </arr>
+        </listener>
+        <listener event="firstSearcher" class="solr.QuerySenderListener">
+            <arr name="queries">
+            </arr>
+        </listener>
+
+        <useColdSearcher>false</useColdSearcher>
+
+        <maxWarmingSearchers>2</maxWarmingSearchers>
+
+    </query>
+
+
+    <requestDispatcher handleSelect="false">
+
+        <requestParsers enableRemoteStreaming="true"
+                        multipartUploadLimitInKB="2048000"
+                        formdataUploadLimitInKB="2048"
+                        addHttpRequestToContext="false"/>
+
+    </requestDispatcher>
+    <!--
+       <requestHandler name="/select" class="solr.SearchHandler">
+           <lst name="defaults">
+               <str name="echoParams">explicit</str>
+               <int name="rows">10</int>
+           </lst>
+       </requestHandler>
+
+       <requestHandler name="/query" class="solr.SearchHandler">
+            <lst name="defaults">
+                <str name="echoParams">explicit</str>
+                <str name="wt">json</str>
+                <str name="indent">true</str>
+            </lst>
+        </requestHandler>
+        -->
+
+
+    <requestHandler name="/select" class="de.qaware.chronix.solr.query.ChronixQueryHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <int name="rows">10</int>
+            <str name="df">metric</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler name="/query" class="de.qaware.chronix.solr.query.ChronixQueryHandler">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <str name="wt">json</str>
+            <str name="indent">true</str>
+            <str name="df">metric</str>
+
+        </lst>
+    </requestHandler>
+
+
+    <requestHandler name="/browse" class="solr.SearchHandler" useParams="query,facets,velocity,browse">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+        </lst>
+    </requestHandler>
+
+
+    <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell,/browse">
+        <lst name="defaults">
+            <str name="df">_text_</str>
+        </lst>
+    </initParams>
+
+    <initParams path="/update/**">
+        <lst name="defaults">
+            <str name="update.chain">update-processor-chain</str>
+        </lst>
+    </initParams>
+
+    <requestHandler name="/update/extract"
+                    startup="lazy"
+                    class="solr.extraction.ExtractingRequestHandler">
+        <lst name="defaults">
+            <str name="lowernames">true</str>
+            <str name="fmap.meta">ignored_</str>
+            <str name="fmap.content">_text_</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler name="/export" class="solr.SearchHandler">
+        <lst name="invariants">
+            <str name="rq">{!xport}</str>
+            <str name="wt">xsort</str>
+            <str name="distrib">false</str>
+        </lst>
+
+        <arr name="components">
+            <str>query</str>
+        </arr>
+    </requestHandler>
+
+    <requestHandler name="/stream" class="solr.StreamHandler">
+        <lst name="invariants">
+            <str name="wt">json</str>
+            <str name="distrib">false</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler name="/analysis/field"
+                    startup="lazy"
+                    class="solr.FieldAnalysisRequestHandler"/>
+
+    <requestHandler name="/analysis/document"
+                    class="solr.DocumentAnalysisRequestHandler"
+                    startup="lazy"/>
+
+    <requestHandler name="/retention"
+                    class="de.qaware.chronix.solr.retention.ChronixRetentionHandler">
+        <lst name="invariants">
+            <str name="queryField">end</str>
+            <str name="timeSeriesAge">40DAY</str>
+            <str name="removeDailyAt">12</str>
+            <str name="retentionUrl">http://localhost:8983/solr/chronix/retention</str>
+            <str name="optimizeAfterDeletion">false</str>
+            <str name="softCommit">false</str>
+        </lst>
+    </requestHandler>
+
+
+    <updateRequestProcessorChain name="update-processor-chain">
+        <processor class="solr.UUIDUpdateProcessorFactory">
+            <str name="fieldName">id</str>
+        </processor>
+        <processor class="solr.LogUpdateProcessorFactory"/>
+        <processor class="solr.RunUpdateProcessorFactory"/>
+    </updateRequestProcessorChain>
+
+    <queryResponseWriter name="json" class="solr.JSONResponseWriter">
+        <str name="content-type">text/plain; charset=UTF-8</str>
+    </queryResponseWriter>
+
+    <!--
+       Custom response writers can be declared as needed...
+      -->
+    <queryResponseWriter name="velocity" class="solr.VelocityResponseWriter" startup="lazy">
+        <str name="template.base.dir">${velocity.template.base.dir:}</str>
+    </queryResponseWriter>
+
+    <!-- XSLT response writer transforms the XML output by any xslt file found
+         in Solr's conf/xslt directory.  Changes to xslt files are checked for
+         every xsltCacheLifetimeSeconds.
+      -->
+    <queryResponseWriter name="xslt" class="solr.XSLTResponseWriter">
+        <int name="xsltCacheLifetimeSeconds">5</int>
+    </queryResponseWriter>
+
+    <!-- Legacy config for the admin interface -->
+    <admin>
+        <defaultQuery>*:*</defaultQuery>
+    </admin>
+
+</config>

@@ -13,26 +13,29 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.retention;
+package de.qaware.chronix.solr.query.analysis.aggregation;
+
+import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.search.DocList;
+
+import java.io.IOException;
 
 /**
- * Constants for the retention query handler
+ * Provider for better testing.
  *
  * @author f.lautenschlager
  */
-public class RetentionConstants {
-
-    public static final String QUERY_FIELD = "queryField";
-    public static final String REMOVE_TIME_SERIES_OLDER = "timeSeriesAge";
-    public static final String OPTIMIZE_AFTER_DELETION = "optimizeAfterDeletion";
-    public static final String SOFT_COMMIT = "softCommit";
-    public static final String REMOVE_DAILY_AT = "removeDailyAt";
-    public static final String RETENTION_URL = "retentionUrl";
-
+public interface DocListProvider {
     /**
-     * Private constructor to avoid instances
+     * Returns a Solr DocList result
+     *
+     * @param q     - the user query
+     * @param req   - the solr query request object
+     * @param start - start of the query
+     * @param limit - the document limit
+     * @return DocList matching to the query
+     * @throws IOException if there are problems with solr
      */
-    private RetentionConstants() {
+    DocList doSimpleQuery(String q, SolrQueryRequest req, int start, int limit) throws IOException;
 
-    }
 }

@@ -16,12 +16,8 @@
 package de.qaware.chronix.solr.retention
 
 import org.apache.solr.common.util.NamedList
-import org.apache.solr.core.CoreContainer
-import org.apache.solr.core.CoreDescriptor
-import org.apache.solr.core.SolrCore
-import org.apache.solr.request.LocalSolrQueryRequest
+import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
-import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -30,7 +26,7 @@ import spock.lang.Specification
  */
 class ChronixRetentionHandlerTest extends Specification {
 
-    def "test retention handler"() {
+    def "test init retention handler"() {
         given:
         def chronixRetentionHandler = new ChronixRetentionHandler();
         def namedList = new NamedList()
@@ -56,7 +52,7 @@ class ChronixRetentionHandlerTest extends Specification {
         chronixRetentionHandler.softCommit == false
     }
 
-    @Ignore
+
     def "test test handle request body"() {
         given:
         def chronixRetentionHandler = new ChronixRetentionHandler();
@@ -72,19 +68,12 @@ class ChronixRetentionHandlerTest extends Specification {
 
         namedList.add("invariants", invariants)
 
-
-        def coreContainer = new CoreContainer("B:\\codebase\\chronixDB-github\\chronix.server\\chronix-server\\src\\test\\resources\\de\\qaware\\chronix")
-        def solrCore = new SolrCore("Chronix", new CoreDescriptor(coreContainer, "chronix", "."))
-
-        def solrQueryRequest = new LocalSolrQueryRequest(solrCore, invariants)
-
-        def solrQueryResponse = new SolrQueryResponse()
         when:
         chronixRetentionHandler.init(namedList)
-        chronixRetentionHandler.handleRequestBody(solrQueryRequest, solrQueryResponse)
+        chronixRetentionHandler.handleRequestBody(Mock(SolrQueryRequest), Mock(SolrQueryResponse))
 
         then:
-        solrQueryResponse != null
+        thrown NullPointerException
     }
 
     def "test get description and source"() {

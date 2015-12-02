@@ -13,26 +13,18 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.retention;
+package de.qaware.chronix.solr.query.analysis.aggregation.aggregator;
 
 /**
- * Constants for the retention query handler
+ * The current implemented aggregations
  *
  * @author f.lautenschlager
  */
-public class RetentionConstants {
+public enum AggregationType {
 
-    public static final String QUERY_FIELD = "queryField";
-    public static final String REMOVE_TIME_SERIES_OLDER = "timeSeriesAge";
-    public static final String OPTIMIZE_AFTER_DELETION = "optimizeAfterDeletion";
-    public static final String SOFT_COMMIT = "softCommit";
-    public static final String REMOVE_DAILY_AT = "removeDailyAt";
-    public static final String RETENTION_URL = "retentionUrl";
-
-    /**
-     * Private constructor to avoid instances
-     */
-    private RetentionConstants() {
-
-    }
+    AVG,
+    MIN,
+    MAX,
+    DEV,
+    P
 }

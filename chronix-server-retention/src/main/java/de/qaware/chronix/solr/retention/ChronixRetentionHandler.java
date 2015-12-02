@@ -25,6 +25,7 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.QueryParsing;
+import org.apache.solr.search.SyntaxError;
 import org.apache.solr.update.CommitUpdateCommand;
 import org.apache.solr.update.DeleteUpdateCommand;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
@@ -35,6 +36,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -119,7 +121,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
 
             scheduler.startDelayed(180);
         } catch (SchedulerException e) {
-            LOGGER.info("Got an scheduler exception.", e);
+            LOGGER.warn("Got an scheduler exception.", e);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -140,7 +142,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * @throws Exception - if bad things are happen
      */
     @Override
-    public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+    public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws ParseException, IOException, SyntaxError {
         String deletionQuery = getDeletionQuery();
         LOGGER.info("Handle deletion request for query {}", deletionQuery);
 
@@ -159,7 +161,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * @return true if the hit count is greater zero, otherwise false
      * @throws Exception
      */
-    private boolean olderDocumentsExists(String queryString, SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+    private boolean olderDocumentsExists(String queryString, SolrQueryRequest req, SolrQueryResponse rsp) throws SyntaxError, IOException {
         String defType = req.getParams().get(QueryParsing.DEFTYPE, QParserPlugin.DEFAULT_QTYPE);
 
         QParser queryParser = QParser.getParser(queryString, defType, req);
@@ -195,7 +197,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * @param req       - the solr query request information
      * @throws Exception
      */
-    private void deleteOldDocuments(String deletionQuery, UpdateRequestProcessor processor, SolrQueryRequest req) throws Exception {
+    private void deleteOldDocuments(String deletionQuery, UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {
         DeleteUpdateCommand delete = new DeleteUpdateCommand(req);
         delete.setQuery(deletionQuery);
         processor.processDelete(delete);
@@ -208,7 +210,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * @param req       - the solr query request information
      * @throws Exception
      */
-    private void commitDeletions(UpdateRequestProcessor processor, SolrQueryRequest req) throws Exception {
+    private void commitDeletions(UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {
         CommitUpdateCommand commit = new CommitUpdateCommand(req, optimizeAfterDeletion);
         commit.softCommit = softCommit;
         processor.processCommit(commit);
