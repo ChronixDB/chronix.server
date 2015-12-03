@@ -165,7 +165,6 @@ public class SolrStreamingService<T> implements Iterator<T> {
             SolrDocument document;
             do {
                 document = solrStreamingHandler.pool();
-                LOGGER.debug("Polling {} document", document);
                 if (document != null) {
                     ListenableFuture future = service.submit(new DocumentConverterCaller<>(document, converter, queryStart, queryEnd));
                     Futures.addCallback(future, timeSeriesHandler);
@@ -173,10 +172,10 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
                 if (document == null) {
                     if (timeLimit == null) {
-                        timeLimit = Instant.now().plus(50, ChronoUnit.MILLIS);
+                        timeLimit = Instant.now().plus(500, ChronoUnit.MILLIS);
 
                     } else if (Instant.now().isAfter(timeLimit)) {
-                        throw new RuntimeException("Polling documents since 50 milliseconds getting always null.");
+                        throw new RuntimeException("Polling documents since 500 milliseconds getting always null.");
                     }
                 } else {
                     timeLimit = null;
