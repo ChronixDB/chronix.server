@@ -25,6 +25,7 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.time.Instant
 import java.util.stream.Collectors
@@ -66,7 +67,7 @@ class ChronixClientTestIT extends Specification {
         end = start + (9 * 500)
 
         when: "We clean the index to ensure that no old data is loaded."
-        sleep(30_000)
+        sleep(10_000)
         httpCoreClient.deleteByQuery("*:*")
         def result = httpCoreClient.commit()
 
@@ -89,6 +90,9 @@ class ChronixClientTestIT extends Specification {
             10.times {
                 builder.point(new MetricDataPoint(start + (it * 500), it * 2))
             }
+            //add an outlier
+            builder.point(new MetricDataPoint(start + (it * 500), 9999))
+
             documents.add(builder.build())
         }
 
@@ -102,7 +106,7 @@ class ChronixClientTestIT extends Specification {
     }
 
 
-    def "Test add and query time series to Chronix with embedded Solr"() {
+    def "Test add and query time series to Chronix with Solr"() {
         when:
         //query all documents
         List<MetricTimeSeries> timeSeries = chronix.stream(httpCoreClient, new SolrQuery("*:*"), start, end, 200).collect(Collectors.toList())
@@ -113,7 +117,7 @@ class ChronixClientTestIT extends Specification {
 
         selectedTimeSeries.start == start
         selectedTimeSeries.end == end
-        selectedTimeSeries.points.size() == 10i
+        selectedTimeSeries.points.size() == 11i
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
@@ -124,16 +128,29 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
     }
 
-    def "Test analysis query"() {
+    @Unroll
+    def "Test analysis query #analysisQuery"() {
         when:
         def query = new SolrQuery("*:*");
         query.addFilterQuery(analysisQuery)
         List<MetricTimeSeries> timeSeries = chronix.stream(httpCoreClient, query, start, end, 200).collect(Collectors.toList())
         then:
         timeSeries.size() == 10
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() == points
+        selectedTimeSeries.attribute("myIntField") == 5
+        selectedTimeSeries.attribute("myLongField") == 8L
+        selectedTimeSeries.attribute("myDoubleField") == 5.5D
+        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
+        //selectedTimeSeries.attribute("myStringList") == listStringField
+        //selectedTimeSeries.attribute("myIntList") == listIntField
+        //selectedTimeSeries.attribute("myLongList") == listLongField
+        //selectedTimeSeries.attribute("myDoubleList") == listDoubleField
 
         where:
-        analysisQuery << ["ag=max", "analysis=trend"]
+        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]
+        points << [1, 1, 1, 1, 1, 11, 11]
 
     }
 }

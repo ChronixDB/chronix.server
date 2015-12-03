@@ -59,7 +59,10 @@ public class DocumentConverterCaller<T> implements Callable<T> {
         BinaryStorageDocument.Builder timeSeriesBuilder = new BinaryStorageDocument.Builder();
 
         document.forEach(mapEntry -> addToBuilder(timeSeriesBuilder, mapEntry));
-        return documentConverter.from(timeSeriesBuilder.build(), queryStart, queryEnd);
+        LOGGER.debug("Calling document converter with {}", document);
+        T timeSeries = documentConverter.from(timeSeriesBuilder.build(), queryStart, queryEnd);
+        LOGGER.debug("Returning time series {} to callee", timeSeries);
+        return timeSeries;
     }
 
     private void addToBuilder(BinaryStorageDocument.Builder timeSeriesBuilder, Map.Entry<String, Object> mapEntry) {

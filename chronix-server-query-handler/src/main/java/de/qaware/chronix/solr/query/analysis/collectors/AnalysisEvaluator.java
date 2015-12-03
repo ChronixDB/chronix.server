@@ -98,8 +98,8 @@ public class AnalysisEvaluator {
     }
 
     private static int detectFrequency(List<MetricDataPoint> points, String[] analysisArguments) {
-        long windowThreshold = Long.parseLong(analysisArguments[0]);
-        long windowSize = Long.parseLong(analysisArguments[1]);
+        long windowSize = Long.parseLong(analysisArguments[0]);
+        long windowThreshold = Long.parseLong(analysisArguments[1]);
 
         List<MetricDataPoint> currentWindow = new ArrayList<>();
         List<Integer> windowCount = new ArrayList<>();

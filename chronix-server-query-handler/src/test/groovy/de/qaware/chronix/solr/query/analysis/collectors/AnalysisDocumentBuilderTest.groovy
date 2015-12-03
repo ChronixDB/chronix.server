@@ -61,13 +61,25 @@ class AnalysisDocumentBuilderTest extends Specification {
         def docs = fillDocs()
         collectedDocs.put("groovy-laptop", docs);
         def collectedDoc = collectedDocs.entrySet().iterator().next()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=frequency:10:10"] as String[])
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
 
         when:
         def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, collectedDoc);
 
         then:
-        document == null
+        document.getFieldValue("host") as String == "laptop"
+        document.getFieldValue("metric") as String == "groovy"
+        document.getFieldValue("start") as long == 0
+        document.getFieldValue("end") as long == 990
+        document.getFieldValue("value") == null
+        document.getFieldValue("analysis") as String == "TREND"
+        document.getFieldValue("analysisParam") as String == ""
+        document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("data") != null
+
+        document.getFieldValue("someInt") as int == 1i
+        document.getFieldValue("someFloat") as float == 1.1f
+        document.getFieldValue("someDouble") as double == 2.0d
 
     }
 
@@ -88,11 +100,12 @@ class AnalysisDocumentBuilderTest extends Specification {
         document.getFieldValue("host") as String == "laptop"
         document.getFieldValue("metric") as String == "groovy"
         document.getFieldValue("start") as long == 0
-        document.getFieldValue("end") as long == 891
-        document.getFieldValue("value") as double == 89100.0d
+        document.getFieldValue("end") as long == 990
+        document.getFieldValue("value") as double == 99000.0d
         document.getFieldValue("analysis") as String == "MAX"
         document.getFieldValue("analysisParam") as String == ""
         document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("data") == null
 
         document.getFieldValue("someInt") as int == 1i
         document.getFieldValue("someFloat") as float == 1.1f
@@ -108,7 +121,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         10.times {
             MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")
                     .attribute("host", "laptop")
-                    .data(createPoints(it))
+                    .data(createPoints(it + 1))
                     .build();
             def doc = converter.to(ts)
             result.add(asLuceneDoc(doc))

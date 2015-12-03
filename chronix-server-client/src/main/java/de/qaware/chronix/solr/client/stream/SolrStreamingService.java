@@ -71,7 +71,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
     /**
      * The executor service to do the work asynchronously
      */
-    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(4));
+    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     /**
      * The handler for this service
@@ -153,8 +153,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
     }
 
     private void streamDocumentsFromSolr() {
-        Instant startTime = Instant.now();
-        Instant timeLimit = startTime.plus(5, ChronoUnit.SECONDS);
+        Instant timeLimit = Instant.now().plus(20, ChronoUnit.MILLIS);
         SolrQuery solrQuery = query.getCopy();
         solrQuery.setRows(nrOfTimeSeriesPerBatch);
         solrQuery.setStart(currentDocumentCount);
@@ -172,7 +171,18 @@ public class SolrStreamingService<T> implements Iterator<T> {
                     Futures.addCallback(future, timeSeriesHandler);
                 }
 
-            } while (solrStreamingHandler.canPoll() || (document == null && startTime.isAfter(timeLimit)));
+                if (document == null) {
+                    if (timeLimit == null) {
+                        timeLimit = Instant.now().plus(50, ChronoUnit.MILLIS);
+
+                    } else if (Instant.now().isAfter(timeLimit)) {
+                        throw new RuntimeException("Polling documents since 50 milliseconds getting always null.");
+                    }
+                } else {
+                    timeLimit = null;
+                }
+
+            } while (solrStreamingHandler.canPoll());
         } catch (SolrServerException | IOException e) {
             LOGGER.warn("Exception while streaming the data points from Solr", e);
         }

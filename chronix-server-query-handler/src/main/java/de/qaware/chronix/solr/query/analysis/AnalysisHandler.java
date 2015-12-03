@@ -36,10 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -53,7 +50,8 @@ public class AnalysisHandler extends SearchHandler {
 
     private final DocListProvider docListProvider;
 
-    /**<
+    /**
+     * <
      * Constructs an isAggregation handler
      *
      * @param docListProvider - the search provider for the DocList Result
@@ -64,7 +62,7 @@ public class AnalysisHandler extends SearchHandler {
 
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
-        LOGGER.debug("Handling analysis request {}", req);
+        LOGGER.error("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0
         SolrParams params = req.getParams();
         String rowsParam = params.get(CommonParams.ROWS, null);
@@ -97,6 +95,8 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(aggregatedDocs.size());
         }
         rsp.add("response", results);
+        rsp.add("hits", collectedDocs.size());
+        LOGGER.error("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries)) + "/");
 
     }
 
@@ -127,7 +127,7 @@ public class AnalysisHandler extends SearchHandler {
 
 
     private List<SolrDocument> analyze(Map<String, List<Document>> collectedDocs, Map.Entry<AnalysisType, String[]> analysis, long queryStart, long queryEnd) {
-        List<SolrDocument> solrDocuments = new ArrayList<>();
+        List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs);
             if (doc != null) {

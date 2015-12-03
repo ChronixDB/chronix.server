@@ -159,12 +159,16 @@ public class AnalysisDocumentBuilder {
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
 
         SolrDocument doc = new SolrDocument();
-        converter.to(timeSeries).getFields().forEach((name, value) -> {
-            if (name.equals(Schema.DATA) && withData) {
-                doc.addField(name, value);
+        converter.to(timeSeries).getFields().forEach((field, value) -> {
+
+            if (field.equals(Schema.DATA)) {
+                if (withData) {
+                    doc.addField(field, value);
+                }
             } else {
-                doc.addField(name, value);
+                doc.addField(field, value);
             }
+
         });
         return doc;
     }

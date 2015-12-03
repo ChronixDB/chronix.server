@@ -77,7 +77,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
     public T take() {
         try {
             LOGGER.debug("Getting latest element from queue");
-            return queue.poll(10, TimeUnit.SECONDS);
+            return queue.poll(50, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             LOGGER.warn("InterruptedException occurred. Returning null value to callee.", e);
             return null;
