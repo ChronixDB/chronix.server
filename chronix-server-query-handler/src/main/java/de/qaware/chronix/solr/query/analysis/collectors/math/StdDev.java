@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.aggregator.math;
+package de.qaware.chronix.solr.query.analysis.collectors.math;
 
 import java.util.List;
 

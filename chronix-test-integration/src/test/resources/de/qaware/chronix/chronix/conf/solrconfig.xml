@@ -134,23 +134,6 @@
                         addHttpRequestToContext="false"/>
 
     </requestDispatcher>
-    <!--
-       <requestHandler name="/select" class="solr.SearchHandler">
-           <lst name="defaults">
-               <str name="echoParams">explicit</str>
-               <int name="rows">10</int>
-           </lst>
-       </requestHandler>
-
-       <requestHandler name="/query" class="solr.SearchHandler">
-            <lst name="defaults">
-                <str name="echoParams">explicit</str>
-                <str name="wt">json</str>
-                <str name="indent">true</str>
-            </lst>
-        </requestHandler>
-        -->
-
 
     <requestHandler name="/select" class="de.qaware.chronix.solr.query.ChronixQueryHandler">
         <lst name="defaults">
@@ -226,6 +209,7 @@
     <requestHandler name="/analysis/document"
                     class="solr.DocumentAnalysisRequestHandler"
                     startup="lazy"/>
+
 
     <requestHandler name="/retention"
                     class="de.qaware.chronix.solr.retention.ChronixRetentionHandler">

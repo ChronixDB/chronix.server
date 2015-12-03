@@ -13,12 +13,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation;
+package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
-import de.qaware.chronix.solr.query.analysis.aggregation.aggregator.AggregatedDocumentBuilder;
-import de.qaware.chronix.solr.query.analysis.aggregation.aggregator.AggregationQueryEvaluator;
-import de.qaware.chronix.solr.query.analysis.aggregation.aggregator.AggregationType;
+import de.qaware.chronix.solr.query.analysis.collectors.AnalysisDocumentBuilder;
+import de.qaware.chronix.solr.query.analysis.collectors.AnalysisQueryEvaluator;
+import de.qaware.chronix.solr.query.analysis.collectors.AnalysisType;
 import org.apache.lucene.document.Document;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -47,24 +47,24 @@ import java.util.function.Function;
  *
  * @author f.lautenschlager
  */
-public class AggregationHandler extends SearchHandler {
+public class AnalysisHandler extends SearchHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AggregationHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisHandler.class);
 
     private final DocListProvider docListProvider;
 
-    /**
-     * Constructs an aggregation handler
+    /**<
+     * Constructs an isAggregation handler
      *
      * @param docListProvider - the search provider for the DocList Result
      */
-    public AggregationHandler(DocListProvider docListProvider) {
+    public AnalysisHandler(DocListProvider docListProvider) {
         this.docListProvider = docListProvider;
     }
 
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
-        LOGGER.debug("Handling aggregation request {}", req);
+        LOGGER.debug("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0
         SolrParams params = req.getParams();
         String rowsParam = params.get(CommonParams.ROWS, null);
@@ -73,10 +73,12 @@ public class AggregationHandler extends SearchHandler {
             rows = Integer.parseInt(rowsParam);
         }
 
-        //Do a query and collect them on the join function
-        String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
-        Map<String, List<Document>> collectedDocs = findDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
         SolrDocumentList results = new SolrDocumentList();
+        String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
+
+
+        //Do a query and collect them on the join function
+        Map<String, List<Document>> collectedDocs = findDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
 
         //If now rows should returned, we only return the num found
         if (rows == 0) {
@@ -86,9 +88,9 @@ public class AggregationHandler extends SearchHandler {
             long queryStart = getValue(params.get(ChronixQueryParams.QUERY_START_LONG), 0);
             long queryEnd = getValue(params.get(ChronixQueryParams.QUERY_END_LONG), Long.MAX_VALUE);
 
-            //only aggregate docs if rows are greater zero
-            List<SolrDocument> aggregatedDocs = aggregate(collectedDocs,
-                    AggregationQueryEvaluator.buildAggregation(filterQueries),
+            //We have an analysis query
+            List<SolrDocument> aggregatedDocs = analyze(collectedDocs,
+                    AnalysisQueryEvaluator.buildAnalysis(filterQueries),
                     queryStart, queryEnd);
 
             results.addAll(aggregatedDocs);
@@ -118,15 +120,20 @@ public class AggregationHandler extends SearchHandler {
         DocIterator docIterator = result.iterator();
 
         while (docIterator.hasNext()) {
-            AggregatedDocumentBuilder.collect(collectedDocs, searcher.doc(docIterator.nextDoc()), collectionKey);
+            AnalysisDocumentBuilder.collect(collectedDocs, searcher.doc(docIterator.nextDoc()), collectionKey);
         }
         return collectedDocs;
     }
 
 
-    private List<SolrDocument> aggregate(Map<String, List<Document>> collectedDocs, Map.Entry<AggregationType, Double> aggregation, long queryStart, long queryEnd) {
+    private List<SolrDocument> analyze(Map<String, List<Document>> collectedDocs, Map.Entry<AnalysisType, String[]> analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = new ArrayList<>();
-        collectedDocs.entrySet().parallelStream().forEach(docs -> solrDocuments.add(AggregatedDocumentBuilder.aggregate(aggregation, queryStart, queryEnd, docs)));
+        collectedDocs.entrySet().parallelStream().forEach(docs -> {
+            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs);
+            if (doc != null) {
+                solrDocuments.add(doc);
+            }
+        });
         return solrDocuments;
     }
 

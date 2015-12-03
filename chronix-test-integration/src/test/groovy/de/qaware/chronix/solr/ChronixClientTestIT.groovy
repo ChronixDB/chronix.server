@@ -66,7 +66,7 @@ class ChronixClientTestIT extends Specification {
         end = start + (9 * 500)
 
         when: "We clean the index to ensure that no old data is loaded."
-        sleep(10_000)
+        sleep(30_000)
         httpCoreClient.deleteByQuery("*:*")
         def result = httpCoreClient.commit()
 
@@ -124,12 +124,16 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
     }
 
-    def "Test max aggregation query"() {
+    def "Test analysis query"() {
         when:
         def query = new SolrQuery("*:*");
-        query.addFilterQuery("ag=max")
+        query.addFilterQuery(analysisQuery)
         List<MetricTimeSeries> timeSeries = chronix.stream(httpCoreClient, query, start, end, 200).collect(Collectors.toList())
         then:
         timeSeries.size() == 10
+
+        where:
+        analysisQuery << ["ag=max", "analysis=trend"]
+
     }
 }

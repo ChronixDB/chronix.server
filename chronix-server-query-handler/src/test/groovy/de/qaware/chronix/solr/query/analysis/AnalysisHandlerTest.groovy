@@ -13,10 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation
+package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.solr.query.ChronixQueryParams
-import de.qaware.chronix.solr.query.analysis.aggregation.providers.SolrDocListProvider
+import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
 import org.apache.solr.common.params.ModifiableSolrParams
 import org.apache.solr.core.PluginInfo
 import org.apache.solr.request.SolrQueryRequest
@@ -27,7 +27,7 @@ import spock.lang.Specification
 /**
  * @author f.lautenschlager
  */
-class AggregationHandlerTest extends Specification {
+class AnalysisHandlerTest extends Specification {
 
     def "test handle aggregation request"() {
         given:
@@ -38,7 +38,7 @@ class AggregationHandlerTest extends Specification {
         def docListMock = Stub(DocListProvider)
         docListMock.doSimpleQuery(_, _, _, _) >> { new DocSlice(0i, 0, [] as int[], [] as float[], 0, 0) }
 
-        def aggregationHandler = new AggregationHandler(docListMock)
+        def aggregationHandler = new AnalysisHandler(docListMock)
 
         when:
         aggregationHandler.handleRequestBody(request, Mock(SolrQueryResponse))
@@ -57,7 +57,7 @@ class AggregationHandlerTest extends Specification {
 
     def "test get description"() {
         given:
-        def aggregationHandler = new AggregationHandler(new SolrDocListProvider())
+        def aggregationHandler = new AnalysisHandler(new SolrDocListProvider())
 
         when:
         def description = aggregationHandler.getDescription()
@@ -69,7 +69,7 @@ class AggregationHandlerTest extends Specification {
     def "test init and inform"() {
         given:
         def pluginInfo = Mock(PluginInfo.class)
-        def aggregationHandler = new AggregationHandler(new SolrDocListProvider())
+        def aggregationHandler = new AnalysisHandler(new SolrDocListProvider())
 
         when:
         aggregationHandler.init(pluginInfo)

@@ -13,19 +13,16 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.aggregator
-
+package de.qaware.chronix.solr.query.analysis.collectors
 import spock.lang.Specification
-
-import java.lang.reflect.MalformedParametersException
 /**
  * @author f.lautenschlager
  */
-class AggregationQueryEvaluatorTest extends Specification {
+class AnalysisQueryEvaluatorTest extends Specification {
 
     def "test ag query strings"() {
         when:
-        Map.Entry<AggregationType, Double> aggregation = AggregationQueryEvaluator.buildAggregation(fqs)
+        Map.Entry<AnalysisType, String[]> aggregation = AnalysisQueryEvaluator.buildAnalysis(fqs)
         then:
         aggregation.key == expectedAggreation
         aggregation.value == expectedValue
@@ -34,30 +31,37 @@ class AggregationQueryEvaluatorTest extends Specification {
                 ["ag=max"] as String[],
                 ["ag=avg"] as String[],
                 ["ag=dev"] as String[],
-                ["ag=p=0.4"] as String[]]
+                ["ag=p:0.4"] as String[],
+                ["analysis=trend"] as String[],
+                ["analysis=outlier"] as String[],
+                ["analysis=frequency:10:6"] as String[],
+        ]
 
-        expectedAggreation << [AggregationType.MIN, AggregationType.MAX, AggregationType.AVG, AggregationType.DEV, AggregationType.P]
-        expectedValue << [0, 0, 0, 0, 0.4]
+        expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P,
+                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY]
+        expectedValue << [new String[0], new String[0], new String[0], new String[0], ["0.4"] as String[],
+                          new String[0], new String[0], ["10", "6"] as String[]]
     }
 
     def "test ag query strings that produce exceptions"() {
         when:
-        AggregationQueryEvaluator.buildAggregation(fqs)
+        AnalysisQueryEvaluator.buildAnalysis(fqs)
 
         then:
-        thrown MalformedParametersException
+        thrown Exception
 
         where:
         fqs << [["min"] as String[],
-                ["ag=p=NotANumber"] as String[],
                 ["ag=p="] as String[],
+                ["analysis"] as String[],
+                ["analysis=UNKNOWN:127"] as String[],
                 null]
 
     }
 
     def "test private constructor"() {
         when:
-        AggregationQueryEvaluator.newInstance()
+        AnalysisQueryEvaluator.newInstance()
 
         then:
         noExceptionThrown()

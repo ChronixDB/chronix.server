@@ -13,23 +13,25 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.aggregator
+package de.qaware.chronix.solr.query.analysis.collectors
+
 import de.qaware.chronix.converter.BinaryStorageDocument
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.dts.MetricDataPoint
-import de.qaware.chronix.solr.query.analysis.aggregation.JoinFunctionEvaluator
+import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.lucene.document.*
 import org.apache.lucene.util.BytesRef
 import spock.lang.Specification
+
 /**
  * @author f.lautenschlager
  */
-class AggregatedDocumentBuilderTest extends Specification {
+class AnalysisDocumentBuilderTest extends Specification {
 
     def "test private constructor"() {
         when:
-        AggregatedDocumentBuilder.newInstance()
+        AnalysisDocumentBuilder.newInstance()
         then:
         noExceptionThrown()
     }
@@ -45,11 +47,28 @@ class AggregatedDocumentBuilderTest extends Specification {
         def joinFunction = JoinFunctionEvaluator.joinFunction(fq)
 
         when:
-        2.times { AggregatedDocumentBuilder.collect(collectedDocs, document, joinFunction) }
+        2.times { AnalysisDocumentBuilder.collect(collectedDocs, document, joinFunction) }
 
         then:
         collectedDocs.size() == 1
         collectedDocs.get("groovy-laptop").size() == 2
+    }
+
+    def "test high level analysis"() {
+        given:
+        def collectedDocs = new HashMap<String, List<Document>>();
+
+        def docs = fillDocs()
+        collectedDocs.put("groovy-laptop", docs);
+        def collectedDoc = collectedDocs.entrySet().iterator().next()
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=frequency:10:10"] as String[])
+
+        when:
+        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, collectedDoc);
+
+        then:
+        document == null
+
     }
 
     def "test aggregate"() {
@@ -59,11 +78,11 @@ class AggregatedDocumentBuilderTest extends Specification {
         def docs = fillDocs()
         collectedDocs.put("groovy-laptop", docs);
         def collectedDoc = collectedDocs.entrySet().iterator().next()
-        def aggregation = AggregationQueryEvaluator.buildAggregation(["ag=max"] as String[])
+        def aggregation = AnalysisQueryEvaluator.buildAnalysis(["ag=max"] as String[])
 
         when:
 
-        def document = AggregatedDocumentBuilder.aggregate(aggregation, 0l, Long.MAX_VALUE, collectedDoc);
+        def document = AnalysisDocumentBuilder.analyze(aggregation, 0l, Long.MAX_VALUE, collectedDoc);
 
         then:
         document.getFieldValue("host") as String == "laptop"
@@ -72,7 +91,7 @@ class AggregatedDocumentBuilderTest extends Specification {
         document.getFieldValue("end") as long == 891
         document.getFieldValue("value") as double == 89100.0d
         document.getFieldValue("analysis") as String == "MAX"
-        document.getFieldValue("analysisParam") as Double == 0.0d
+        document.getFieldValue("analysisParam") as String == ""
         document.getFieldValue("joinKey") as String == "groovy-laptop"
 
         document.getFieldValue("someInt") as int == 1i
@@ -118,6 +137,5 @@ class AggregatedDocumentBuilderTest extends Specification {
             points.add(new MetricDataPoint(it * i, it * 100 * i))
         }
         points
-
     }
 }

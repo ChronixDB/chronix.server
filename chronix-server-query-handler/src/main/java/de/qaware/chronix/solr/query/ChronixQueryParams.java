@@ -23,9 +23,16 @@ package de.qaware.chronix.solr.query;
 public class ChronixQueryParams {
 
     /**
-     * Used to determine if a query contains an aggregation
+     * Used to determine if a query contains an isAggregation
      */
     public static final String AGGREGATION_PARAM = "ag=";
+
+    /**
+     * Used to determine if a query contains an analysis
+     */
+    public static final String ANALYSIS_PARAM = "analysis=";
+
+
     /**
      * Used to join documents into one time series
      */

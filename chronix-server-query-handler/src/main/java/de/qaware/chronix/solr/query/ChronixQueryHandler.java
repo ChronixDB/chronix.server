@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query;
 
-import de.qaware.chronix.solr.query.analysis.aggregation.AggregationHandler;
-import de.qaware.chronix.solr.query.analysis.aggregation.providers.SolrDocListProvider;
+import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
+import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -43,9 +43,9 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     private final SearchHandler searchHandler = new SearchHandler();
 
     /**
-     * The aggregation handler
+     * The isAggregation handler
      */
-    private final SearchHandler aggregationHandler = new AggregationHandler(new SolrDocListProvider());
+    private final SearchHandler analysisHandler = new AnalysisHandler(new SolrDocListProvider());
 
     /**
      * The date range parser
@@ -56,7 +56,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     @Override
     public void init(PluginInfo info) {
         searchHandler.init(info);
-        aggregationHandler.init(info);
+        analysisHandler.init(info);
     }
 
     @Override
@@ -77,11 +77,11 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         req.setParams(modifiableSolrParams);
 
         //check the filter queries
-        String[] filterQuery = modifiableSolrParams.getParams(CommonParams.FQ);
+        String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
 
-        //if we have an aggregation
-        if (containsAggregation(filterQuery)) {
-            aggregationHandler.handleRequestBody(req, rsp);
+        //if we have an isAggregation
+        if (contains(filterQueries, ChronixQueryParams.AGGREGATION_PARAM) || contains(filterQueries, ChronixQueryParams.ANALYSIS_PARAM)) {
+            analysisHandler.handleRequestBody(req, rsp);
 
         } else {
             //let the default search handler do its work
@@ -90,14 +90,20 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
     }
 
-
-    private boolean containsAggregation(String[] filterQueries) {
+    /**
+     * Checks if the given string array (filter queries) contains the given identifier.
+     *
+     * @param filterQueries - the filter queries
+     * @param identifier    - an identifier
+     * @return true if the filter queries contains the identifier, otherwise false.
+     */
+    private boolean contains(String[] filterQueries, String identifier) {
         if (filterQueries == null) {
             return false;
         }
 
         for (String filterQuery : filterQueries) {
-            if (filterQuery.contains(ChronixQueryParams.AGGREGATION_PARAM)) {
+            if (filterQuery.contains(identifier)) {
                 return true;
             }
         }
@@ -113,6 +119,6 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     @Override
     public void inform(SolrCore core) {
         searchHandler.inform(core);
-        aggregationHandler.inform(core);
+        analysisHandler.inform(core);
     }
 }

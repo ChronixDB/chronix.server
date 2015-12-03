@@ -13,23 +13,22 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.providers;
+package de.qaware.chronix.solr.query.analysis.providers
 
-import de.qaware.chronix.solr.query.analysis.aggregation.DocListProvider;
-import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.search.DocList;
-import org.apache.solr.util.SolrPluginUtils;
-
-import java.io.IOException;
+import spock.lang.Specification
 
 /**
- * Solr DocList provider implementation
- *
+ * A unit test that is only used to increase test coverage.
+ * The solr doc list provider uses a solr class that is tests
  * @author f.lautenschlager
  */
-public class SolrDocListProvider implements DocListProvider {
-    @Override
-    public DocList doSimpleQuery(String q, SolrQueryRequest req, int start, int limit) throws IOException {
-        return SolrPluginUtils.doSimpleQuery(q, req, start, limit);
+class SolrDocListProviderTest extends Specification {
+
+    def "test doSimpleQuery"() {
+        when:
+        new SolrDocListProvider().doSimpleQuery("", null, 0, 99);
+
+        then:
+        thrown NullPointerException
     }
 }

@@ -13,37 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.aggregator.math
+package de.qaware.chronix.solr.query.analysis.collectors.math
 
+import de.qaware.chronix.dts.MetricDataPoint
 import spock.lang.Specification
 
-import java.util.stream.DoubleStream
 /**
- * Unit test for the percentile class
+ * Unit test for the regression class
  * @author f.lautenschlager
  */
-class PercentileTest extends Specification {
-
-    def "test private constructor"() {
-        when:
-        Percentile.newInstance()
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "test evaluate 0.5 percentile"() {
+class LinearRegressionTest extends Specification {
+    def "test slope"() {
         given:
-        def percentile = 0.5
+        def points = []
+        100.times {
+            points.add(new MetricDataPoint(it, it * 2))
+        }
 
         when:
-        def value = Percentile.evaluate(stream, percentile)
+        def slope = new LinearRegression(points).slope()
 
         then:
-        value == expected
-
-        where:
-        stream << [DoubleStream.builder().add(10).add(11).build(), DoubleStream.builder().add(10).build()]
-        expected << [10.5, 10]
+        slope == 0.5d
     }
 }

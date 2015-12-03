@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query
 
-import de.qaware.chronix.solr.query.analysis.aggregation.AggregationHandler
+import de.qaware.chronix.solr.query.analysis.AnalysisHandler
 import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.solr.common.params.ModifiableSolrParams
 import org.apache.solr.core.PluginInfo
@@ -45,12 +45,12 @@ class ChronixQueryHandlerTest extends Specification {
     def "test inform cores"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AggregationHandler.class)
+        def aggregationHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "aggregationHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
 
         when:
         chronixQueryHandler.inform(null)
@@ -63,12 +63,12 @@ class ChronixQueryHandlerTest extends Specification {
     def "test init"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AggregationHandler.class)
+        def aggregationHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "aggregationHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
 
         def info = Mock(PluginInfo)
 
@@ -83,12 +83,12 @@ class ChronixQueryHandlerTest extends Specification {
     def "test handle default request"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AggregationHandler.class)
+        def aggregationHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "aggregationHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
 
 
         def request = Mock(SolrQueryRequest)
@@ -113,12 +113,12 @@ class ChronixQueryHandlerTest extends Specification {
     def "test handle aggregation request"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AggregationHandler.class)
+        def aggregationHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "aggregationHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
 
         def request = Mock(SolrQueryRequest)
         def response = Mock(SolrQueryResponse)
@@ -142,13 +142,13 @@ class ChronixQueryHandlerTest extends Specification {
     def "test exception cases"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AggregationHandler.class)
+        def aggregationHandler = Mock(AnalysisHandler.class)
 
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "aggregationHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
 
         def response = Mock(SolrQueryResponse)
 

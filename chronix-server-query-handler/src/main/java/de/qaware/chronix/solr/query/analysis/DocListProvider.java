@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation;
+package de.qaware.chronix.solr.query.analysis;
 
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.DocList;

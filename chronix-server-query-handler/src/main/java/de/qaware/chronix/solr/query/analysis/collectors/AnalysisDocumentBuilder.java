@@ -13,11 +13,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.aggregation.aggregator;
+package de.qaware.chronix.solr.query.analysis.collectors;
 
+import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.BinaryStorageDocument;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
-import de.qaware.chronix.dts.MetricDataPoint;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
@@ -30,16 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * @author f.lautenschlager
  */
-public class AggregatedDocumentBuilder {
+public class AnalysisDocumentBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AggregatedDocumentBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisDocumentBuilder.class);
 
-    private AggregatedDocumentBuilder() {
+    private AnalysisDocumentBuilder() {
         //avoid instances
     }
 
@@ -61,15 +60,15 @@ public class AggregatedDocumentBuilder {
     }
 
     /**
-     * @param aggregation - the aggregation including its parameter
+     * @param aggregation - the isAggregation including its parameter
      * @param queryStart  - the user query start
      * @param queryEnd    - the user query end
      * @param docs        - the lucene documents that belong to the requested time series
-     * @return
+     * @return the aggregated solr document
      */
-    public static SolrDocument aggregate(Map.Entry<AggregationType, Double> aggregation, long queryStart, long queryEnd, Map.Entry<String, List<Document>> docs) {
+    public static SolrDocument analyze(Map.Entry<AnalysisType, String[]> aggregation, long queryStart, long queryEnd, Map.Entry<String, List<Document>> docs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        double value = aggregateTimeSeries(timeSeries, aggregation);
+        double value = analyzeTimeSeries(timeSeries, aggregation);
         return buildDocument(timeSeries, value, aggregation, docs.getKey());
     }
 
@@ -92,39 +91,46 @@ public class AggregatedDocumentBuilder {
     }
 
     /**
-     * Aggregates the metric time series using the given aggregation
+     * Aggregates the metric time series using the given isAggregation
      *
      * @param timeSeries  - the time series
-     * @param aggregation - the aggregation
+     * @param aggregation - the isAggregation
      * @return the aggregated value
      */
-    private static double aggregateTimeSeries(MetricTimeSeries timeSeries, Map.Entry<AggregationType, Double> aggregation) {
-        DoubleStream points = timeSeries.getPoints().stream().mapToDouble(MetricDataPoint::getValue);
-        return AggregationEvaluator.evaluate(points, aggregation.getKey(), aggregation.getValue());
+    private static double analyzeTimeSeries(MetricTimeSeries timeSeries, Map.Entry<AnalysisType, String[]> aggregation) {
+        return AnalysisEvaluator.evaluate(timeSeries.getPoints(), aggregation.getKey(), aggregation.getValue());
     }
 
     /**
      * Builds a solr document that is needed for the response from the aggregated time series
      *
      * @param timeSeries  - the time series
-     * @param value       - the aggregation value
-     * @param aggregation - the aggregation
+     * @param value       - the isAggregation value
+     * @param aggregation - the isAggregation
      * @param key         - the join key
      * @return a solr document holding the attributes and the aggregated value
      */
-    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, Map.Entry<AggregationType, Double> aggregation, String key) {
+    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, Map.Entry<AnalysisType, String[]> aggregation, String key) {
 
-        SolrDocument doc = new SolrDocument();
-        timeSeries.attributes().forEach(doc::addField);
-        //add the required fields
-        doc.put("metric", timeSeries.getMetric());
-        doc.put("start", timeSeries.getStart());
-        doc.put("end", timeSeries.getEnd());
+        boolean highLevelAnalysis = AnalysisType.isHighLevel(aggregation.getKey());
 
-        //set the aggregation result
-        doc.put("value", value);
+        //-1 on high level analyses marks that the time series is ok and should not returned
+        if (highLevelAnalysis && value < 0) {
+            return null;
+        }
+
+        SolrDocument doc;
+
+        if (highLevelAnalysis) {
+            doc = convert(timeSeries, true);
+        } else {
+            doc = convert(timeSeries, false);
+            doc.put("value", value);
+        }
+
+        //Add some information about the analysis
         doc.put("analysis", aggregation.getKey().name());
-        doc.put("analysisParam", aggregation.getValue());
+        doc.put("analysisParam", String.join("-", aggregation.getValue()));
 
         //add the join key
         doc.put("joinKey", key);
@@ -147,6 +153,20 @@ public class AggregatedDocumentBuilder {
 
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
         return converter.from(solrDocument.build(), queryStart, queryEnd);
+    }
+
+    private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
+        KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
+
+        SolrDocument doc = new SolrDocument();
+        converter.to(timeSeries).getFields().forEach((name, value) -> {
+            if (name.equals(Schema.DATA) && withData) {
+                doc.addField(name, value);
+            } else {
+                doc.addField(name, value);
+            }
+        });
+        return doc;
     }
 
     /**
