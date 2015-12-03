@@ -13,9 +13,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-//Sonar plugin at the root
-apply plugin: "sonar-runner"
-
 buildscript {
     repositories {
         jcenter()
@@ -174,25 +171,6 @@ tasks.coveralls {
 
     dependsOn jacocoRootReport
     onlyIf { isCI }
-}
-
-//Sonar stuff
-sonarRunner {
-    sonarProperties {
-        property "sonar.sourceEncoding", "UTF-8"
-    }
-}
-
-sonarRunner {
-    sonarProperties {
-        property "sonar.host.url", "http://localhost:9000/"
-        property "sonar.jdbc.url", "jdbc:h2:tcp://localhost:9092/sonar"
-        property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
-        property "sonar.jdbc.username", "sonar"
-        property "sonar.jdbc.password", "sonar"
-        property "sonar.exclusions", "**/ProtocolBuffers.java"
-
-    }
 }
 
 task wrapper(type: Wrapper) {
