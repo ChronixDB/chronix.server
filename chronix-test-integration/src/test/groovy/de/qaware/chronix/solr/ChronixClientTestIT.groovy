@@ -67,7 +67,7 @@ class ChronixClientTestIT extends Specification {
         end = start + (9 * 500)
 
         when: "We clean the index to ensure that no old data is loaded."
-        sleep(10_000)
+        sleep(30_000)
         httpCoreClient.deleteByQuery("*:*")
         def result = httpCoreClient.commit()
 

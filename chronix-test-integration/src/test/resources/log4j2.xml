@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
-  <Appenders>
-    <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-    </Console>
-  </Appenders>
-  <Loggers>
-    <Root level="debug">
-      <AppenderRef ref="Console"/>
-    </Root>
-    <Logger name="org.apache.http" level="warn" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-  </Loggers>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="logfile" fileName="intTest.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="logfile"/>
+        </Root>
+        <Logger name="org.apache.http" level="warn" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+    </Loggers>
 </Configuration>
 
