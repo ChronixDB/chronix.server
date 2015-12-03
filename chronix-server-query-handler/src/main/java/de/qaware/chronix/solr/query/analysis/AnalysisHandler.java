@@ -62,7 +62,7 @@ public class AnalysisHandler extends SearchHandler {
 
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
-        LOGGER.error("Handling analysis request {}", req);
+        LOGGER.debug("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0
         SolrParams params = req.getParams();
         String rowsParam = params.get(CommonParams.ROWS, null);
@@ -96,7 +96,7 @@ public class AnalysisHandler extends SearchHandler {
         }
         rsp.add("response", results);
         rsp.add("hits", collectedDocs.size());
-        LOGGER.error("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries)) + "/");
+        LOGGER.debug("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/");
 
     }
 
