@@ -143,10 +143,10 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
         selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        //selectedTimeSeries.attribute("myStringList") == listStringField
-        //selectedTimeSeries.attribute("myIntList") == listIntField
-        //selectedTimeSeries.attribute("myLongList") == listLongField
-        //selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.attribute("myStringList") == listStringField
+        selectedTimeSeries.attribute("myIntList") == listIntField
+        selectedTimeSeries.attribute("myLongList") == listLongField
+        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
 
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]

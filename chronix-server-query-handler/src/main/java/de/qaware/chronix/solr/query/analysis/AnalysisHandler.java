@@ -15,7 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.collectors.AnalysisDocumentBuilder;
 import de.qaware.chronix.solr.query.analysis.collectors.AnalysisQueryEvaluator;
@@ -47,15 +46,6 @@ public class AnalysisHandler extends SearchHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisHandler.class);
 
     private final DocListProvider docListProvider;
-
-    private static final Set<String> REQUIRED_FIELDS = new HashSet<>();
-
-    static {
-        REQUIRED_FIELDS.add(Schema.DATA);
-        REQUIRED_FIELDS.add(Schema.START);
-        REQUIRED_FIELDS.add(Schema.END);
-        REQUIRED_FIELDS.add("metric");
-    }
 
     /**
      * Constructs an isAggregation handler
@@ -127,14 +117,11 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     private Set<String> getFields(String fl) {
-        //As a result Solr will return everything
         if (fl == null) {
             return null;
         }
-
-        //Otherwise add the required fields and the user given fields
         String[] fields = fl.split(",");
-        Set<String> returnFields = new HashSet<>(REQUIRED_FIELDS);
+        Set<String> returnFields = new HashSet<>();
         Collections.addAll(returnFields, fields);
         return returnFields;
     }

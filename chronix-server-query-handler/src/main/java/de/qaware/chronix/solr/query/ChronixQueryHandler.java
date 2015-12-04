@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query;
 
+import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -29,6 +30,9 @@ import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * The date range query handler to convert date expression and
  * delegate the query to the default search handler
@@ -37,6 +41,7 @@ import org.apache.solr.util.plugin.SolrCoreAware;
  */
 public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreAware, PluginInfoInitialized {
 
+    private static final Set<String> REQUIRED_FIELDS = new HashSet<>();
     /**
      * The default solr search handler
      */
@@ -52,6 +57,13 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
      */
     private final DateQueryParser dateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
+
+    static {
+        REQUIRED_FIELDS.add(Schema.DATA);
+        REQUIRED_FIELDS.add(Schema.START);
+        REQUIRED_FIELDS.add(Schema.END);
+        REQUIRED_FIELDS.add("metric");
+    }
 
     @Override
     public void init(PluginInfo info) {
@@ -73,6 +85,9 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         String query = dateRangeParser.replaceRangeQueryTerms(originQuery);
 
         modifiableSolrParams.set(CommonParams.Q, query);
+
+        //Set the min required fields if the user define a sub set of fields
+        modifiableSolrParams.set(CommonParams.FL, minRequiredFields(modifiableSolrParams.get(CommonParams.FL)));
         //Set the updated query
         req.setParams(modifiableSolrParams);
 
@@ -88,6 +103,24 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
             searchHandler.handleRequestBody(req, rsp);
         }
 
+    }
+
+    /**
+     * Gets the requested fields.
+     * Joins the REQUIRED_FIELDS and the user defined fields.
+     * E.g.:
+     * user requested fields: userField
+     * => data,start,end,metric,userField
+     *
+     * @param fl - the solr fl param
+     * @return the user defined fields and the required fields, or null if fl is null
+     */
+    private String minRequiredFields(String fl) {
+        //As a result Solr will return everything
+        if (fl == null) {
+            return null;
+        }
+        return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);
     }
 
     /**
