@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
-import org.apache.lucene.document.Document;
+import org.apache.solr.common.SolrDocument;
 
 import java.util.function.Function;
 
@@ -27,7 +27,7 @@ import java.util.function.Function;
  */
 public class JoinFunctionEvaluator {
 
-    private static final Function<Document, String> defaultJoinFunction = doc -> doc.get(ChronixQueryParams.DEFAULT_JOIN_FIELD);
+    private static final Function<SolrDocument, String> defaultJoinFunction = doc -> doc.getFieldValue(ChronixQueryParams.DEFAULT_JOIN_FIELD).toString();
 
 
     private JoinFunctionEvaluator() {
@@ -42,7 +42,7 @@ public class JoinFunctionEvaluator {
      * @param filterQueries - the solr filter queries
      * @return a function to get a unique join key
      */
-    public static Function<Document, String> joinFunction(String[] filterQueries) {
+    public static Function<SolrDocument, String> joinFunction(String[] filterQueries) {
         if (filterQueries == null || filterQueries.length == 0) {
             return defaultJoinFunction;
         }
@@ -63,7 +63,7 @@ public class JoinFunctionEvaluator {
         return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
     }
 
-    private static String joinKey(String[] fields, Document doc) {
+    private static String joinKey(String[] fields, SolrDocument doc) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             String field = fields[i];

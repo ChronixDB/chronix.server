@@ -16,11 +16,16 @@
 package de.qaware.chronix.solr.query.analysis.providers;
 
 import de.qaware.chronix.solr.query.analysis.DocListProvider;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.DocList;
+import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.SolrPluginUtils;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Solr DocList provider implementation
@@ -31,5 +36,10 @@ public class SolrDocListProvider implements DocListProvider {
     @Override
     public DocList doSimpleQuery(String q, SolrQueryRequest req, int start, int limit) throws IOException {
         return SolrPluginUtils.doSimpleQuery(q, req, start, limit);
+    }
+
+    @Override
+    public SolrDocumentList docListToSolrDocumentList(DocList docs, SolrIndexSearcher searcher, Set<String> fields, Map<SolrDocument, Integer> ids) throws IOException {
+        return SolrPluginUtils.docListToSolrDocumentList(docs, searcher, fields, ids);
     }
 }

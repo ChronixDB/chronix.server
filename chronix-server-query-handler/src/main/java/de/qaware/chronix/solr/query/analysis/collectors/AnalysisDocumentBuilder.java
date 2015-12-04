@@ -19,13 +19,14 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.BinaryStorageDocument;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -45,18 +46,26 @@ public class AnalysisDocumentBuilder {
     /**
      * Collects the given document and groups them using the join function result
      *
-     * @param collectedDocs - the collected documents grouped by the join function result
-     * @param currentDoc    - the document that should be collected
-     * @param joinFunction  - the join function
+     * @param docs         - the found documents that should be grouped by the join function
+     * @param joinFunction - the join function
+     * @return the grouped documents
      */
-    public static void collect(Map<String, List<Document>> collectedDocs, Document currentDoc, Function<Document, String> joinFunction) {
-        String key = joinFunction.apply(currentDoc);
+    public static Map<String, List<SolrDocument>> collect(SolrDocumentList docs, Function<SolrDocument, String> joinFunction) {
+        Map<String, List<SolrDocument>> collectedDocs = new HashMap<>();
 
-        if (!collectedDocs.containsKey(key)) {
-            collectedDocs.put(key, new ArrayList<>());
-        }
+        docs.stream().forEach(doc -> {
+            String key = joinFunction.apply(doc);
 
-        collectedDocs.get(key).add(currentDoc);
+            if (!collectedDocs.containsKey(key)) {
+                collectedDocs.put(key, new ArrayList<>());
+            }
+
+            collectedDocs.get(key).add(doc);
+
+        });
+
+
+        return collectedDocs;
     }
 
     /**
@@ -66,7 +75,7 @@ public class AnalysisDocumentBuilder {
      * @param docs        - the lucene documents that belong to the requested time series
      * @return the aggregated solr document
      */
-    public static SolrDocument analyze(Map.Entry<AnalysisType, String[]> aggregation, long queryStart, long queryEnd, Map.Entry<String, List<Document>> docs) {
+    public static SolrDocument analyze(Map.Entry<AnalysisType, String[]> aggregation, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
         double value = analyzeTimeSeries(timeSeries, aggregation);
         return buildDocument(timeSeries, value, aggregation, docs.getKey());
@@ -81,7 +90,7 @@ public class AnalysisDocumentBuilder {
      * @param documents  - the lucene documents
      * @return a metric time series that holds all the points
      */
-    private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, Map.Entry<String, List<Document>> documents) {
+    private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> documents) {
         //Collect all document of a time series
         return documents.getValue().stream().map(tsDoc -> convert(tsDoc, queryStart, queryEnd))
                 .collect(Collectors.reducing((t1, t2) -> {
@@ -147,12 +156,18 @@ public class AnalysisDocumentBuilder {
      * @param queryEnd   - the query end
      * @return a metric time series
      */
-    private static MetricTimeSeries convert(Document doc, long queryStart, long queryEnd) {
-        BinaryStorageDocument.Builder solrDocument = new BinaryStorageDocument.Builder();
-        doc.forEach(field -> solrDocument.field(field.name(), evaluateRawType(field)));
+    private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
+        BinaryStorageDocument.Builder binaryDocument = new BinaryStorageDocument.Builder();
+        doc.forEach((field, value) -> {
+            if (value instanceof ByteBuffer) {
+                binaryDocument.field(field, ((ByteBuffer) value).array());
+            } else {
+                binaryDocument.field(field, value);
+            }
+        });
 
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
-        return converter.from(solrDocument.build(), queryStart, queryEnd);
+        return converter.from(binaryDocument.build(), queryStart, queryEnd);
     }
 
     private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
@@ -171,31 +186,5 @@ public class AnalysisDocumentBuilder {
 
         });
         return doc;
-    }
-
-    /**
-     * Solr returns a stored field instead of the data value.
-     * It do not provide a method that indicate the value type (e.g., long or string)
-     * thus we have do it manually :-(
-     *
-     * @param value - stored field.
-     * @return an object as primitive java value
-     */
-    private static Object evaluateRawType(IndexableField value) {
-
-        if (value.binaryValue() != null) {
-            return value.binaryValue().bytes;
-
-        } else if (value.numericValue() != null) {
-            return value.numericValue();
-
-        } else if (value.stringValue() != null) {
-            return value.stringValue();
-
-        } else {
-            LOGGER.warn("Could not determine type of field {}. Returning null as value", value);
-            return null;
-        }
-
     }
 }

@@ -20,8 +20,9 @@ import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.dts.MetricDataPoint
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import org.apache.lucene.document.*
-import org.apache.lucene.util.BytesRef
+import org.apache.lucene.document.Document
+import org.apache.solr.common.SolrDocument
+import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
 
 /**
@@ -39,15 +40,21 @@ class AnalysisDocumentBuilderTest extends Specification {
 
     def "test collect"() {
         given:
-        Map<String, List<Document>> collectedDocs = new HashMap<>();
-        def document = new Document()
-        document.add(new StringField("host", "laptop", Field.Store.NO))
-        document.add(new StringField("metric", "groovy", Field.Store.NO))
+        def docs = new SolrDocumentList()
+
+        2.times {
+            def document = new SolrDocument()
+            document.addField("host", "laptop")
+            document.addField("metric", "groovy")
+
+            docs.add(document);
+        }
+
         def fq = ["join=metric,host"] as String[]
         def joinFunction = JoinFunctionEvaluator.joinFunction(fq)
 
         when:
-        2.times { AnalysisDocumentBuilder.collect(collectedDocs, document, joinFunction) }
+        def collectedDocs = AnalysisDocumentBuilder.collect(docs, joinFunction)
 
         then:
         collectedDocs.size() == 1
@@ -56,7 +63,7 @@ class AnalysisDocumentBuilderTest extends Specification {
 
     def "test high level analysis"() {
         given:
-        def collectedDocs = new HashMap<String, List<Document>>();
+        def collectedDocs = new HashMap<String, List<SolrDocument>>();
 
         def docs = fillDocs()
         collectedDocs.put("groovy-laptop", docs);
@@ -114,7 +121,7 @@ class AnalysisDocumentBuilderTest extends Specification {
     }
 
     ArrayList<Document> fillDocs() {
-        def result = new ArrayList<Document>();
+        def result = new ArrayList<SolrDocument>();
 
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
 
@@ -124,22 +131,22 @@ class AnalysisDocumentBuilderTest extends Specification {
                     .data(createPoints(it + 1))
                     .build();
             def doc = converter.to(ts)
-            result.add(asLuceneDoc(doc))
+            result.add(asSolrDoc(doc))
         }
 
         result
     }
 
-    def Document asLuceneDoc(BinaryStorageDocument binaryStorageDocument) {
-        def doc = new Document()
-        doc.add(new StringField("host", binaryStorageDocument.get("host").toString(), Field.Store.NO))
-        doc.add(new BinaryDocValuesField("data", new BytesRef(binaryStorageDocument.getData())))
-        doc.add(new StringField("metric", binaryStorageDocument.get("metric").toString(), Field.Store.NO))
-        doc.add(new LongField("start", binaryStorageDocument.getStart(), Field.Store.NO))
-        doc.add(new LongField("end", binaryStorageDocument.getEnd(), Field.Store.NO))
-        doc.add(new IntField("someInt", 1i, Field.Store.NO))
-        doc.add(new FloatField("someFloat", 1.1f, Field.Store.NO))
-        doc.add(new DoubleField("someDouble", 2.0d, Field.Store.NO))
+    def SolrDocument asSolrDoc(BinaryStorageDocument binaryStorageDocument) {
+        def doc = new SolrDocument()
+        doc.addField("host", binaryStorageDocument.get("host"))
+        doc.addField("data", binaryStorageDocument.getData())
+        doc.addField("metric", binaryStorageDocument.get("metric"))
+        doc.addField("start", binaryStorageDocument.getStart())
+        doc.addField("end", binaryStorageDocument.getEnd())
+        doc.addField("someInt", 1i)
+        doc.addField("someFloat", 1.1f)
+        doc.addField("someDouble", 2.0d)
 
         doc
     }

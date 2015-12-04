@@ -15,11 +15,11 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
+import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.collectors.AnalysisDocumentBuilder;
 import de.qaware.chronix.solr.query.analysis.collectors.AnalysisQueryEvaluator;
 import de.qaware.chronix.solr.query.analysis.collectors.AnalysisType;
-import org.apache.lucene.document.Document;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
@@ -29,9 +29,7 @@ import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
-import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocList;
-import org.apache.solr.search.SolrIndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +48,16 @@ public class AnalysisHandler extends SearchHandler {
 
     private final DocListProvider docListProvider;
 
+    private static final Set<String> REQUIRED_FIELDS = new HashSet<>();
+
+    static {
+        REQUIRED_FIELDS.add(Schema.DATA);
+        REQUIRED_FIELDS.add(Schema.START);
+        REQUIRED_FIELDS.add(Schema.END);
+        REQUIRED_FIELDS.add("metric");
+    }
+
     /**
-     * <
      * Constructs an isAggregation handler
      *
      * @param docListProvider - the search provider for the DocList Result
@@ -76,7 +82,7 @@ public class AnalysisHandler extends SearchHandler {
 
 
         //Do a query and collect them on the join function
-        Map<String, List<Document>> collectedDocs = findDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
+        Map<String, List<SolrDocument>> collectedDocs = findDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
 
         //If now rows should returned, we only return the num found
         if (rows == 0) {
@@ -95,7 +101,6 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(aggregatedDocs.size());
         }
         rsp.add("response", results);
-        rsp.add("hits", collectedDocs.size());
         LOGGER.debug("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/");
 
     }
@@ -111,22 +116,31 @@ public class AnalysisHandler extends SearchHandler {
         return value;
     }
 
-    private Map<String, List<Document>> findDocuments(SolrQueryRequest req, Function<Document, String> collectionKey) throws IOException {
-        //query all documents
-        DocList result = docListProvider.doSimpleQuery(req.getParams().get(CommonParams.Q), req, 0, Integer.MAX_VALUE);
-        Map<String, List<Document>> collectedDocs = new HashMap<>();
+    private Map<String, List<SolrDocument>> findDocuments(SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
+        String query = req.getParams().get(CommonParams.Q);
+        Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
 
-        SolrIndexSearcher searcher = req.getSearcher();
-        DocIterator docIterator = result.iterator();
+        //query and collect all documents
+        DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
+        SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
+        return AnalysisDocumentBuilder.collect(docs, collectionKey);
+    }
 
-        while (docIterator.hasNext()) {
-            AnalysisDocumentBuilder.collect(collectedDocs, searcher.doc(docIterator.nextDoc()), collectionKey);
+    private Set<String> getFields(String fl) {
+        //As a result Solr will return everything
+        if (fl == null) {
+            return null;
         }
-        return collectedDocs;
+
+        //Otherwise add the required fields and the user given fields
+        String[] fields = fl.split(",");
+        Set<String> returnFields = new HashSet<>(REQUIRED_FIELDS);
+        Collections.addAll(returnFields, fields);
+        return returnFields;
     }
 
 
-    private List<SolrDocument> analyze(Map<String, List<Document>> collectedDocs, Map.Entry<AnalysisType, String[]> analysis, long queryStart, long queryEnd) {
+    private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map.Entry<AnalysisType, String[]> analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs);

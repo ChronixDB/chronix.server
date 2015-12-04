@@ -15,9 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis
 
-import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
-import org.apache.lucene.document.StringField
+import org.apache.solr.common.SolrDocument
 import spock.lang.Specification
 
 /**
@@ -27,10 +25,10 @@ import spock.lang.Specification
 class JoinFunctionEvaluatorTest extends Specification {
     def "test join function"() {
         given:
-        def doc = new Document()
-        doc.add(new StringField("host", "laptop", Field.Store.NO))
-        doc.add(new StringField("source", "groovy", Field.Store.NO))
-        doc.add(new StringField("metric", "unitTest", Field.Store.NO))
+        def doc = new SolrDocument()
+        doc.addField("host", "laptop")
+        doc.addField("source", "groovy")
+        doc.addField("metric", "unitTest")
 
 
         when:

@@ -31,4 +31,11 @@ class SolrDocListProviderTest extends Specification {
         then:
         thrown NullPointerException
     }
+
+    def "test "() {
+        when:
+        new SolrDocListProvider().docListToSolrDocumentList(null, null, null, null);
+        then:
+        thrown NullPointerException
+    }
 }
