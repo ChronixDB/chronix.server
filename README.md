@@ -83,12 +83,13 @@ SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 ChronixClient<MetricTimeSeries> chronix = new ChronixClient(new KassiopeiaSimpleConverter(), new ChronixSolrStorage());
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
-SolrQuery query = new SolrQuery("metric:*load*);
+SolrQuery query = new SolrQuery("metric:*load*");
 query.addFilterQuery("ag=max");
 
 //The result is a Java Stream. We simply collect the result into a list.
 List<MetricTimeSeries> maxTS = chronix.stream(solr, query, start, end, nrOfTimeSeriesPerRequest).collect(Collectors.toList());
 ```
+
 ## Chronix Server Parts
 The Chronix server parts are Solr extensions (e.g. a custom query handler).
 Hence there is no need to build a custom modified Solr.
@@ -151,6 +152,7 @@ q=metric:*load* // Get all time series that metric name matches *load*
 + fq=analysis=trend //Returns all time series that have a positive trend
 + fq=frequency=10:6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
 ```
+
 #### Join Time Series Records
 An analysis query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
@@ -169,16 +171,12 @@ The following snippet of Solr config.xml shows the configuration:
   <lst name="invariants">
    <!-- Use the end field of a record to determine its age. -->
    <str name="queryField">end</str>
-   
    <!-- Delete time series that are older than 40DAYS -->
    <str name="timeSeriesAge">40DAYS</str> 
-   
     <!-- Do it daily at 12 o'clock -->
    <str name="removeDailyAt">12</str>
-   
    <!-- Define the source  -->
    <str name="retentionUrl">http://localhost:8983/solr/chronix/retention</str>
-   
    <!-- Define how the index is updated after deletion -->
    <str name="optimizeAfterDeletion">false</str>
    <str name="softCommit">false</str>
@@ -213,12 +211,13 @@ Everything should run out of the box. The only three things that must be availab
 - Git
 - JDK 1.8
 - Gradle.
+
 Just do the following steps:
 
 ```bash
 cd <checkout-dir>
 git clone https://github.com/ChronixDB/chronix.server.git
-cd chronix-server
+cd chronix.server
 gradle clean build
 ```
 
