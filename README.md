@@ -211,6 +211,7 @@ Everything should run out of the box. The only three things that must be availab
 - Git
 - JDK 1.8
 - Gradle.
+
 Just do the following steps:
 
 ```bash
