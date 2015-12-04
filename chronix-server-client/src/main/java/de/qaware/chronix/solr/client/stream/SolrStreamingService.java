@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Executors;
@@ -153,7 +151,6 @@ public class SolrStreamingService<T> implements Iterator<T> {
     }
 
     private void streamDocumentsFromSolr() {
-        Instant timeLimit = Instant.now().plus(20, ChronoUnit.MILLIS);
         SolrQuery solrQuery = query.getCopy();
         solrQuery.setRows(nrOfTimeSeriesPerBatch);
         solrQuery.setStart(currentDocumentCount);
@@ -168,17 +165,6 @@ public class SolrStreamingService<T> implements Iterator<T> {
                 if (document != null) {
                     ListenableFuture future = service.submit(new DocumentConverterCaller<>(document, converter, queryStart, queryEnd));
                     Futures.addCallback(future, timeSeriesHandler);
-                }
-
-                if (document == null) {
-                    if (timeLimit == null) {
-                        timeLimit = Instant.now().plus(10, ChronoUnit.SECONDS);
-
-                    } else if (Instant.now().isAfter(timeLimit)) {
-                        throw new RuntimeException("Polling documents since 10 seconds getting always null.");
-                    }
-                } else {
-                    timeLimit = null;
                 }
 
             } while (solrStreamingHandler.canPoll());
