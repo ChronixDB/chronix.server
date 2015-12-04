@@ -62,7 +62,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         REQUIRED_FIELDS.add(Schema.DATA);
         REQUIRED_FIELDS.add(Schema.START);
         REQUIRED_FIELDS.add(Schema.END);
-        REQUIRED_FIELDS.add("metric");
+        REQUIRED_FIELDS.add(Schema.METRIC);
     }
 
     @Override
