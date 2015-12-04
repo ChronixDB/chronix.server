@@ -172,10 +172,10 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
                 if (document == null) {
                     if (timeLimit == null) {
-                        timeLimit = Instant.now().plus(500, ChronoUnit.MILLIS);
+                        timeLimit = Instant.now().plus(2, ChronoUnit.SECONDS);
 
                     } else if (Instant.now().isAfter(timeLimit)) {
-                        throw new RuntimeException("Polling documents since 500 milliseconds getting always null.");
+                        throw new RuntimeException("Polling documents since 2 seconds getting always null.");
                     }
                 } else {
                     timeLimit = null;
