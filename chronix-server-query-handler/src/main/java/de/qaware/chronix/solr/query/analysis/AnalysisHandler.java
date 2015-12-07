@@ -79,8 +79,8 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the aggregated time series
-            long queryStart = getValue(params.get(ChronixQueryParams.QUERY_START_LONG), 0);
-            long queryEnd = getValue(params.get(ChronixQueryParams.QUERY_END_LONG), Long.MAX_VALUE);
+            long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
+            long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
 
             //We have an analysis query
             List<SolrDocument> aggregatedDocs = analyze(collectedDocs,
@@ -93,17 +93,6 @@ public class AnalysisHandler extends SearchHandler {
         rsp.add("response", results);
         LOGGER.debug("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/");
 
-    }
-
-    private long getValue(String paramsValue, long defaultValue) {
-        if (paramsValue == null) {
-            return defaultValue;
-        }
-        long value = Long.parseLong(paramsValue);
-        if (value == -1) {
-            return defaultValue;
-        }
-        return value;
     }
 
     private Map<String, List<SolrDocument>> findDocuments(SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {

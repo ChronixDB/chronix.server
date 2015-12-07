@@ -6,15 +6,14 @@
 
 # Chronix Server
 The Chronix Server is an implementation of the Chronix API that stores time series in [Apache Solr](http://lucene.apache.org/solr/).
-Chronix uses several technqiues to optimize query times and storage demand.
+Chronix uses several techniques to optimize query times and storage demand.
 Thus Chronix can access a single data point out of 68.000.000.000 stored pairs of time stamp and numeric value in about 30 ms.
 The storage demand is about 30 GB.
 Everything runs on a standard laptop computer.
 No need of clustering, parallel processing or another complex stuff.
 Check it out and give it a try.
 
-The repository [chronix.examples](https://github.com/ChronixDB/chronix.examples) currently contains two examples.
-The first example show an integration of Chronix with [Yahoo EGADS](https://github.com/yahoo/egads) and the second example can be used to explore time series stored in Chronix using a JavaFX client.
+The repository [chronix.examples](https://github.com/ChronixDB/chronix.examples) contains some examples.
 
 ## How Chronix Server stores time series
 ![Chronix Architecture](https://bintray.com/artifact/download/chronix/Images/chronix-architecture.jpg)
@@ -57,7 +56,7 @@ Chronix allows one to store any kind of time series and hence the data model is 
 Chronix Server per default uses the [Kassiopeia Simple](https://github.com/ChronixDB/chronix.kassiopeia) time series package.
 The data model for the Kassiopeia Simple package.
 
-A time series has at least the following requried fields:
+A time series has at least the following required fields:
 
 | Field Name  | Value Type |
 | ------------- | ------------- |
@@ -68,9 +67,10 @@ A time series has at least the following requried fields:
 
 The data field contains json serialized and gzip compressed points of time stamp (long) and numeric value (double).
 Furthermore a time series can have an arbitrary user-defined attributes. 
-The type of an attribute is restriced by the available [fields](https://cwiki.apache.org/confluence/display/solr/Solr+Field+Types) of Apache Solr.
+The type of an attribute is restricted by the available [fields](https://cwiki.apache.org/confluence/display/solr/Solr+Field+Types) of Apache Solr.
 
-## [Chronix Server Client](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-client)
+## Chronix Server Client ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-client))
+
 A Java client that is used to store and stream time series from Chronix.
 The following code snippet shows how to setup an connection to Chronix and stream time series.
 The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), Chronix Server Client, 
@@ -79,15 +79,30 @@ The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), C
 //An connection to Solr
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 
+//Define a group by function for the time series records
+ Function<MetricTimeSeries, String> groupBy = ts -> {
+    return new StringBuilder(ts.getMetric())
+    .append("-")
+    .append(ts.attribute("host"))
+    .toString()
+}
+
+//Define a reduce function for the grouped time series records
+BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
+     ts1.addAll(ts2.points);
+     return ts1;
+}
+
 //Create a Chronix Client with Kassiopeia Simple and the Chronix Solr Storage
-ChronixClient<MetricTimeSeries> chronix = new ChronixClient(new KassiopeiaSimpleConverter(), new ChronixSolrStorage());
+ChronixClient<MetricTimeSeries> chronix = new ChronixClient(new KassiopeiaSimpleConverter(),
+                                          new ChronixSolrStorage(nrOfDocsPerBatch,groupBy,reduce));
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
 SolrQuery query = new SolrQuery("metric:*load*");
 query.addFilterQuery("ag=max");
 
 //The result is a Java Stream. We simply collect the result into a list.
-List<MetricTimeSeries> maxTS = chronix.stream(solr, query, start, end, nrOfTimeSeriesPerRequest).collect(Collectors.toList());
+List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.toList());
 ```
 
 ## Chronix Server Parts
@@ -95,10 +110,10 @@ The Chronix server parts are Solr extensions (e.g. a custom query handler).
 Hence there is no need to build a custom modified Solr.
 We just plug the Chronix server parts into a standard Solr release.
 
-The following subprojects are Solr extensions and ship with the binary release of Chronix.
+The following sub projects are Solr extensions and ship with the binary release of Chronix.
 The latest release of Chronix server is based on Apache Solr version 3.5.1.
 
-## [Chronix Server Query Handler](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler)
+## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
 It splits a request based on the filter queries up in range or analysis queries:
 
@@ -162,8 +177,8 @@ fq=join=host,process,metric
 ```
 If no join function is defined Chronix applies a default join function that uses the metric name.
 
-### [Chronix Server Retention](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-retention)
-The Chronix Server Rentention plugin deletes time series data that is older than a given threshold.
+### Chronix Server Retention ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-retention))
+The Chronix Server Retention plugin deletes time series data that is older than a given threshold.
 The configuration of the plugin is within the *config.xml* of the Solr Core.
 The following snippet of Solr config.xml shows the configuration:
 ```XML
@@ -195,9 +210,9 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.0.1'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.0.1'
-   compile 'de.qaware.chronix:chronix-server-retention:0.0.1'
+   compile 'de.qaware.chronix:chronix-server-client:0.0.2'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.0.2'
+   compile 'de.qaware.chronix:chronix-server-retention:0.0.2'
 }
 ```
 
@@ -210,7 +225,7 @@ improve the code and issue a pull request.
 Everything should run out of the box. The only three things that must be available: 
 - Git
 - JDK 1.8
-- Gradle.
+- Gradle
 
 Just do the following steps:
 

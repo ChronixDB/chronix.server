@@ -58,14 +58,14 @@ class TimeSeriesHandlerTest extends Specification {
         def logger = Mock(Logger.class)
 
         when:
-        queue.poll(50l, TimeUnit.MILLISECONDS) >> { throw new InterruptedException("Test-Exception") }
+        queue.poll(5l, TimeUnit.SECONDS) >> { throw new InterruptedException("Test-Exception") }
         ReflectionHelper.setValueToFieldOfObject(queue, "queue", timeSeriesHandler)
         ReflectionHelper.setValueToFieldOfObject(logger, "LOGGER", timeSeriesHandler)
 
         def result = timeSeriesHandler.take()
 
         then:
-        1 * logger.debug(_ as String)
+        0 * logger.debug(_ as String)
         1 * logger.warn(_ as String, _ as Throwable)
         result == null
 

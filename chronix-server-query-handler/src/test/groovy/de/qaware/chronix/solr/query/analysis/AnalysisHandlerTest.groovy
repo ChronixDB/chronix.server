@@ -38,29 +38,30 @@ class AnalysisHandlerTest extends Specification {
         def docListMock = Stub(DocListProvider)
         docListMock.doSimpleQuery(_, _, _, _) >> { new DocSlice(0i, 0, [] as int[], [] as float[], 0, 0) }
 
-        def aggregationHandler = new AnalysisHandler(docListMock)
+        def analysisHandler = new AnalysisHandler(docListMock)
 
         when:
-        aggregationHandler.handleRequestBody(request, Mock(SolrQueryResponse))
+        analysisHandler.handleRequestBody(request, Mock(SolrQueryResponse))
 
         then:
         noExceptionThrown()
 
         where:
-        params << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("rows", "0"),
-                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "ag=max"),
-                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0").add(ChronixQueryParams.QUERY_END_LONG, "0"),
-                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "-1").add(ChronixQueryParams.QUERY_END_LONG, "-1"),
+        params << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
+                           .add("rows", "0"),
+                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
+                           .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
         ]
 
     }
 
     def "test get description"() {
         given:
-        def aggregationHandler = new AnalysisHandler(new SolrDocListProvider())
+        def analysisHandler = new AnalysisHandler(new SolrDocListProvider())
 
         when:
-        def description = aggregationHandler.getDescription()
+        def description = analysisHandler.getDescription()
 
         then:
         description == "Chronix Aggregation Request Handler"
@@ -69,11 +70,11 @@ class AnalysisHandlerTest extends Specification {
     def "test init and inform"() {
         given:
         def pluginInfo = Mock(PluginInfo.class)
-        def aggregationHandler = new AnalysisHandler(new SolrDocListProvider())
+        def analysisHandler = new AnalysisHandler(new SolrDocListProvider())
 
         when:
-        aggregationHandler.init(pluginInfo)
-        aggregationHandler.inform(null)
+        analysisHandler.init(pluginInfo)
+        analysisHandler.inform(null)
 
         then:
         noExceptionThrown()

@@ -15,20 +15,20 @@
  */
 package de.qaware.chronix.solr.test.converter
 
-import de.qaware.chronix.converter.BinaryStorageDocument
+import de.qaware.chronix.converter.BinaryTimeSeries
 import spock.lang.Specification
 
 /**
  * Simple test for the default document converter used in several tests
  * @author f.lautenschlager
  */
-class DefaultDocumentConverterTest extends Specification {
+class DefaultTimeSeriesConverterTest extends Specification {
     def "test default document converter from and to"() {
         given:
-        def binaryDocument = new BinaryStorageDocument.Builder()
+        def binaryDocument = new BinaryTimeSeries.Builder()
                 .id("4711-5896-7578")
                 .build()
-        def converter = new DefaultDocumentConverter()
+        def converter = new DefaultTimeSeriesConverter()
 
         when:
         def convertedDocument = converter.from(binaryDocument, 0, 0)

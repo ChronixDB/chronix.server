@@ -14,21 +14,19 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.client.stream
-
 import de.qaware.chronix.Schema
-import de.qaware.chronix.converter.BinaryStorageDocument
-import de.qaware.chronix.solr.test.converter.DefaultDocumentConverter
+import de.qaware.chronix.converter.BinaryTimeSeries
+import de.qaware.chronix.solr.test.converter.DefaultTimeSeriesConverter
 import org.apache.solr.common.SolrDocument
 import spock.lang.Specification
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-
 /**
  * Unit test for the document converter
  * @author f.lautenschlager
  */
-class DocumentConverterCallerTest extends Specification {
+class TimeSeriesConverterCallerTest extends Specification {
 
     def "test call convert document for an remote solr"() {
         given:
@@ -43,10 +41,10 @@ class DocumentConverterCallerTest extends Specification {
         solrDocument.addField("SomeField", ChronoUnit.SECONDS.toString());
         solrDocument.addField("SomeList", Arrays.asList("Hello", "I", "like", "Chronix"));
 
-        def converter = new DocumentConverterCaller(solrDocument, new DefaultDocumentConverter(), start, end)
+        def converter = new TimeSeriesConverterCaller(solrDocument, new DefaultTimeSeriesConverter(), start, end)
 
         when:
-        BinaryStorageDocument ts = converter.call()
+        BinaryTimeSeries ts = converter.call()
 
         then:
         ts.get(Schema.START) == start

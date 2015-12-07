@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors
 
-import de.qaware.chronix.converter.BinaryStorageDocument
+import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.dts.MetricDataPoint
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
@@ -24,7 +24,6 @@ import org.apache.lucene.document.Document
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
-
 /**
  * @author f.lautenschlager
  */
@@ -137,10 +136,10 @@ class AnalysisDocumentBuilderTest extends Specification {
         result
     }
 
-    def SolrDocument asSolrDoc(BinaryStorageDocument binaryStorageDocument) {
+    def SolrDocument asSolrDoc(BinaryTimeSeries binaryStorageDocument) {
         def doc = new SolrDocument()
         doc.addField("host", binaryStorageDocument.get("host"))
-        doc.addField("data", binaryStorageDocument.getData())
+        doc.addField("data", binaryStorageDocument.getPoints())
         doc.addField("metric", binaryStorageDocument.get("metric"))
         doc.addField("start", binaryStorageDocument.getStart())
         doc.addField("end", binaryStorageDocument.getEnd())

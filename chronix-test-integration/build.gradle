@@ -3,9 +3,9 @@ dependencies {
     testCompile 'commons-codec:commons-codec:1.8'
     testCompile 'org.apache.solr:solr-solrj:5.3.1'
 
-    testCompile 'de.qaware.chronix:chronix-api:0.0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.0.1'
+    testCompile 'de.qaware.chronix:chronix-api:0.0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.0.2'
 
 
     testCompile project(':chronix-server-client')
@@ -101,6 +101,33 @@ task stopSolr(type: ExecWait) {
         ready ""
         directory "$buildDir/solr-5.3.1/bin/"
     }
+}
+
+task deleteUnusedDirs(type: Delete) {
+
+    sleep(30_000)
+    //delete the following dirs
+    def solrDir = "$buildDir/solr-5.3.1/"
+
+    delete "$solrDir/docs"
+    delete "$solrDir/example"
+    delete "$solrDir/dist/solrj-lib"
+    delete "$solrDir/dist/test-framework"
+    delete "$solrDir/dist/solr-solrj-5.3.1.jar"
+    delete "$solrDir/dist/solr-test-framework-5.3.1.jar"
+
+    delete fileTree("$solrDir/server/logs").include("**/*")
+    delete "$solrDir/server/solr/configsets"
+    delete fileTree("$solrDir/server/solr").include("hsperfdata*")
+}
+
+
+task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
+    def solrDir = "$buildDir/solr-5.3.1/"
+    from("$solrDir")
+    into 'chronix-solr-5.3.1' // note that this specifies path *in* the archive
+    destinationDir file("chronix-${project.version}") // directory that you want your archive to be placed in
+    baseName = "chronix"
 }
 
 test.dependsOn startSolr

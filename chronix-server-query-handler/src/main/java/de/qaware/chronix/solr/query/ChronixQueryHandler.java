@@ -78,9 +78,11 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         String originQuery = modifiableSolrParams.get(CommonParams.Q);
 
         long[] startAndEnd = dateRangeParser.getNumericQueryTerms(originQuery);
+        long queryStart = or(startAndEnd[0], -1, 0);
+        long queryEnd = or(startAndEnd[1], -1, Long.MAX_VALUE);
 
-        modifiableSolrParams.set(ChronixQueryParams.QUERY_START_LONG, String.valueOf(startAndEnd[0]));
-        modifiableSolrParams.set(ChronixQueryParams.QUERY_END_LONG, String.valueOf(startAndEnd[1]));
+        modifiableSolrParams.set(ChronixQueryParams.QUERY_START_LONG, String.valueOf(queryStart));
+        modifiableSolrParams.set(ChronixQueryParams.QUERY_END_LONG, String.valueOf(queryEnd));
 
         String query = dateRangeParser.replaceRangeQueryTerms(originQuery);
 
@@ -103,6 +105,17 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
             searchHandler.handleRequestBody(req, rsp);
         }
 
+        //add the converted start and end to the response
+        rsp.getResponseHeader().add(ChronixQueryParams.QUERY_START_LONG, queryStart);
+        rsp.getResponseHeader().add(ChronixQueryParams.QUERY_END_LONG, queryEnd);
+    }
+
+    private long or(long value, long condition, long or) {
+        if (value == condition) {
+            return or;
+        } else {
+            return value;
+        }
     }
 
     /**

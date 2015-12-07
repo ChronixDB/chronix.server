@@ -22,13 +22,16 @@
         <!-- The required field to use kassiopeia time series -->
         <field name="metric" type="string" indexed="true" stored="true" required="true"/>
 
+        <!-- Some fields used within the integration test  -->
+        <field name="host" type="string" indexed="true" stored="true" required="false"/>
+        <field name="source" type="string" indexed="true" stored="true" required="false"/>
+        <field name="group" type="string" indexed="true" stored="true" required="false"/>
+
 
         <field name="myIntField" type="int" indexed="true" stored="true" required="false"/>
         <field name="myLongField" type="long" indexed="true" stored="true" required="false"/>
         <field name="myDoubleField" type="double" indexed="true" stored="true" required="false"/>
-
         <field name="myByteField" type="binary" indexed="true" stored="true" required="false"/>
-
         <field name="myStringList" type="string" indexed="true" multiValued="true" stored="true" required="false"/>
         <field name="myIntList" type="int" indexed="true" multiValued="true" stored="true" required="false"/>
         <field name="myLongList" type="long" indexed="true" multiValued="true" stored="true" required="false"/>

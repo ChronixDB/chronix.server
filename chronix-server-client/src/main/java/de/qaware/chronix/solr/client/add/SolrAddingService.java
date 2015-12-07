@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.client.add;
 
-import de.qaware.chronix.converter.BinaryStorageDocument;
-import de.qaware.chronix.converter.DocumentConverter;
+import de.qaware.chronix.converter.BinaryTimeSeries;
+import de.qaware.chronix.converter.TimeSeriesConverter;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -50,7 +50,7 @@ public class SolrAddingService {
      * @param connection - the connection to the Apache solr.
      * @return true if successful, otherwise false
      */
-    public static <T> boolean add(DocumentConverter<T> converter, Collection<T> timeSeries, SolrClient connection) {
+    public static <T> boolean add(TimeSeriesConverter<T> converter, Collection<T> timeSeries, SolrClient connection) {
 
         if (timeSeries == null || timeSeries.isEmpty()) {
             LOGGER.debug("Collection is empty. Nothing to commit");
@@ -81,8 +81,8 @@ public class SolrAddingService {
      * @param ts - the time series
      * @return a filled SolrInputDocument
      */
-    private static <T> SolrInputDocument convert(T ts, DocumentConverter<T> converter) {
-        BinaryStorageDocument series = converter.to(ts);
+    private static <T> SolrInputDocument convert(T ts, TimeSeriesConverter<T> converter) {
+        BinaryTimeSeries series = converter.to(ts);
         SolrInputDocument solrDocument = new SolrInputDocument();
         series.getFields().entrySet().forEach(entry -> solrDocument.addField(entry.getKey(), entry.getValue()));
         return solrDocument;

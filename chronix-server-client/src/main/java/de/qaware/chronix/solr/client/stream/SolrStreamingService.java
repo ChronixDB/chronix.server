@@ -19,7 +19,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import de.qaware.chronix.converter.DocumentConverter;
+import de.qaware.chronix.converter.TimeSeriesConverter;
+import de.qaware.chronix.solr.client.ChronixSolrStorageConstants;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -55,21 +56,20 @@ public class SolrStreamingService<T> implements Iterator<T> {
     /**
      * Converter for converting the documents
      */
-    private final DocumentConverter<T> converter;
+    private final TimeSeriesConverter<T> converter;
 
     /**
      * Query parameters
      */
-    private final long queryStart;
-    private final long queryEnd;
     private int nrOfTimeSeriesPerBatch;
-    private long nrOfAvailableTimeSeries;
+    private long nrOfAvailableTimeSeries = -1;
     private int currentDocumentCount = 0;
+
 
     /**
      * The executor service to do the work asynchronously
      */
-    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
 
     /**
      * The handler for this service
@@ -83,6 +83,12 @@ public class SolrStreamingService<T> implements Iterator<T> {
     private TimeSeriesHandler<T> timeSeriesHandler;
 
     /**
+     * Start and end of the query to filter points on client side
+     */
+    private long queryStart;
+    private long queryEnd;
+
+    /**
      * Constructs a streaming service
      *
      * @param converter              - the converter to convert documents
@@ -90,20 +96,21 @@ public class SolrStreamingService<T> implements Iterator<T> {
      * @param connection             - the solr server connection
      * @param nrOfTimeSeriesPerBatch - the number of time series that are read by one query
      */
-    public SolrStreamingService(DocumentConverter<T> converter, SolrQuery query, long queryStart, long queryEnd, SolrClient connection, int nrOfTimeSeriesPerBatch) {
+    public SolrStreamingService(TimeSeriesConverter<T> converter, SolrQuery query, SolrClient connection, int nrOfTimeSeriesPerBatch) {
         this.converter = converter;
         this.solrStreamingHandler = new SolrStreamingHandler();
         this.query = query;
         this.connection = connection;
         this.nrOfTimeSeriesPerBatch = nrOfTimeSeriesPerBatch;
-        this.queryStart = queryStart;
-        this.queryEnd = queryEnd;
     }
 
     @Override
     public boolean hasNext() {
-        //do a query to get the available documents
-        nrOfAvailableTimeSeries = getNrOfDocuments(query, connection);
+        if (nrOfAvailableTimeSeries == -1) {
+            //Do only once for each query
+            initStreamingService(query, connection);
+        }
+
         if (nrOfAvailableTimeSeries <= 0) {
             return false;
         }
@@ -112,11 +119,12 @@ public class SolrStreamingService<T> implements Iterator<T> {
         if (timeSeriesHandler == null) {
             timeSeriesHandler = new TimeSeriesHandler<>(nrOfTimeSeriesPerBatch);
         }
+
         return currentDocumentCount < nrOfAvailableTimeSeries;
     }
 
 
-    private long getNrOfDocuments(SolrQuery query, SolrClient connection) {
+    private void initStreamingService(SolrQuery query, SolrClient connection) {
         SolrQuery solrQuery = query.getCopy();
         solrQuery.setRows(0);
         //we do not need any data from the server expect the total number of found documents
@@ -124,11 +132,13 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
         try {
             QueryResponse response = connection.query(solrQuery);
-            return response.getResults().getNumFound();
+            nrOfAvailableTimeSeries = response.getResults().getNumFound();
+            queryStart = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_START_LONG);
+            queryEnd = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_END_LONG);
+
         } catch (SolrServerException | IOException e) {
             LOGGER.error("SolrServerException occurred while querying server.", e);
         }
-        return 0;
     }
 
     @Override
@@ -163,7 +173,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
             do {
                 document = solrStreamingHandler.pool();
                 if (document != null) {
-                    ListenableFuture future = service.submit(new DocumentConverterCaller<>(document, converter, queryStart, queryEnd));
+                    ListenableFuture future = service.submit(new TimeSeriesConverterCaller<>(document, converter, queryStart, queryEnd));
                     Futures.addCallback(future, timeSeriesHandler);
                 }
 

@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler
 import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.solr.common.params.ModifiableSolrParams
+import org.apache.solr.common.util.NamedList
 import org.apache.solr.core.PluginInfo
 import org.apache.solr.handler.component.SearchHandler
 import org.apache.solr.request.SolrQueryRequest
@@ -93,8 +94,10 @@ class ChronixQueryHandlerTest extends Specification {
 
         def request = Mock(SolrQueryRequest)
         def response = Mock(SolrQueryResponse)
+        def responseHeader = new NamedList<Object>()
 
         request.getParams() >> modifiableSolrParams
+        response.getResponseHeader() >> responseHeader
 
         when:
         chronixQueryHandler.handleRequestBody(request, response)
@@ -122,8 +125,10 @@ class ChronixQueryHandlerTest extends Specification {
 
         def request = Mock(SolrQueryRequest)
         def response = Mock(SolrQueryResponse)
+        def responseHeader = new NamedList<Object>()
 
         request.getParams() >> modifiableSolrParams
+        response.getResponseHeader() >> responseHeader
 
         when:
         chronixQueryHandler.handleRequestBody(request, response)
@@ -131,10 +136,14 @@ class ChronixQueryHandlerTest extends Specification {
         then:
         0 * defaultHandler.handleRequestBody(request, response)
         1 * aggregationHandler.handleRequestBody(request, response)
+        responseHeader.size() == 2
+        def queryStart = responseHeader.get(ChronixQueryParams.QUERY_START_LONG) as long
+        queryStart > 0
+        def queryEnd = responseHeader.get(ChronixQueryParams.QUERY_END_LONG) as long
+        queryEnd > 0
 
         where:
-        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "ag=max"),
-        ]
+        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "ag=max")]
 
     }
 

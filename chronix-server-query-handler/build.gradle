@@ -17,9 +17,9 @@ dependencies {
     compile "org.apache.solr:solr-core:5.3.1"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
-    compile 'de.qaware.chronix:chronix-api:0.0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.0.1'
+    compile 'de.qaware.chronix:chronix-api:0.0.2'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.0.2'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.0.2'
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
     testCompile project (':chronix-test-extensions')

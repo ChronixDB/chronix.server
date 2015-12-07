@@ -72,12 +72,18 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
     }
 
     /**
+     * Gets the first element in the queue.
+     * If no element is present within five seconds.
+     * Then it returns null.
+     *
      * @return the first element of type <T> in the queue
      */
     public T take() {
         try {
-            LOGGER.debug("Getting latest element from queue");
-            return queue.poll(50, TimeUnit.MILLISECONDS);
+            T object = queue.poll(5, TimeUnit.SECONDS);
+            LOGGER.debug("Getting element from queue: {}", object);
+            return object;
+
         } catch (InterruptedException e) {
             LOGGER.warn("InterruptedException occurred. Returning null value to callee.", e);
             return null;

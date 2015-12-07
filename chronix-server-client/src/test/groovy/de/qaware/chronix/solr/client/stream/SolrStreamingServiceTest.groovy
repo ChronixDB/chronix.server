@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.client.stream
-import de.qaware.chronix.converter.BinaryStorageDocument
-import de.qaware.chronix.solr.test.converter.DefaultDocumentConverter
+
+import de.qaware.chronix.converter.BinaryTimeSeries
+import de.qaware.chronix.solr.test.converter.DefaultTimeSeriesConverter
 import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
@@ -24,11 +25,11 @@ import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import org.apache.solr.common.params.SolrParams
+import org.apache.solr.common.util.NamedList
 import org.slf4j.Logger
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.time.Instant
 /**
  * Unit test for the  solr streaming service
  *
@@ -39,17 +40,8 @@ class SolrStreamingServiceTest extends Specification {
     /**
      * Test defaults
      */
-    def converter = new DefaultDocumentConverter();
+    def converter = new DefaultTimeSeriesConverter();
     def solrQuery = new SolrQuery("*:*");
-    def dateIgnored = Instant.now().toEpochMilli()
-
-    def setup(){
-        converter = new DefaultDocumentConverter();
-        solrQuery = new SolrQuery("*:*");
-        solrQuery.addFilterQuery("{!Aggregation ag=max}")
-
-        dateIgnored = Instant.now().toEpochMilli()
-    }
 
     @Unroll
     def "test hasNext() for #nrOfdocuments documents should be #result"() {
@@ -58,13 +50,19 @@ class SolrStreamingServiceTest extends Specification {
         def results = Mock(SolrDocumentList.class)
         def connection = Mock(SolrClient.class)
 
+        def responseHeader = new NamedList<Object>()
+        responseHeader.add("query_start_long", -1l)
+        responseHeader.add("query_end_long", -1l)
+
         when:
         results.getNumFound() >> nrOfdocuments
         queryResponse.getResults() >> results
+        queryResponse.getResponseHeader() >> responseHeader
+
         connection.query(_ as SolrParams) >> queryResponse
 
         then:
-        def streamingService = new SolrStreamingService<>(converter, solrQuery, dateIgnored, dateIgnored, connection, 200)
+        def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 200)
         streamingService.hasNext() == result
 
         where:
@@ -78,7 +76,7 @@ class SolrStreamingServiceTest extends Specification {
         def queryResponse = Mock(QueryResponse.class)
         def results = Mock(SolrDocumentList.class)
         def connection = Mock(SolrClient.class)
-        def streamingService = new SolrStreamingService<>(converter, solrQuery, dateIgnored, dateIgnored, connection, nrOfDocuments)
+        def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 200)
 
         //pre fill handler
         streamingService.solrStreamingHandler.init(nrOfDocuments, 0)
@@ -89,18 +87,23 @@ class SolrStreamingServiceTest extends Specification {
 
         def docCounter = 0;
 
+        def responseHeader = new NamedList<Object>()
+        responseHeader.add("query_start_long", -1l)
+        responseHeader.add("query_end_long", -1l)
+
         when:
         results.getNumFound() >> nrOfDocuments
         queryResponse.getResults() >> results
+        queryResponse.getResponseHeader() >> responseHeader
         connection.query(_ as SolrParams) >> queryResponse
 
         streamingService.hasNext()
 
         //add four document to the queue
-        streamingService.timeSeriesHandler.queue.addAll([new BinaryStorageDocument.Builder().id("1").data("1".bytes).build(),
-                                                         new BinaryStorageDocument.Builder().id("2").data("2".bytes).build(),
-                                                         new BinaryStorageDocument.Builder().id("3").data("3".bytes).build(),
-                                                         new BinaryStorageDocument.Builder().id("4").data("4".bytes).build()])
+        streamingService.timeSeriesHandler.queue.addAll([new BinaryTimeSeries.Builder().id("1").data("1".bytes).build(),
+                                                         new BinaryTimeSeries.Builder().id("2").data("2".bytes).build(),
+                                                         new BinaryTimeSeries.Builder().id("3").data("3".bytes).build(),
+                                                         new BinaryTimeSeries.Builder().id("4").data("4".bytes).build()])
 
         then:
         while (streamingService.hasNext()) {
@@ -113,7 +116,7 @@ class SolrStreamingServiceTest extends Specification {
     def "test noSuchElementException"() {
         given:
         def connection = Mock(SolrClient.class)
-        def streamingService = new SolrStreamingService<>(converter, solrQuery, dateIgnored, dateIgnored, connection, 2)
+        def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 2)
 
         when:
         streamingService.currentDocumentCount = 1
@@ -130,7 +133,7 @@ class SolrStreamingServiceTest extends Specification {
 
         when:
         connection.query(_ as SolrParams) >> { throw new SolrServerException("Test exception") }
-        def streamingService = new SolrStreamingService<>(converter, solrQuery, dateIgnored, dateIgnored, connection, 200)
+        def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 200)
         ReflectionHelper.setValueToFieldOfObject(logger, "LOGGER", streamingService)
 
         def result = streamingService.hasNext()

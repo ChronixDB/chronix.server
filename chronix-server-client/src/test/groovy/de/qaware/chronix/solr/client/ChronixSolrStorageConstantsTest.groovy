@@ -13,21 +13,19 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query
+package de.qaware.chronix.solr.client
 
 import spock.lang.Specification
 
 /**
- * Unit test for the Chronix Query Params class
- * Only for test coverage purposes
+ * Unit test for the Chronix Solr Storage Constants
  * @author f.lautenschlager
  */
-class ChronixQueryParamsTest extends Specification {
+class ChronixSolrStorageConstantsTest extends Specification {
 
-    def "Test private constructor"() {
+    def "test private constructor"() {
         when:
-        ChronixQueryParams.newInstance()
-
+        ChronixSolrStorageConstants.newInstance()
         then:
         noExceptionThrown()
     }

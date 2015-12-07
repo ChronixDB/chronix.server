@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.client.add
 
-import de.qaware.chronix.converter.BinaryStorageDocument
-import de.qaware.chronix.solr.test.converter.DefaultDocumentConverter
+import de.qaware.chronix.converter.BinaryTimeSeries
+import de.qaware.chronix.solr.test.converter.DefaultTimeSeriesConverter
 import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrServerException
@@ -24,7 +24,6 @@ import org.apache.solr.client.solrj.response.UpdateResponse
 import org.slf4j.Logger
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /**
  * Unit test for the solr adding service
  * @author f.lautenschlager
@@ -35,7 +34,7 @@ class SolrAddingServiceTest extends Specification {
     @Unroll
     def "test add #documents to chronix"() {
         given:
-        def converter = new DefaultDocumentConverter()
+        def converter = new DefaultTimeSeriesConverter()
         def connection = Mock(SolrClient.class)
 
         UpdateResponse response = Mock(UpdateResponse.class)
@@ -50,7 +49,7 @@ class SolrAddingServiceTest extends Specification {
         0 * connection.commit(_ as String)
 
         where:
-        documents << [[new BinaryStorageDocument.Builder().build(), new BinaryStorageDocument.Builder().build()], [], null]
+        documents << [[new BinaryTimeSeries.Builder().build(), new BinaryTimeSeries.Builder().build()], [], null]
         calls << [1, 0, 0]
     }
 
@@ -58,8 +57,8 @@ class SolrAddingServiceTest extends Specification {
     def "test add to chronix when an solr server exception is thrown"() {
         given:
         def connection = Mock(SolrClient.class)
-        def converter = new DefaultDocumentConverter()
-        def timeSeries = [new BinaryStorageDocument.Builder().build()]
+        def converter = new DefaultTimeSeriesConverter()
+        def timeSeries = [new BinaryTimeSeries.Builder().build()]
 
         def addingService = new SolrAddingService()
         def logger = Mock(Logger.class)
@@ -79,8 +78,8 @@ class SolrAddingServiceTest extends Specification {
 
     def "test solr returns non zero status"() {
         given:
-        def converter = new DefaultDocumentConverter()
-        def timeSeries = [new BinaryStorageDocument.Builder().build(), new BinaryStorageDocument.Builder().build()]
+        def converter = new DefaultTimeSeriesConverter()
+        def timeSeries = [new BinaryTimeSeries.Builder().build(), new BinaryTimeSeries.Builder().build()]
         def connection = Mock(SolrClient.class)
 
         when:

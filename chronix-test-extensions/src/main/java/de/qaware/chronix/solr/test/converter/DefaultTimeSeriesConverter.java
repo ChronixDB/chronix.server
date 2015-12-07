@@ -15,25 +15,25 @@
  */
 package de.qaware.chronix.solr.test.converter;
 
-import de.qaware.chronix.converter.BinaryStorageDocument;
-import de.qaware.chronix.converter.DocumentConverter;
+import de.qaware.chronix.converter.BinaryTimeSeries;
+import de.qaware.chronix.converter.TimeSeriesConverter;
 
 /**
- * The default document converter, that does nothing.
+ * The default time series converter, that does nothing.
  * Only for test purposes.
  *
  * @author f.lautenschlager
  */
-public class DefaultDocumentConverter implements DocumentConverter<BinaryStorageDocument> {
+public class DefaultTimeSeriesConverter implements TimeSeriesConverter<BinaryTimeSeries> {
 
 
     @Override
-    public BinaryStorageDocument from(BinaryStorageDocument binaryStorageDocument, long queryStart, long queryEnd) {
+    public BinaryTimeSeries from(BinaryTimeSeries binaryStorageDocument, long queryStart, long queryEnd) {
         return binaryStorageDocument;
     }
 
     @Override
-    public BinaryStorageDocument to(BinaryStorageDocument timeSeries) {
+    public BinaryTimeSeries to(BinaryTimeSeries timeSeries) {
         return timeSeries;
     }
 }

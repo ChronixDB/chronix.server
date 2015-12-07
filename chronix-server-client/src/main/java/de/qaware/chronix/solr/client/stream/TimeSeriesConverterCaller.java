@@ -16,8 +16,8 @@
 package de.qaware.chronix.solr.client.stream;
 
 
-import de.qaware.chronix.converter.BinaryStorageDocument;
-import de.qaware.chronix.converter.DocumentConverter;
+import de.qaware.chronix.converter.BinaryTimeSeries;
+import de.qaware.chronix.converter.TimeSeriesConverter;
 import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +27,16 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * Converts the solr document into a binary storage document and calls the given document converter.
+ * Converts the solr document into a binary time series and calls the given document converter.
  *
  * @author f.lautenschlager
  */
-public class DocumentConverterCaller<T> implements Callable<T> {
+public class TimeSeriesConverterCaller<T> implements Callable<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentConverterCaller.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesConverterCaller.class);
 
     private final SolrDocument document;
-    private final DocumentConverter<T> documentConverter;
+    private final TimeSeriesConverter<T> documentConverter;
     private final long queryEnd;
     private final long queryStart;
 
@@ -46,7 +46,7 @@ public class DocumentConverterCaller<T> implements Callable<T> {
      * @param document          - the fields and values
      * @param documentConverter - the concrete document converter
      */
-    public DocumentConverterCaller(final SolrDocument document, final DocumentConverter<T> documentConverter, long queryStart, long queryEnd) {
+    public TimeSeriesConverterCaller(final SolrDocument document, final TimeSeriesConverter<T> documentConverter, long queryStart, long queryEnd) {
         this.document = document;
         this.documentConverter = documentConverter;
         this.queryStart = queryStart;
@@ -56,7 +56,7 @@ public class DocumentConverterCaller<T> implements Callable<T> {
 
     @Override
     public T call() throws Exception {
-        BinaryStorageDocument.Builder timeSeriesBuilder = new BinaryStorageDocument.Builder();
+        BinaryTimeSeries.Builder timeSeriesBuilder = new BinaryTimeSeries.Builder();
 
         document.forEach(mapEntry -> addToBuilder(timeSeriesBuilder, mapEntry));
         LOGGER.debug("Calling document converter with {}", document);
@@ -65,7 +65,7 @@ public class DocumentConverterCaller<T> implements Callable<T> {
         return timeSeries;
     }
 
-    private void addToBuilder(BinaryStorageDocument.Builder timeSeriesBuilder, Map.Entry<String, Object> mapEntry) {
+    private void addToBuilder(BinaryTimeSeries.Builder timeSeriesBuilder, Map.Entry<String, Object> mapEntry) {
         Object valueType = mapEntry.getValue();
 
         //If we use the default remote solr server, we get pojo's

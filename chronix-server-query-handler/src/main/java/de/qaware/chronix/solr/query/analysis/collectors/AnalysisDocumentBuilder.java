@@ -16,13 +16,11 @@
 package de.qaware.chronix.solr.query.analysis.collectors;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.BinaryStorageDocument;
+import de.qaware.chronix.converter.BinaryTimeSeries;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,8 +34,6 @@ import java.util.stream.Collectors;
  * @author f.lautenschlager
  */
 public class AnalysisDocumentBuilder {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisDocumentBuilder.class);
 
     private AnalysisDocumentBuilder() {
         //avoid instances
@@ -157,7 +153,7 @@ public class AnalysisDocumentBuilder {
      * @return a metric time series
      */
     private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
-        BinaryStorageDocument.Builder binaryDocument = new BinaryStorageDocument.Builder();
+        BinaryTimeSeries.Builder binaryDocument = new BinaryTimeSeries.Builder();
         doc.forEach((field, value) -> {
             if (value instanceof ByteBuffer) {
                 binaryDocument.field(field, ((ByteBuffer) value).array());
