@@ -24,6 +24,7 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -164,6 +165,7 @@ class ChronixClientTestIT extends Specification {
         chronix.add(documents.values(), solr)
     }
 
+    @Ignore
     def "Test add and query time series to Chronix with Solr"() {
         when:
         //query all documents
@@ -186,6 +188,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
     }
 
+    @Ignore
     @Unroll
     def "Test analysis query #analysisQuery"() {
         when:
