@@ -80,7 +80,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
      */
     public T take() {
         try {
-            T object = queue.poll(5, TimeUnit.SECONDS);
+            T object = queue.poll(1, TimeUnit.MINUTES);
             LOGGER.debug("Getting element from queue: {}", object);
             return object;
 
