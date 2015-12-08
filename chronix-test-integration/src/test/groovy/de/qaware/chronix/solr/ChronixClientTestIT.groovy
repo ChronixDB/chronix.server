@@ -165,7 +165,6 @@ class ChronixClientTestIT extends Specification {
         chronix.add(documents.values(), solr)
     }
 
-    @Ignore
     def "Test add and query time series to Chronix with Solr"() {
         when:
         //query all documents
@@ -175,9 +174,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 26i
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.start == 1356908403722
-        selectedTimeSeries.end == 1356994758096
-        selectedTimeSeries.points.size() == 7389
+        selectedTimeSeries.points.size() == 7383
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
@@ -188,7 +185,6 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
     }
 
-    @Ignore
     @Unroll
     def "Test analysis query #analysisQuery"() {
         when:
@@ -211,7 +207,7 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]
-        points << [1, 1, 1, 1, 1, 7389, 7389]
+        points << [1, 1, 1, 1, 1, 7383, 7383]
 
     }
 }
