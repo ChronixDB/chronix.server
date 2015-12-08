@@ -14,7 +14,6 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr
-
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.dts.MetricDataPoint
@@ -33,7 +32,6 @@ import java.text.DecimalFormat
 import java.util.function.BinaryOperator
 import java.util.function.Function
 import java.util.stream.Collectors
-
 /**
  * Tests the integration of Chronix and an embedded solr.
  * Fields also have to be registered in the schema.xml
@@ -85,7 +83,7 @@ class ChronixClientTestIT extends Specification {
         }
     }
 
-    def setupSpec() {
+    def asdf() {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8983/solr/chronix/")
@@ -103,8 +101,6 @@ class ChronixClientTestIT extends Specification {
         //we do a hart commit - only for testing purposes
         def updateResponse = solr.commit(true, true)
         LOGGER.info("Update Response of Commit is {}", updateResponse)
-        //wait to ensure all document are committed
-        sleep(45_000)
 
         then:
         result.status == 0
@@ -112,21 +108,20 @@ class ChronixClientTestIT extends Specification {
     }
 
     def importTimeSeriesData() {
-        def documents = new HashMap<Integer, MetricTimeSeries>()
         def url = ChronixClientTestIT.getResource("/timeSeries");
         def tsDir = new File(url.toURI())
 
-        int pointsPerChunk = 500;
+        tsDir.listFiles().each { File file ->
+            LOGGER.info("Processing file {}", file)
+            def documents = new HashMap<Integer, MetricTimeSeries>()
 
-        tsDir.listFiles().each { File entry ->
-            LOGGER.info("Processing file {}", entry)
-
-            def attributes = entry.name.split("_")
+            def attributes = file.name.split("_")
             def onlyOnce = true
             def nf = DecimalFormat.getInstance(Locale.ENGLISH);
 
-            entry.splitEachLine(";") { fields ->
+            def filePoints = 0
 
+            file.splitEachLine(";") { fields ->
                 //Its the first line of a csv file
                 if ("Date" == fields[0]) {
                     if (onlyOnce) {
@@ -152,21 +147,20 @@ class ChronixClientTestIT extends Specification {
                     }
                 } else {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
-                    long date = Date.parse("dd.MM.YYYY HH:mm:ss.SSS", fields[0]).getTime()
+                    def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
+                    LOGGER.info("Current date is {}", date)
                     fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
-                        documents.get(i).add(new MetricDataPoint(date, nf.parse(value).doubleValue()))
-                    }
-                    //Add the document to chronix if the points per chunk are
-                    if (documents.get(0).size() == pointsPerChunk) {
-                        chronix.add(documents.values(), solr)
-                        documents.values().each { doc -> doc.clear() }
+                        documents.get(i).add(new MetricDataPoint(date.getTime(), nf.parse(value).doubleValue()))
+                        filePoints = i
+
                     }
                 }
-
                 onlyOnce = false
             }
+            chronix.add(documents.values(), solr)
+            def updateResponse = solr.commit(true, true)
+            LOGGER.info("Update Response of Commit is {}", updateResponse)
         }
-        chronix.add(documents.values(), solr)
     }
 
     def "Test add and query time series to Chronix with Solr"() {
