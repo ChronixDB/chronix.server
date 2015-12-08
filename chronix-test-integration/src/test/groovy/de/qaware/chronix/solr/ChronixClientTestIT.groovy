@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr
+
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.dts.MetricDataPoint
@@ -24,7 +25,6 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -33,6 +33,7 @@ import java.text.DecimalFormat
 import java.util.function.BinaryOperator
 import java.util.function.Function
 import java.util.stream.Collectors
+
 /**
  * Tests the integration of Chronix and an embedded solr.
  * Fields also have to be registered in the schema.xml
@@ -100,7 +101,10 @@ class ChronixClientTestIT extends Specification {
         LOGGER.info("Adding data to Chronix.")
         importTimeSeriesData();
         //we do a hart commit - only for testing purposes
-        solr.commit()
+        def updateResponse = solr.commit(true, true)
+        LOGGER.info("Update Response of Commit is {}", updateResponse)
+        //wait to ensure all document are committed
+        sleep(45_000)
 
         then:
         result.status == 0
@@ -174,7 +178,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 26i
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.points.size() == 7383
+        selectedTimeSeries.points.size() == 7389
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
@@ -207,7 +211,7 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]
-        points << [1, 1, 1, 1, 1, 7383, 7383]
+        points << [1, 1, 1, 1, 1, 7389, 7389]
 
     }
 }
