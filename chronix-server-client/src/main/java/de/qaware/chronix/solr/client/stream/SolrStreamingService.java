@@ -69,7 +69,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
     /**
      * The executor service to do the work asynchronously
      */
-    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+    private final ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     /**
      * The handler for this service

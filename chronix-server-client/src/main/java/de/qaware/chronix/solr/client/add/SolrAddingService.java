@@ -70,7 +70,7 @@ public class SolrAddingService {
     }
 
     private static boolean evaluate(UpdateResponse response) {
-        LOGGER.debug("Response to {} returned: Status code {}, Elapsed time {}, QTime {}", response.getRequestUrl(), response.getStatus(), response.getElapsedTime(), response.getQTime());
+        LOGGER.debug("Response returned: Status code {}, Elapsed time {}, QTime {}", response.getStatus(), response.getElapsedTime(), response.getQTime());
         //any other status code means 'there was an error'
         return response.getStatus() == 0;
     }
