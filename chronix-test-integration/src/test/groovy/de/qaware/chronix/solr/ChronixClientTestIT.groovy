@@ -148,7 +148,6 @@ class ChronixClientTestIT extends Specification {
                 } else {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
                     def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
-                    LOGGER.info("Current date is {}", date)
                     fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
                         documents.get(i).add(new MetricDataPoint(date.getTime(), nf.parse(value).doubleValue()))
                         filePoints = i
