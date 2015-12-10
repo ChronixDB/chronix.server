@@ -2,11 +2,9 @@
 [![Coverage Status](https://coveralls.io/repos/ChronixDB/chronix.server/badge.svg?branch=master&service=github)](https://coveralls.io/github/ChronixDB/chronix.server?branch=master)
 [![Stories in Ready](https://badge.waffle.io/ChronixDB/chronix.server.png?label=ready&title=Ready)](https://waffle.io/ChronixDB/chronix.server)
 [![Apache License 2](http://img.shields.io/badge/license-ASF2-blue.svg)](https://github.com/ChronixDB/chronix.server/blob/master/LICENSE)
-
+[![Join the chat at https://gitter.im/ChronixDB/chronix.server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ChronixDB/chronix.server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Chronix Server
-
-[![Join the chat at https://gitter.im/ChronixDB/chronix.server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ChronixDB/chronix.server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 The Chronix Server is an implementation of the Chronix API that stores time series in [Apache Solr](http://lucene.apache.org/solr/).
 Chronix uses several techniques to optimize query times and storage demand.
 Thus Chronix can access a single data point out of 68.000.000.000 stored pairs of time stamp and numeric value in about 30 ms.
