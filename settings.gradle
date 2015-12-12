@@ -5,3 +5,5 @@ include 'chronix-server-retention'
 include 'chronix-server-query-handler'
 include 'chronix-test-extensions'
 include 'chronix-test-integration'
+include 'chronix-server-response-writer'
+

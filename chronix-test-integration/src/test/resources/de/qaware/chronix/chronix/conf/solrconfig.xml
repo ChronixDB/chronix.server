@@ -243,13 +243,13 @@
         <str name="template.base.dir">${velocity.template.base.dir:}</str>
     </queryResponseWriter>
 
-    <!-- XSLT response writer transforms the XML output by any xslt file found
-         in Solr's conf/xslt directory.  Changes to xslt files are checked for
-         every xsltCacheLifetimeSeconds.
-      -->
+
     <queryResponseWriter name="xslt" class="solr.XSLTResponseWriter">
         <int name="xsltCacheLifetimeSeconds">5</int>
     </queryResponseWriter>
+
+
+    <transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer" />
 
     <!-- Legacy config for the admin interface -->
     <admin>

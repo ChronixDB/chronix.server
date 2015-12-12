@@ -17,7 +17,6 @@ package de.qaware.chronix.solr.query.analysis.collectors.math
 
 import spock.lang.Specification
 
-import java.util.stream.DoubleStream
 /**
  * Unit test for the percentile class
  * @author f.lautenschlager
@@ -37,13 +36,13 @@ class PercentileTest extends Specification {
         def percentile = 0.5
 
         when:
-        def value = Percentile.evaluate(stream, percentile)
+        def value = Percentile.evaluate(points, percentile)
 
         then:
         value == expected
 
         where:
-        stream << [DoubleStream.builder().add(10).add(11).build(), DoubleStream.builder().add(10).build()]
+        points << [Arrays.asList(10d, 11d), Arrays.asList(10d)]
         expected << [10.5, 10]
     }
 }

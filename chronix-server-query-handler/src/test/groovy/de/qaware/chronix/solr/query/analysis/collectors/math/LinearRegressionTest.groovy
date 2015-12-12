@@ -15,7 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math
 
-import de.qaware.chronix.dts.MetricDataPoint
 import spock.lang.Specification
 
 /**
@@ -25,15 +24,17 @@ import spock.lang.Specification
 class LinearRegressionTest extends Specification {
     def "test slope"() {
         given:
-        def points = []
+        def times = []
+        def values = []
         100.times {
-            points.add(new MetricDataPoint(it, it * 2))
+            times.add(it as long)
+            values.add(it * 2 as double)
         }
 
         when:
-        def slope = new LinearRegression(points).slope()
+        def slope = new LinearRegression(times, values).slope()
 
         then:
-        slope == 0.5d
+        slope == 2d
     }
 }

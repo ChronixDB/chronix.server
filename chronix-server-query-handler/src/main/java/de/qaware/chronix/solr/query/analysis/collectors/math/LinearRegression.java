@@ -15,8 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math;
 
-import de.qaware.chronix.dts.MetricDataPoint;
-
 import java.util.List;
 
 /**
@@ -32,13 +30,13 @@ public class LinearRegression {
      *
      * @throws IllegalArgumentException if the lengths of the two arrays are not equal
      */
-    public LinearRegression(List<MetricDataPoint> points) {
-        double[] x = new double[points.size()];
-        double[] y = new double[points.size()];
+    public LinearRegression(List<Long> timestamps, List<Double> values) {
+        double[] x = new double[timestamps.size()];
+        double[] y = new double[values.size()];
 
-        for (int i = 0; i < points.size(); i++) {
-            y[i] = points.get(i).getDate();
-            x[i] = points.get(i).getValue();
+        for (int i = 0; i < timestamps.size(); i++) {
+            x[i] = timestamps.get(i);
+            y[i] = values.get(i);
         }
 
         double sumX = 0.0;

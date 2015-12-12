@@ -15,11 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors
 
-import de.qaware.chronix.dts.MetricDataPoint
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /**
  * Unit test for the isAggregation Evaluator
  * @author f.lautenschlager
@@ -30,14 +28,14 @@ class AnalysisEvaluatorTest extends Specification {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Aggregation");
         10.times {
-            timeSeries.point(new MetricDataPoint(it, it * 10))
+            timeSeries.point(it, it * 10)
         }
-        timeSeries.point(new MetricDataPoint(11, 9999))
+        timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
 
         when:
-        double analysisValue = AnalysisEvaluator.evaluate(ts.getPoints(), analysis, analysisArgs)
+        double analysisValue = AnalysisEvaluator.evaluate(ts.getTimestamps(),ts.getValues(), analysis, analysisArgs)
 
         then:
         analysisValue == expected

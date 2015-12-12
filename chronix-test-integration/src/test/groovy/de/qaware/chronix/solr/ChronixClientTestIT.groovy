@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr
+
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
-import de.qaware.chronix.dts.MetricDataPoint
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.client.solrj.SolrClient
@@ -32,6 +32,8 @@ import java.text.DecimalFormat
 import java.util.function.BinaryOperator
 import java.util.function.Function
 import java.util.stream.Collectors
+import java.util.stream.Stream
+
 /**
  * Tests the integration of Chronix and an embedded solr.
  * Fields also have to be registered in the schema.xml
@@ -77,13 +79,19 @@ class ChronixClientTestIT extends Specification {
     @Shared
     BinaryOperator<MetricTimeSeries> reduce = new BinaryOperator<MetricTimeSeries>() {
         @Override
-        MetricTimeSeries apply(MetricTimeSeries ts1, MetricTimeSeries ts2) {
-            ts1.addAll(ts2.points);
-            return ts1;
+        MetricTimeSeries apply(MetricTimeSeries t1, MetricTimeSeries t2) {
+            MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
+                    .data(concat(t1.getTimestamps(), t2.getTimestamps()),
+                    concat(t1.getValues(), t2.getValues()))
+                    .attributes(t1.attributes());
+            return reduced.build();
         }
     }
+    private static <T> List<T> concat(Stream<T> first, Stream<T> second) {
+        return Stream.concat(first, second).collect(Collectors.toList());
+    }
 
-    def asdf() {
+    def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8983/solr/chronix/")
@@ -149,7 +157,7 @@ class ChronixClientTestIT extends Specification {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
                     def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
                     fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
-                        documents.get(i).add(new MetricDataPoint(date.getTime(), nf.parse(value).doubleValue()))
+                        documents.get(i).add(date.getTime(), nf.parse(value).doubleValue())
                         filePoints = i
 
                     }
@@ -171,7 +179,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 26i
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.points.size() >= 7000
+        selectedTimeSeries.size() >= 7000
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
@@ -185,7 +193,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "Test analysis query #analysisQuery"() {
         when:
-        def query = new SolrQuery("metric:\\\\Load\\\\avg");
+        def query = new SolrQuery("metric:\\\\Load\\\\avg")
         query.addFilterQuery(analysisQuery)
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -206,5 +214,27 @@ class ChronixClientTestIT extends Specification {
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]
         points << [1, 1, 1, 1, 1, 7000, 7000]
 
+    }
+
+    def "Test query raw time series"(){
+        when:
+        def query = new SolrQuery("*:*")
+        query.addField("dataAsJson:[dataAsJson],myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
+        //query all documents
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 26i
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.attribute("myIntField") == 5
+        selectedTimeSeries.attribute("myLongField") == 8L
+        selectedTimeSeries.attribute("myDoubleField") == 5.5D
+        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
+        selectedTimeSeries.attribute("myStringList") == listStringField
+        selectedTimeSeries.attribute("myIntList") == listIntField
+        selectedTimeSeries.attribute("myLongList") == listLongField
+        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
     }
 }

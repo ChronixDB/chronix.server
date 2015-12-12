@@ -32,7 +32,6 @@ public class ChronixQueryParams {
      */
     public static final String ANALYSIS_PARAM = "analysis=";
 
-
     /**
      * Used to join documents into one time series
      */

@@ -89,8 +89,12 @@ SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 
 //Define a reduce function for the grouped time series records
 BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
-     ts1.addAll(ts2.points);
-     return ts1;
+      MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
+         .data(concat(ts1.getTimestamps(), ts2.getTimestamps()),
+               concat(ts1.getValues(), ts2.getValues()))
+         .attributes(t1.attributes());
+     
+     return reduced.build();
 }
 
 //Create a Chronix Client with Kassiopeia Simple and the Chronix Solr Storage
@@ -133,6 +137,25 @@ host:prodI4 AND metric:\\HeapMemory\Usage\Used AND -start:[NOW-10DAYS-1ms TO *] 
 
 ### Range Query
 A range query is answered using the default Solr query handler which supports all the great features (fields, facets, ...) of Apache Solr.
+
+Example Result:
+```
+{
+  "responseHeader":{
+    "query_start_long":0,
+    "query_end_long":9223372036854775807,
+    "status":0,
+    "QTime":3},
+  "response":{"numFound":21,"start":0,"docs":[
+      {
+        "start":1377468017361,
+        "metric":"\\Load\\max",
+        "end":1377554376850,
+        "data":"byte[]" // serialized and compressed points
+       },...
+   ]
+}
+```
 
 ### Analysis Query
 A custom query handler answers an analysis query.
@@ -177,6 +200,41 @@ fq=join=host,process,metric
 ```
 If no join function is defined Chronix applies a default join function that uses the metric name.
 
+### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-response-writer))
+This allows one to query raw (uncompressed) data from Chronix in JSON format. 
+It is implemented as a Solr [document transformer](https://cwiki.apache.org/confluence/display/solr/Transforming+Result+Documents).
+Hence the transformer is defined in the config.xml: 
+
+```XML
+<transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer" />
+
+```
+To execute the transformer you have to add it to the *fl* parameter:
+```
+q=metric:*load*&fl=dataAsJson:[dataAsJson]
+```
+The records in the result contains a field called *dataAsJson* that holds the raw time series data as json.
+Note: The transformer removes the data field that normally ship the compressed data.
+
+Example Result:
+```
+{
+  "responseHeader":{
+    "query_start_long":0,
+    "query_end_long":9223372036854775807,
+    "status":0,
+    "QTime":3},
+  "response":{"numFound":21,"start":0,"docs":[
+      {
+        "start":1377468017361,
+        "metric":"\\Load\\max",
+        "end":1377554376850,
+        "dataAsJson":"[[timestamps],[values]]" //as json string
+       }...
+   ]
+}
+```
+
 ### Chronix Server Retention ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-retention))
 The Chronix Server Retention plugin deletes time series data that is older than a given threshold.
 The configuration of the plugin is within the *config.xml* of the Solr Core.
@@ -210,9 +268,10 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.0.2'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.0.2'
-   compile 'de.qaware.chronix:chronix-server-retention:0.0.2'
+   compile 'de.qaware.chronix:chronix-server-client:0.1'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.1'
+   compile 'de.qaware.chronix:chronix-server-retention:0.1'
+   compile 'de.qaware.chronix:chronix-server-response-writer:0.1'
 }
 ```
 

@@ -18,8 +18,8 @@ dependencies {
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.0.2'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.0.2'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.0.2'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1'
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
     testCompile project (':chronix-test-extensions')

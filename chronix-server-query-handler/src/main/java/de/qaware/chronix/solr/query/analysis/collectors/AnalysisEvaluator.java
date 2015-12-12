@@ -15,7 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors;
 
-import de.qaware.chronix.dts.MetricDataPoint;
 import de.qaware.chronix.solr.query.analysis.collectors.math.LinearRegression;
 import de.qaware.chronix.solr.query.analysis.collectors.math.Percentile;
 import de.qaware.chronix.solr.query.analysis.collectors.math.StdDev;
@@ -23,9 +22,11 @@ import de.qaware.chronix.solr.query.analysis.collectors.math.StdDev;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 /**
  * Aggregation evaluator supports AVG, MIN, max, dev and percentile
@@ -42,36 +43,37 @@ public class AnalysisEvaluator {
     /**
      * Evaluates the given isAggregation on the given time series
      *
-     * @param points               - a stream of doubles
+     * @param timestamps           - the timestamps
+     * @param values               - a the values
      * @param analysis             - the analysis (avg, min, max, dev, p, trend, outlier, frequency)
      * @param aggregationArguments - the isAggregation value used for p (0 - 1), e.g., 0.25
      * @return the aggregated value or in case of a high level analysis 1 for anomaly detected or -1 for not.
      */
-    public static double evaluate(List<MetricDataPoint> points, AnalysisType analysis, String[] aggregationArguments) {
+    public static double evaluate(Stream<Long> timestamps, Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
         if (AnalysisType.isHighLevel(analysis)) {
-            return highLevelAnalysisEvaluation(points, analysis, aggregationArguments);
+            return highLevelAnalysisEvaluation(timestamps, values, analysis, aggregationArguments);
         } else {
-            return aggregationAnalysisEvaluation(points, analysis, aggregationArguments);
+            return aggregationAnalysisEvaluation(values, analysis, aggregationArguments);
         }
     }
 
-    private static double aggregationAnalysisEvaluation(List<MetricDataPoint> points, AnalysisType analysis, String[] aggregationArguments) {
+    private static double aggregationAnalysisEvaluation(Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
         double value;
         switch (analysis) {
             case AVG:
-                value = doubleStream(points).average().getAsDouble();
+                value = avg(values.iterator());
                 break;
             case MIN:
-                value = doubleStream(points).min().getAsDouble();
+                value = min(values.iterator());
                 break;
             case MAX:
-                value = doubleStream(points).max().getAsDouble();
+                value = max(values.iterator());
                 break;
             case DEV:
-                value = StdDev.dev(doubleStream(points).boxed().collect(Collectors.toList()));
+                value = StdDev.dev(doubleStream(values).boxed().collect(Collectors.toList()));
                 break;
             case P:
-                value = Percentile.evaluate(doubleStream(points), Double.parseDouble(aggregationArguments[0]));
+                value = Percentile.evaluate(values.collect(Collectors.toList()), Double.parseDouble(aggregationArguments[0]));
                 break;
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "The high-level analysis " + analysis + " is not present within the enum.");
@@ -80,44 +82,84 @@ public class AnalysisEvaluator {
         return value;
     }
 
-    private static double highLevelAnalysisEvaluation(List<MetricDataPoint> points, AnalysisType analysis, String[] aggregationArguments) {
+    private static double max(Iterator<Double> values) {
+        double current = values.hasNext() ? values.next() : 0;
+
+        while (values.hasNext()) {
+            double next = values.next();
+
+            if (current < next) {
+                current = next;
+            }
+        }
+        return current;
+    }
+
+    private static double min(Iterator<Double> values) {
+        double current = values.hasNext() ? values.next() : 0;
+
+        while (values.hasNext()) {
+            double next = values.next();
+
+            if (current > next) {
+                current = next;
+            }
+        }
+        return current;
+    }
+
+    private static double avg(Iterator<Double> values) {
+        double current = 0;
+        double count = 0;
+        while (values.hasNext()) {
+            current += values.next();
+            count++;
+        }
+        return current / count;
+    }
+
+    private static double highLevelAnalysisEvaluation(Stream<Long> timestamps, Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
         switch (analysis) {
             case OUTLIER:
-                return detectOutlier(points);
+                return detectOutlier(values);
             case TREND:
-                return detectTrend(points);
+                return detectTrend(timestamps, values);
             case FREQUENCY:
-                return detectFrequency(points, aggregationArguments);
+                return detectFrequency(timestamps, aggregationArguments);
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "The aggregation " + analysis + " is not present within the enum.");
         }
     }
 
-    private static DoubleStream doubleStream(List<MetricDataPoint> points) {
-        return points.stream().mapToDouble(MetricDataPoint::getValue);
+    private static DoubleStream doubleStream(Stream<Double> points) {
+        return points.mapToDouble(p -> p);
     }
 
-    private static int detectFrequency(List<MetricDataPoint> points, String[] analysisArguments) {
+    private static int detectFrequency(Stream<Long> timestamps, String[] analysisArguments) {
         long windowSize = Long.parseLong(analysisArguments[0]);
         long windowThreshold = Long.parseLong(analysisArguments[1]);
 
-        List<MetricDataPoint> currentWindow = new ArrayList<>();
+        List<Long> currentWindow = new ArrayList<>();
         List<Integer> windowCount = new ArrayList<>();
 
         long windowStart = -1;
         long windowEnd = -1;
-        for (MetricDataPoint current : points) {
+
+        Iterator<Long> it = timestamps.iterator();
+
+        while (it.hasNext()) {
+            long current = it.next();
 
             if (windowStart == -1) {
-                windowStart = current.getDate();
+                windowStart = current;
                 windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
             }
 
-            if (current.getDate() > windowStart - 1 && current.getDate() < (windowEnd)) {
+            if (current > windowStart - 1 && current < (windowEnd)) {
                 currentWindow.add(current);
             } else {
                 windowCount.add(currentWindow.size());
-                windowStart = current.getDate();
+                windowStart = current;
                 windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
                 currentWindow.clear();
             }
@@ -138,21 +180,24 @@ public class AnalysisEvaluator {
         return -1;
     }
 
-    private static int detectTrend(List<MetricDataPoint> points) {
+    private static int detectTrend(Stream<Long> timestamps, Stream<Double> values) {
 
-        LinearRegression linearRegression = new LinearRegression(points);
+        LinearRegression linearRegression = new LinearRegression(timestamps.collect(Collectors.toList()), values.collect(Collectors.toList()));
 
         double slope = linearRegression.slope();
 
         return slope > 0 ? 1 : -1;
     }
 
-    private static int detectOutlier(List<MetricDataPoint> points) {
+    private static int detectOutlier(Stream<Double> points) {
         boolean detected;
-        double q1 = Percentile.evaluate(points.stream().mapToDouble(MetricDataPoint::getValue), .25);
-        double q3 = Percentile.evaluate(points.stream().mapToDouble(MetricDataPoint::getValue), .75);
+
+        List<Double> collectedPoint = points.collect(Collectors.toList());
+
+        double q1 = Percentile.evaluate(collectedPoint, .25);
+        double q3 = Percentile.evaluate(collectedPoint, .75);
         double threshold = (q3 - q1) * 1.5 + q3;
-        detected = points.stream().filter(point -> point.getValue() >= threshold).count() > 0;
+        detected = collectedPoint.stream().filter(point -> point >= threshold).count() > 0;
         return detected ? 1 : -1;
     }
 

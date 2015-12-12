@@ -17,13 +17,14 @@ package de.qaware.chronix.solr.query.analysis.collectors
 
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
-import de.qaware.chronix.dts.MetricDataPoint
+import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.lucene.document.Document
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
+
 /**
  * @author f.lautenschlager
  */
@@ -70,12 +71,12 @@ class AnalysisDocumentBuilderTest extends Specification {
         def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
 
         when:
-        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, collectedDoc);
+        def document = AnalysisDocumentBuilder.analyze(analysis, 1l, Long.MAX_VALUE, collectedDoc);
 
         then:
         document.getFieldValue("host") as String == "laptop"
         document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 0
+        document.getFieldValue("start") as long == 1
         document.getFieldValue("end") as long == 990
         document.getFieldValue("value") == null
         document.getFieldValue("analysis") as String == "TREND"
@@ -122,12 +123,12 @@ class AnalysisDocumentBuilderTest extends Specification {
     ArrayList<Document> fillDocs() {
         def result = new ArrayList<SolrDocument>();
 
-        KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
+        TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
 
         10.times {
             MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")
                     .attribute("host", "laptop")
-                    .data(createPoints(it + 1))
+                    .data(times(it + 1), values(it + 1))
                     .build();
             def doc = converter.to(ts)
             result.add(asSolrDoc(doc))
@@ -150,11 +151,20 @@ class AnalysisDocumentBuilderTest extends Specification {
         doc
     }
 
-    def createPoints(int i) {
-        def points = new ArrayList<MetricDataPoint>()
+    def List times(int i) {
+        def times = new ArrayList<>()
         100.times {
-            points.add(new MetricDataPoint(it * i, it * 100 * i))
+            times.add(it * i as long)
         }
-        points
+        times
+    }
+
+    def List values(int i) {
+        def values = new ArrayList<>()
+
+        100.times {
+            values.add(it * 100 * i as double)
+        }
+        values
     }
 }

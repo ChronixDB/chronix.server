@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.collectors;
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.BinaryTimeSeries;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
+import de.qaware.chronix.converter.TimeSeriesConverter;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author f.lautenschlager
@@ -90,9 +92,18 @@ public class AnalysisDocumentBuilder {
         //Collect all document of a time series
         return documents.getValue().stream().map(tsDoc -> convert(tsDoc, queryStart, queryEnd))
                 .collect(Collectors.reducing((t1, t2) -> {
-                    t1.addAll(t2.getPoints());
-                    return t1;
+
+                    MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
+                            .data(concat(t1.getTimestamps(), t2.getTimestamps()),
+                                    concat(t1.getValues(), t2.getValues()))
+                            .attributes(t1.attributes());
+
+                    return reduced.build();
                 })).get();
+    }
+
+    private static <T> List<T> concat(Stream<T> first, Stream<T> second) {
+        return Stream.concat(first, second).collect(Collectors.toList());
     }
 
     /**
@@ -103,7 +114,7 @@ public class AnalysisDocumentBuilder {
      * @return the aggregated value
      */
     private static double analyzeTimeSeries(MetricTimeSeries timeSeries, Map.Entry<AnalysisType, String[]> aggregation) {
-        return AnalysisEvaluator.evaluate(timeSeries.getPoints(), aggregation.getKey(), aggregation.getValue());
+        return AnalysisEvaluator.evaluate(timeSeries.getTimestamps(), timeSeries.getValues(), aggregation.getKey(), aggregation.getValue());
     }
 
     /**
@@ -162,25 +173,24 @@ public class AnalysisDocumentBuilder {
             }
         });
 
-        KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
+        TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
         return converter.from(binaryDocument.build(), queryStart, queryEnd);
     }
 
     private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
-        KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
 
         SolrDocument doc = new SolrDocument();
-        converter.to(timeSeries).getFields().forEach((field, value) -> {
 
-            if (field.equals(Schema.DATA)) {
-                if (withData) {
-                    doc.addField(field, value);
-                }
-            } else {
-                doc.addField(field, value);
-            }
+        if (withData) {
+            new KassiopeiaSimpleConverter().to(timeSeries).getFields().forEach(doc::addField);
+        } else {
+            timeSeries.attributes().forEach(doc::addField);
+            //add the metric field as it is not stored in the attributes
+            doc.addField(Schema.METRIC, timeSeries.getMetric());
+            doc.addField(Schema.START, timeSeries.getStart());
+            doc.addField(Schema.END, timeSeries.getEnd());
+        }
 
-        });
         return doc;
     }
 }

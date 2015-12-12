@@ -17,8 +17,6 @@ package de.qaware.chronix.solr.query.analysis.collectors.math;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * Class to calculate a percentile
@@ -52,11 +50,10 @@ public class Percentile {
      * @param percentile - the percentile (0 - 1), e.g. 0.25
      * @return the value of the n-th percentile
      */
-    public static double evaluate(DoubleStream values, double percentile) {
-        List<Double> doubles = values.boxed().collect(Collectors.toList());
-        Collections.sort(doubles);
+    public static double evaluate(List<Double> values, double percentile) {
+        Collections.sort(values);
 
-        return evaluateForDoubles(doubles, percentile);
+        return evaluateForDoubles(values, percentile);
     }
 
     private static double evaluateForDoubles(List<Double> points, double percentile) {
