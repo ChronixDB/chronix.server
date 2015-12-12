@@ -200,7 +200,7 @@ fq=join=host,process,metric
 ```
 If no join function is defined Chronix applies a default join function that uses the metric name.
 
-### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-response-writer))
+### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-response-writer))
 This allows one to query raw (uncompressed) data from Chronix in JSON format. 
 It is implemented as a Solr [document transformer](https://cwiki.apache.org/confluence/display/solr/Transforming+Result+Documents).
 Hence the transformer is defined in the config.xml: 
