@@ -3,7 +3,7 @@ dependencies {
     testCompile 'commons-codec:commons-codec:1.10'
     testCompile 'org.apache.solr:solr-solrj:5.3.1'
 
-    testCompile 'de.qaware.chronix:chronix-api:0.0.2'
+    testCompile 'de.qaware.chronix:chronix-api:0.1'
     testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1'
     testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1'
 

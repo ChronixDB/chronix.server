@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.query;
 
 import de.qaware.chronix.Schema;
+import de.qaware.chronix.schema.MetricTSSchema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -62,7 +63,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         REQUIRED_FIELDS.add(Schema.DATA);
         REQUIRED_FIELDS.add(Schema.START);
         REQUIRED_FIELDS.add(Schema.END);
-        REQUIRED_FIELDS.add(Schema.METRIC);
+        REQUIRED_FIELDS.add(MetricTSSchema.METRIC);
     }
 
     @Override

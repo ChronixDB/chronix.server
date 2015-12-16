@@ -19,6 +19,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.BinaryTimeSeries;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.TimeSeriesConverter;
+import de.qaware.chronix.schema.MetricTSSchema;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -186,7 +187,7 @@ public class AnalysisDocumentBuilder {
         } else {
             timeSeries.attributes().forEach(doc::addField);
             //add the metric field as it is not stored in the attributes
-            doc.addField(Schema.METRIC, timeSeries.getMetric());
+            doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
             doc.addField(Schema.START, timeSeries.getStart());
             doc.addField(Schema.END, timeSeries.getEnd());
         }
