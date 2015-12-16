@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.response
 
 import de.qaware.chronix.Schema
 import de.qaware.chronix.converter.Compression
+import de.qaware.chronix.schema.MetricTSSchema
 import de.qaware.chronix.serializer.JsonKassiopeiaSimpleSerializer
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.lucene.document.StoredField
@@ -49,7 +50,7 @@ class ChronixTransformerTest extends Specification {
 
     def docWithoutData() {
         def doc = new SolrDocument()
-        doc.addField(Schema.METRIC, "groovy")
+        doc.addField(MetricTSSchema.METRIC, "groovy")
 
         doc
     }
