@@ -22,6 +22,7 @@ import org.apache.solr.core.PluginInfo
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.search.DocSlice
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -67,6 +68,7 @@ class AnalysisHandlerTest extends Specification {
         description == "Chronix Aggregation Request Handler"
     }
 
+    @Ignore
     def "test init and inform"() {
         given:
         def pluginInfo = Mock(PluginInfo.class)

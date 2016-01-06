@@ -102,6 +102,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * This method sets up a scheduled deletion job.
      */
     private void scheduledDeletion() {
+        System.setProperty("org.quartz.threadPool.threadCount", "3");
         SchedulerFactory sf = new StdSchedulerFactory();
         try {
             scheduler = sf.getScheduler();
@@ -128,7 +129,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
             try {
                 scheduler.shutdown(false);
             } catch (SchedulerException e) {
-                LOGGER.info("Could not add shutdown hook data retention thread.", e);
+                LOGGER.warn("Could not add shutdown hook data retention thread.", e);
             }
         }));
 

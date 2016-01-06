@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 dependencies {
-    compile "org.apache.solr:solr-core:5.3.1"
+    compile "org.apache.solr:solr-core:5.4.0"
     compile 'org.quartz-scheduler:quartz:2.2.2'
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 

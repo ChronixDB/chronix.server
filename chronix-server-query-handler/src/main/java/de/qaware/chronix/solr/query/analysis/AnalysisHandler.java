@@ -23,8 +23,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.core.PluginInfo;
-import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
@@ -131,15 +129,5 @@ public class AnalysisHandler extends SearchHandler {
     @Override
     public String getDescription() {
         return "Chronix Aggregation Request Handler";
-    }
-
-    @Override
-    public void init(PluginInfo info) {
-        //Currently not used
-    }
-
-    @Override
-    public void inform(SolrCore core) {
-        //Currently not used
     }
 }

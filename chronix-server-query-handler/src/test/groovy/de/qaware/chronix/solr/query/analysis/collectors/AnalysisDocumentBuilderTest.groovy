@@ -77,7 +77,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         document.getFieldValue("host") as String == "laptop"
         document.getFieldValue("metric") as String == "groovy"
         document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 990
+        document.getFieldValue("end") as long == 991
         document.getFieldValue("value") == null
         document.getFieldValue("analysis") as String == "TREND"
         document.getFieldValue("analysisParam") as String == ""
@@ -106,8 +106,8 @@ class AnalysisDocumentBuilderTest extends Specification {
         then:
         document.getFieldValue("host") as String == "laptop"
         document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 0
-        document.getFieldValue("end") as long == 990
+        document.getFieldValue("start") as long == 1
+        document.getFieldValue("end") as long == 991
         document.getFieldValue("value") as double == 99000.0d
         document.getFieldValue("analysis") as String == "MAX"
         document.getFieldValue("analysisParam") as String == ""
@@ -154,7 +154,7 @@ class AnalysisDocumentBuilderTest extends Specification {
     def List times(int i) {
         def times = new ArrayList<>()
         100.times {
-            times.add(it * i as long)
+            times.add(it * i + 1 as long)
         }
         times
     }

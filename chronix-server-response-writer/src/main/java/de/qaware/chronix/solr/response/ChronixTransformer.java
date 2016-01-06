@@ -16,7 +16,11 @@
 package de.qaware.chronix.solr.response;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.Compression;
+import de.qaware.chronix.converter.common.Compression;
+import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
+import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
+import de.qaware.chronix.timeseries.Pair;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.SolrParams;
@@ -26,7 +30,11 @@ import org.apache.solr.response.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Data field transformer to decompress data.
@@ -75,10 +83,44 @@ public class ChronixTransformer extends TransformerFactory {
             if (doc.containsKey(Schema.DATA)) {
                 LOGGER.debug("Transforming data field to json. Document {}", doc);
                 //we only have to decompress the field
-                StoredField data = (StoredField) doc.getFieldValue(Schema.DATA);
-                byte[] decompressed = Compression.decompress(data.binaryValue().bytes);
-                doc.remove(Schema.DATA);
-                doc.setField(DATA_AS_JSON, new String(decompressed, "UTF-8"));
+                Iterator<Pair> points = getRawPoints(doc);
+
+                List<Long> timestamps = new ArrayList<>(5000);
+                List<Double> values = new ArrayList<>(5000);
+
+                while (points.hasNext()) {
+                    Pair point = points.next();
+                    timestamps.add(point.getTimestamp());
+                    values.add(point.getValue());
+                }
+
+                JsonKassiopeiaSimpleSerializer jsonSerializer = new JsonKassiopeiaSimpleSerializer();
+                byte[] json = jsonSerializer.toJson(timestamps.stream(), values.stream());
+
+                doc.setField(DATA_AS_JSON, new String(json, "UTF-8"));
+            }
+        }
+
+        private Iterator<Pair> getRawPoints(SolrDocument doc) {
+            StoredField data = (StoredField) doc.getFieldValue(Schema.DATA);
+            doc.remove(Schema.DATA);
+
+            InputStream decompressed = Compression.decompressToStream(data.binaryValue().bytes);
+
+            long tsStart = getLong(doc.getFieldValue(Schema.START));
+            long tsEnd = getLong(doc.getFieldValue(Schema.END));
+
+            return ProtoBufKassiopeiaSimpleSerializer.from(decompressed, tsStart, tsEnd);
+        }
+
+        private long getLong(Object field) {
+            if (field instanceof LongField) {
+                return ((LongField) field).numericValue().longValue();
+            } else if (field instanceof StoredField) {
+                return ((StoredField) field).numericValue().longValue();
+
+            } else {
+                return -1;
             }
         }
     }

@@ -1,11 +1,12 @@
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
     testCompile 'commons-codec:commons-codec:1.10'
-    testCompile 'org.apache.solr:solr-solrj:5.3.1'
+    testCompile 'org.apache.solr:solr-solrj:5.4.0'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.1'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.1'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.1'
 
 
     testCompile project(':chronix-server-client')
@@ -19,10 +20,12 @@ dependencies {
 
 import de.undercouch.gradle.tasks.download.Download
 
+def solrVersion="5.4.0"
+
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src 'http://archive.apache.org/dist/lucene/solr/5.3.1/solr-5.3.1.zip'
-    dest new File(buildDir, 'solr-5.3.1.zip')
+    src "http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
 task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
@@ -30,18 +33,19 @@ task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     into buildDir
 }
 task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
-    into "$buildDir/solr-5.3.1/server/solr"
+    into "$buildDir/solr-${solrVersion}/server/solr"
     from "$projectDir/src/test/resources/de/qaware/chronix/"
 }
 
 task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
-    into "$buildDir/solr-5.3.1/server/solr/chronix/lib"
+    into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
     include("*chronix-server-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
+    include("*proto*.jar")
 }
 
 processTestResources.dependsOn copyIntegrationRuntimeLibs
@@ -84,11 +88,11 @@ task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd start'
         ready "Started Solr server on port 8983. Happy searching!"
-        directory "$buildDir/solr-5.3.1/bin/"
+        directory "$buildDir/solr-${solrVersion}/bin/"
     } else {
         command 'bash solr start'
         ready "Started Solr server on port 8983. Happy searching!"
-        directory "$buildDir/solr-5.3.1/bin/"
+        directory "$buildDir/solr-${solrVersion}/bin/"
     }
 }
 
@@ -96,11 +100,11 @@ task stopSolr(type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd stop -p 8983'
         ready ""
-        directory "$buildDir/solr-5.3.1/bin/"
+        directory "$buildDir/solr-${solrVersion}/bin/"
     } else {
         command 'bash solr stop -p 8983'
         ready ""
-        directory "$buildDir/solr-5.3.1/bin/"
+        directory "$buildDir/solr-${solrVersion}/bin/"
     }
 }
 
@@ -108,14 +112,14 @@ task deleteUnusedDirs(type: Delete) {
 
     sleep(30_000)
     //delete the following dirs
-    def solrDir = "$buildDir/solr-5.3.1/"
+    def solrDir = "$buildDir/solr-${solrVersion}/"
 
     delete "$solrDir/docs"
     delete "$solrDir/example"
     delete "$solrDir/dist/solrj-lib"
     delete "$solrDir/dist/test-framework"
-    delete "$solrDir/dist/solr-solrj-5.3.1.jar"
-    delete "$solrDir/dist/solr-test-framework-5.3.1.jar"
+    delete "$solrDir/dist/solr-solrj-${solrVersion}.jar"
+    delete "$solrDir/dist/solr-test-framework-${solrVersion}.jar"
 
     delete fileTree("$solrDir/server/logs").include("**/*")
     delete "$solrDir/server/solr/configsets"
@@ -124,9 +128,9 @@ task deleteUnusedDirs(type: Delete) {
 
 
 task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
-    def solrDir = "$buildDir/solr-5.3.1/"
+    def solrDir = "$buildDir/solr-${solrVersion}/"
     from("$solrDir")
-    into 'chronix-solr-5.3.1' // note that this specifies path *in* the archive
+    into "chronix-solr-${solrVersion}" // note that this specifies path *in* the archive
     destinationDir file("chronix-${project.version}") // directory that you want your archive to be placed in
     baseName = "chronix"
 }

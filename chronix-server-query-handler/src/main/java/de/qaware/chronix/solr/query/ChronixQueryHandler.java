@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.query;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.schema.MetricTSSchema;
+import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
