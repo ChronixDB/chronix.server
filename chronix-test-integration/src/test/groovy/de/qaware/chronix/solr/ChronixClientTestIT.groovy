@@ -18,6 +18,8 @@ package de.qaware.chronix.solr
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.solr.client.ChronixSolrStorage
+import de.qaware.chronix.timeseries.DoubleList
+import de.qaware.chronix.timeseries.LongList
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
@@ -32,7 +34,6 @@ import java.text.DecimalFormat
 import java.util.function.BinaryOperator
 import java.util.function.Function
 import java.util.stream.Collectors
-import java.util.stream.Stream
 
 /**
  * Tests the integration of Chronix and an embedded solr.
@@ -87,8 +88,15 @@ class ChronixClientTestIT extends Specification {
             return reduced.build();
         }
     }
-    private static <T> List<T> concat(Stream<T> first, Stream<T> second) {
-        return Stream.concat(first, second).collect(Collectors.toList());
+
+    def DoubleList concat(DoubleList first, DoubleList second) {
+        first.addAll(second)
+        first
+    }
+
+    def LongList concat(LongList first, LongList second) {
+        first.addAll(second)
+        first
     }
 
     def setupSpec() {
@@ -216,7 +224,7 @@ class ChronixClientTestIT extends Specification {
 
     }
 
-    def "Test query raw time series"(){
+    def "Test query raw time series"() {
         when:
         def query = new SolrQuery("*:*")
         query.addField("dataAsJson:[dataAsJson],myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")

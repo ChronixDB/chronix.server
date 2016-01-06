@@ -15,8 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math;
 
-import java.util.Collections;
-import java.util.List;
+import de.qaware.chronix.timeseries.DoubleList;
+
+import java.util.Arrays;
 
 /**
  * Class to calculate a percentile
@@ -50,23 +51,24 @@ public class Percentile {
      * @param percentile - the percentile (0 - 1), e.g. 0.25
      * @return the value of the n-th percentile
      */
-    public static double evaluate(List<Double> values, double percentile) {
-        Collections.sort(values);
+    public static double evaluate(DoubleList values, double percentile) {
+        double[] doubles = values.toArray();
+        Arrays.sort(doubles);
 
-        return evaluateForDoubles(values, percentile);
+        return evaluateForDoubles(doubles, percentile);
     }
 
-    private static double evaluateForDoubles(List<Double> points, double percentile) {
+    private static double evaluateForDoubles(double[] points, double percentile) {
         //For example:
         //values    = [1,2,2,3,3,3,4,5,6], size = 9, percentile (e.g. 0.25)
         // size - 1 = 8 * 0.25 = 2 (~ 25% from 9) + 1 = 3 => values[3] => 2
-        double percentileIndex = ((points.size() - 1) * percentile) + 1;
+        double percentileIndex = ((points.length - 1) * percentile) + 1;
 
-        double rawMedian = points.get(floor(percentileIndex - 1));
+        double rawMedian = points[floor(percentileIndex - 1)];
         double weight = percentileIndex - floor(percentileIndex);
 
         if (weight > 0) {
-            double pointDistance = points.get(floor(percentileIndex - 1) + 1) - points.get(floor(percentileIndex - 1));
+            double pointDistance = points[floor(percentileIndex - 1) + 1] - points[floor(percentileIndex - 1)];
             return rawMedian + weight * pointDistance;
         } else {
             return rawMedian;

@@ -80,7 +80,5 @@ class AnalysisHandlerTest extends Specification {
 
         then:
         noExceptionThrown()
-
-
     }
 }

@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.query.analysis.collectors
-
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
+import de.qaware.chronix.timeseries.DoubleList
+import de.qaware.chronix.timeseries.LongList
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.lucene.document.Document
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
-
 /**
  * @author f.lautenschlager
  */
@@ -151,16 +151,16 @@ class AnalysisDocumentBuilderTest extends Specification {
         doc
     }
 
-    def List times(int i) {
-        def times = new ArrayList<>()
+    def LongList times(int i) {
+        def times = new LongList()
         100.times {
             times.add(it * i + 1 as long)
         }
         times
     }
 
-    def List values(int i) {
-        def values = new ArrayList<>()
+    def DoubleList values(int i) {
+        def values = new DoubleList()
 
         100.times {
             values.add(it * 100 * i as double)

@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math;
 
-import java.util.List;
+import de.qaware.chronix.timeseries.DoubleList;
+import de.qaware.chronix.timeseries.LongList;
 
 /**
  * Simple linear regression to calculate the slope
@@ -30,7 +31,7 @@ public class LinearRegression {
      *
      * @throws IllegalArgumentException if the lengths of the two arrays are not equal
      */
-    public LinearRegression(List<Long> timestamps, List<Double> values) {
+    public LinearRegression(LongList timestamps, DoubleList values) {
         double[] x = new double[timestamps.size()];
         double[] y = new double[values.size()];
 

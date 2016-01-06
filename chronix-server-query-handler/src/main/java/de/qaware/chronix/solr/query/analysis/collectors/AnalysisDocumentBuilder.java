@@ -20,6 +20,8 @@ import de.qaware.chronix.converter.BinaryTimeSeries;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.TimeSeriesConverter;
 import de.qaware.chronix.converter.common.MetricTSSchema;
+import de.qaware.chronix.timeseries.DoubleList;
+import de.qaware.chronix.timeseries.LongList;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -30,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author f.lautenschlager
@@ -52,7 +52,7 @@ public class AnalysisDocumentBuilder {
     public static Map<String, List<SolrDocument>> collect(SolrDocumentList docs, Function<SolrDocument, String> joinFunction) {
         Map<String, List<SolrDocument>> collectedDocs = new HashMap<>();
 
-        docs.stream().forEach(doc -> {
+        for (SolrDocument doc : docs) {
             String key = joinFunction.apply(doc);
 
             if (!collectedDocs.containsKey(key)) {
@@ -60,8 +60,7 @@ public class AnalysisDocumentBuilder {
             }
 
             collectedDocs.get(key).add(doc);
-
-        });
+        }
 
 
         return collectedDocs;
@@ -91,20 +90,31 @@ public class AnalysisDocumentBuilder {
      */
     private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> documents) {
         //Collect all document of a time series
-        return documents.getValue().stream().map(tsDoc -> convert(tsDoc, queryStart, queryEnd))
-                .collect(Collectors.reducing((t1, t2) -> {
 
-                    MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
-                            .data(concat(t1.getTimestamps(), t2.getTimestamps()),
-                                    concat(t1.getValues(), t2.getValues()))
-                            .attributes(t1.attributes());
+        LongList timestamps = new LongList();
+        DoubleList values = new DoubleList();
+        Map<String, Object> attributes = new HashMap<>();
+        String metric = null;
 
-                    return reduced.build();
-                })).get();
-    }
+        for (SolrDocument doc : documents.getValue()) {
+            MetricTimeSeries ts = convert(doc, queryStart, queryEnd);
 
-    private static <T> List<T> concat(Stream<T> first, Stream<T> second) {
-        return Stream.concat(first, second).collect(Collectors.toList());
+            timestamps.addAll(ts.getTimestamps());
+            values.addAll(ts.getValues());
+
+            if (metric == null) {
+                metric = ts.getMetric();
+            }
+
+            if (attributes.isEmpty()) {
+                attributes.putAll(ts.attributes());
+            }
+        }
+
+        return new MetricTimeSeries.Builder(metric)
+                .data(timestamps, values)
+                .attributes(attributes)
+                .build();
     }
 
     /**
@@ -166,13 +176,15 @@ public class AnalysisDocumentBuilder {
      */
     private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
         BinaryTimeSeries.Builder binaryDocument = new BinaryTimeSeries.Builder();
-        doc.forEach((field, value) -> {
+        for (Map.Entry<String, Object> field : doc) {
+
+            Object value = field.getValue();
             if (value instanceof ByteBuffer) {
-                binaryDocument.field(field, ((ByteBuffer) value).array());
+                binaryDocument.field(field.getKey(), ((ByteBuffer) value).array());
             } else {
-                binaryDocument.field(field, value);
+                binaryDocument.field(field.getKey(), value);
             }
-        });
+        }
 
         TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
         return converter.from(binaryDocument.build(), queryStart, queryEnd);

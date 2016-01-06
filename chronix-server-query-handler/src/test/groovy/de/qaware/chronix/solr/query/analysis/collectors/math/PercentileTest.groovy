@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math
 
+import de.qaware.chronix.timeseries.DoubleList
 import spock.lang.Specification
 
 /**
@@ -42,7 +43,20 @@ class PercentileTest extends Specification {
         value == expected
 
         where:
-        points << [Arrays.asList(10d, 11d), Arrays.asList(10d)]
+        points << [twoPoints(),onePoint()]
         expected << [10.5, 10]
+    }
+
+    def onePoint() {
+        def values = new DoubleList()
+        values.add(10)
+        return values
+    }
+
+    def twoPoints() {
+        def values = new DoubleList()
+        values.add(10)
+        values.add(11)
+        return values
     }
 }

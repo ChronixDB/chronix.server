@@ -18,15 +18,13 @@ package de.qaware.chronix.solr.query.analysis.collectors;
 import de.qaware.chronix.solr.query.analysis.collectors.math.LinearRegression;
 import de.qaware.chronix.solr.query.analysis.collectors.math.Percentile;
 import de.qaware.chronix.solr.query.analysis.collectors.math.StdDev;
+import de.qaware.chronix.timeseries.DoubleList;
+import de.qaware.chronix.timeseries.LongList;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
 
 /**
  * Aggregation evaluator supports AVG, MIN, max, dev and percentile
@@ -49,7 +47,7 @@ public class AnalysisEvaluator {
      * @param aggregationArguments - the isAggregation value used for p (0 - 1), e.g., 0.25
      * @return the aggregated value or in case of a high level analysis 1 for anomaly detected or -1 for not.
      */
-    public static double evaluate(Stream<Long> timestamps, Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
+    public static double evaluate(LongList timestamps, DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
         if (AnalysisType.isHighLevel(analysis)) {
             return highLevelAnalysisEvaluation(timestamps, values, analysis, aggregationArguments);
         } else {
@@ -57,23 +55,23 @@ public class AnalysisEvaluator {
         }
     }
 
-    private static double aggregationAnalysisEvaluation(Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
+    private static double aggregationAnalysisEvaluation(DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
         double value;
         switch (analysis) {
             case AVG:
-                value = avg(values.iterator());
+                value = avg(values);
                 break;
             case MIN:
-                value = min(values.iterator());
+                value = min(values);
                 break;
             case MAX:
-                value = max(values.iterator());
+                value = max(values);
                 break;
             case DEV:
-                value = StdDev.dev(doubleStream(values).boxed().collect(Collectors.toList()));
+                value = StdDev.dev(values);
                 break;
             case P:
-                value = Percentile.evaluate(values.collect(Collectors.toList()), Double.parseDouble(aggregationArguments[0]));
+                value = Percentile.evaluate(values, Double.parseDouble(aggregationArguments[0]));
                 break;
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "The high-level analysis " + analysis + " is not present within the enum.");
@@ -82,11 +80,16 @@ public class AnalysisEvaluator {
         return value;
     }
 
-    private static double max(Iterator<Double> values) {
-        double current = values.hasNext() ? values.next() : 0;
+    private static double max(DoubleList values) {
+        double current = -1;
 
-        while (values.hasNext()) {
-            double next = values.next();
+        if (values.size() <= 0) {
+            return current;
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+
+            double next = values.get(i);
 
             if (current < next) {
                 current = next;
@@ -95,11 +98,15 @@ public class AnalysisEvaluator {
         return current;
     }
 
-    private static double min(Iterator<Double> values) {
-        double current = values.hasNext() ? values.next() : 0;
+    private static double min(DoubleList values) {
+        double current = 0;
 
-        while (values.hasNext()) {
-            double next = values.next();
+        if (values.size() <= 0) {
+            return current;
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+            double next = values.get(i);
 
             if (current > next) {
                 current = next;
@@ -108,17 +115,18 @@ public class AnalysisEvaluator {
         return current;
     }
 
-    private static double avg(Iterator<Double> values) {
+    private static double avg(DoubleList values) {
         double current = 0;
         double count = 0;
-        while (values.hasNext()) {
-            current += values.next();
+        for (int i = 0; i < values.size(); i++) {
+            current += values.get(i);
             count++;
         }
+
         return current / count;
     }
 
-    private static double highLevelAnalysisEvaluation(Stream<Long> timestamps, Stream<Double> values, AnalysisType analysis, String[] aggregationArguments) {
+    private static double highLevelAnalysisEvaluation(LongList timestamps, DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
         switch (analysis) {
             case OUTLIER:
                 return detectOutlier(values);
@@ -131,11 +139,7 @@ public class AnalysisEvaluator {
         }
     }
 
-    private static DoubleStream doubleStream(Stream<Double> points) {
-        return points.mapToDouble(p -> p);
-    }
-
-    private static int detectFrequency(Stream<Long> timestamps, String[] analysisArguments) {
+    private static int detectFrequency(LongList timestamps, String[] analysisArguments) {
         long windowSize = Long.parseLong(analysisArguments[0]);
         long windowThreshold = Long.parseLong(analysisArguments[1]);
 
@@ -145,10 +149,9 @@ public class AnalysisEvaluator {
         long windowStart = -1;
         long windowEnd = -1;
 
-        Iterator<Long> it = timestamps.iterator();
+        for (int i = 0; i < timestamps.size(); i++) {
 
-        while (it.hasNext()) {
-            long current = it.next();
+            long current = timestamps.get(i);
 
             if (windowStart == -1) {
                 windowStart = current;
@@ -180,25 +183,28 @@ public class AnalysisEvaluator {
         return -1;
     }
 
-    private static int detectTrend(Stream<Long> timestamps, Stream<Double> values) {
+    private static int detectTrend(LongList timestamps, DoubleList values) {
 
-        LinearRegression linearRegression = new LinearRegression(timestamps.collect(Collectors.toList()), values.collect(Collectors.toList()));
+        LinearRegression linearRegression = new LinearRegression(timestamps, values);
 
         double slope = linearRegression.slope();
 
         return slope > 0 ? 1 : -1;
     }
 
-    private static int detectOutlier(Stream<Double> points) {
-        boolean detected;
+    private static int detectOutlier(DoubleList points) {
 
-        List<Double> collectedPoint = points.collect(Collectors.toList());
-
-        double q1 = Percentile.evaluate(collectedPoint, .25);
-        double q3 = Percentile.evaluate(collectedPoint, .75);
+        double q1 = Percentile.evaluate(points, .25);
+        double q3 = Percentile.evaluate(points, .75);
         double threshold = (q3 - q1) * 1.5 + q3;
-        detected = collectedPoint.stream().filter(point -> point >= threshold).count() > 0;
-        return detected ? 1 : -1;
+        for (int i = 0; i < points.size(); i++) {
+            double point = points.get(i);
+            if (point >= threshold) {
+                return 1;
+            }
+        }
+
+        return -1;
     }
 
 }

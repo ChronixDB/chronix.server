@@ -15,6 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math
 
+import de.qaware.chronix.timeseries.DoubleList
+import de.qaware.chronix.timeseries.LongList
 import spock.lang.Specification
 
 /**
@@ -24,8 +26,8 @@ import spock.lang.Specification
 class LinearRegressionTest extends Specification {
     def "test slope"() {
         given:
-        def times = []
-        def values = []
+        def times = new LongList()
+        def values = new DoubleList()
         100.times {
             times.add(it as long)
             values.add(it * 2 as double)

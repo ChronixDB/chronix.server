@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math;
 
-import java.util.List;
+import de.qaware.chronix.timeseries.DoubleList;
 
 /**
  * Class to calculate the standard deviation
@@ -33,7 +33,7 @@ public final class StdDev {
      * @param doubles a list with values
      * @return the standard deviation
      */
-    public static double dev(List<Double> doubles) {
+    public static double dev(DoubleList doubles) {
         if (doubles.isEmpty()) {
             return Double.NaN;
         }
@@ -41,19 +41,21 @@ public final class StdDev {
         return Math.sqrt(variance(doubles));
     }
 
-    private static double mean(List<Double> a) {
+    private static double mean(DoubleList values) {
         double sum = 0.0;
-        for (Double anA : a) {
-            sum = sum + anA;
+        for (int i = 0; i < values.size(); i++) {
+            sum = sum + values.get(i);
         }
-        return sum / a.size();
+
+        return sum / values.size();
     }
 
-    private static double variance(List<Double> doubles) {
+    private static double variance(DoubleList doubles) {
         double avg = mean(doubles);
         double sum = 0.0;
-        for (Double anA : doubles) {
-            sum += (anA - avg) * (anA - avg);
+        for (int i = 0; i < doubles.size(); i++) {
+            double value = doubles.get(i);
+            sum += (value - avg) * (value - avg);
         }
         return sum / (doubles.size() - 1);
     }

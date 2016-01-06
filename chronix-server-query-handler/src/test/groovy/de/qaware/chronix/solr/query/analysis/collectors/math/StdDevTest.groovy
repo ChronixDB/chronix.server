@@ -15,7 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math
 
+import de.qaware.chronix.timeseries.DoubleList
 import spock.lang.Specification
+
 /**
  * Created by f.lautenschlager on 26.11.2015.
  */
@@ -31,7 +33,11 @@ class StdDevTest extends Specification {
     def "test dev"() {
         given:
 
-        def doubles = [0.5d, 1.4d, 10.2d, 40.2d]
+        def doubles = new DoubleList()
+        doubles.add(0.5)
+        doubles.add(1.4)
+        doubles.add(10.2)
+        doubles.add(40.2)
 
         when:
         def result = StdDev.dev(doubles)
@@ -43,7 +49,7 @@ class StdDevTest extends Specification {
     def "test dev with zero"() {
         given:
 
-        def doubles = []
+        def doubles = new DoubleList()
 
         when:
         def result = StdDev.dev(doubles)
