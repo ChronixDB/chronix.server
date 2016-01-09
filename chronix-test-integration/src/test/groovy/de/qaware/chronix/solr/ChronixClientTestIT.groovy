@@ -18,9 +18,9 @@ package de.qaware.chronix.solr
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.solr.client.ChronixSolrStorage
-import de.qaware.chronix.timeseries.DoubleList
-import de.qaware.chronix.timeseries.LongList
 import de.qaware.chronix.timeseries.MetricTimeSeries
+import de.qaware.chronix.timeseries.dt.DoubleList
+import de.qaware.chronix.timeseries.dt.LongList
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient

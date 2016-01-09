@@ -15,8 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors.math;
 
-import de.qaware.chronix.timeseries.DoubleList;
-import de.qaware.chronix.timeseries.LongList;
+
+import de.qaware.chronix.timeseries.dt.DoubleList;
+import de.qaware.chronix.timeseries.dt.LongList;
 
 /**
  * Simple linear regression to calculate the slope

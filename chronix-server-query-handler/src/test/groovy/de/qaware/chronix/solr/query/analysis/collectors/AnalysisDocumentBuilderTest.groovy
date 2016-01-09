@@ -14,17 +14,19 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.query.analysis.collectors
+
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
-import de.qaware.chronix.timeseries.DoubleList
-import de.qaware.chronix.timeseries.LongList
 import de.qaware.chronix.timeseries.MetricTimeSeries
+import de.qaware.chronix.timeseries.dt.DoubleList
+import de.qaware.chronix.timeseries.dt.LongList
 import org.apache.lucene.document.Document
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
+
 /**
  * @author f.lautenschlager
  */

@@ -19,7 +19,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
-import de.qaware.chronix.timeseries.Pair;
+import de.qaware.chronix.timeseries.dt.Pair;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.solr.common.SolrDocument;

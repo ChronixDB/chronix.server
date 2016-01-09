@@ -18,8 +18,8 @@ package de.qaware.chronix.solr.query.analysis.collectors;
 import de.qaware.chronix.solr.query.analysis.collectors.math.LinearRegression;
 import de.qaware.chronix.solr.query.analysis.collectors.math.Percentile;
 import de.qaware.chronix.solr.query.analysis.collectors.math.StdDev;
-import de.qaware.chronix.timeseries.DoubleList;
-import de.qaware.chronix.timeseries.LongList;
+import de.qaware.chronix.timeseries.dt.DoubleList;
+import de.qaware.chronix.timeseries.dt.LongList;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
