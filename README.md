@@ -80,7 +80,7 @@ The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), C
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 
 //Define a group by function for the time series records
- Function<MetricTimeSeries, String> groupBy = ts -> ts.getMetric() + "-" + ts.attribute("host");
+Function<MetricTimeSeries, String> groupBy = ts -> ts.getMetric() + "-" + ts.attribute("host");
 
 //Define a reduce function for the grouped time series records
 BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
