@@ -92,7 +92,8 @@ BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
         };
 
 //Create a Chronix Client with Kassiopeia Simple and the Chronix Solr Storage
-ChronixClient<MetricTimeSeries> chronix = new ChronixClient<>(new KassiopeiaSimpleConverter(),
+ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix = 
+                                          new ChronixClient<>(new KassiopeiaSimpleConverter(),
                                           new ChronixSolrStorage<>(nrOfDocsPerBatch,groupBy,reduce));
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
