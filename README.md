@@ -80,26 +80,20 @@ The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), C
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 
 //Define a group by function for the time series records
- Function<MetricTimeSeries, String> groupBy = ts -> {
-    return new StringBuilder(ts.getMetric())
-    .append("-")
-    .append(ts.attribute("host"))
-    .toString()
-}
+ Function<MetricTimeSeries, String> groupBy = ts -> ts.getMetric() + "-" + ts.attribute("host");
 
 //Define a reduce function for the grouped time series records
 BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
-      MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
-         .data(concat(ts1.getTimestamps(), ts2.getTimestamps()),
-               concat(ts1.getValues(), ts2.getValues()))
-         .attributes(t1.attributes());
-     
-     return reduced.build();
-}
+      MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(ts1.getMetric())
+            .data(concat(ts1.getTimestamps(), ts2.getTimestamps()),
+                  concat(ts1.getValues(), ts2.getValues()))
+            .attributes(ts1.attributes());
+            return reduced.build();
+        };
 
 //Create a Chronix Client with Kassiopeia Simple and the Chronix Solr Storage
-ChronixClient<MetricTimeSeries> chronix = new ChronixClient(new KassiopeiaSimpleConverter(),
-                                          new ChronixSolrStorage(nrOfDocsPerBatch,groupBy,reduce));
+ChronixClient<MetricTimeSeries> chronix = new ChronixClient<>(new KassiopeiaSimpleConverter(),
+                                          new ChronixSolrStorage<>(nrOfDocsPerBatch,groupBy,reduce));
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
 SolrQuery query = new SolrQuery("metric:*load*");
