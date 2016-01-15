@@ -70,7 +70,7 @@ public class JoinFunctionEvaluator {
             sb.append(doc.get(field.trim()));
 
             if (i < fields.length - 1) {
-                sb.append("-");
+                sb.append('-');
             }
         }
         return sb.toString();
