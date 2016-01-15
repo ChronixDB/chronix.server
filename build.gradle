@@ -205,5 +205,8 @@ sonarRunner {
         property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
         property "sonar.jdbc.username", "$jdbcUser"
         property "sonar.jdbc.password", "$jdbcPw"
+        property "sonar.projectName", "ChronixDB-Server"
+        property "sonar.projectKey", "de.qaware.chronix:chronix-kassiopeia"
+
     }
 }
