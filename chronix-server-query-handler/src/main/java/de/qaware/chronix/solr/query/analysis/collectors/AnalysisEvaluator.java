@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public class AnalysisEvaluator {
+public final class AnalysisEvaluator {
 
 
     private AnalysisEvaluator() {

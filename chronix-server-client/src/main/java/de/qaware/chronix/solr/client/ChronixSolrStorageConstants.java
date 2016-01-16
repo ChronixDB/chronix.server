@@ -20,7 +20,7 @@ package de.qaware.chronix.solr.client;
  *
  * @author f.lautenschlager
  */
-public class ChronixSolrStorageConstants {
+public final class ChronixSolrStorageConstants {
 
     public static final String QUERY_START_LONG = "query_start_long";
     public static final String QUERY_END_LONG = "query_end_long";

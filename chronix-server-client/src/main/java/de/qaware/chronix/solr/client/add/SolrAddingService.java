@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * A service class to add time series to Apache Solr.
  **/
-public class SolrAddingService {
+public final class SolrAddingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrAddingService.class);
 

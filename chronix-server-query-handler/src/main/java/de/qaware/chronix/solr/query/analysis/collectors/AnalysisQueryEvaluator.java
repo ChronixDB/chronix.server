@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * @author f.lautenschlager
  */
-public class AnalysisQueryEvaluator {
+public final class AnalysisQueryEvaluator {
 
     private static final String AGGREGATION_DELIMITER = "=";
     private static final String AGGREGATION_ARGUMENT_DELIMITER = ":";

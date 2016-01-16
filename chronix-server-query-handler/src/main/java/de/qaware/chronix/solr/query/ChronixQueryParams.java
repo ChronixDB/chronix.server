@@ -20,7 +20,7 @@ package de.qaware.chronix.solr.query;
  *
  * @author f.lautenschlager
  */
-public class ChronixQueryParams {
+public final class ChronixQueryParams {
 
     /**
      * Used to determine if a query contains an isAggregation

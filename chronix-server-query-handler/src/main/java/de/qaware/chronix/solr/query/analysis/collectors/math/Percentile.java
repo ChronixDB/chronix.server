@@ -25,7 +25,7 @@ import java.util.Arrays;
  *
  * @author f.lautenschlager
  */
-public class Percentile {
+public final class Percentile {
 
     /**
      * Avoid instances

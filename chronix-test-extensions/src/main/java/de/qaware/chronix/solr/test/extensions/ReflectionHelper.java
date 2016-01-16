@@ -27,7 +27,7 @@ import java.lang.reflect.Modifier;
  *
  * @author f.lautenschlager
  */
-public class ReflectionHelper {
+public final class ReflectionHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionHelper.class);
 

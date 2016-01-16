@@ -20,7 +20,7 @@ package de.qaware.chronix.solr.retention;
  *
  * @author f.lautenschlager
  */
-public class RetentionConstants {
+public final class RetentionConstants {
 
     public static final String QUERY_FIELD = "queryField";
     public static final String REMOVE_TIME_SERIES_OLDER = "timeSeriesAge";

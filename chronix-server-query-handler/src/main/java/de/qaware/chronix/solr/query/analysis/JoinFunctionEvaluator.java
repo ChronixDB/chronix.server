@@ -25,9 +25,9 @@ import java.util.function.Function;
  *
  * @author f.lautenschlager
  */
-public class JoinFunctionEvaluator {
+public final class JoinFunctionEvaluator {
 
-    private static final Function<SolrDocument, String> defaultJoinFunction = doc -> doc.getFieldValue(ChronixQueryParams.DEFAULT_JOIN_FIELD).toString();
+    private static final Function<SolrDocument, String> DEFAULT_JOIN_FUNCTION = doc -> doc.getFieldValue(ChronixQueryParams.DEFAULT_JOIN_FIELD).toString();
 
 
     private JoinFunctionEvaluator() {
@@ -44,7 +44,7 @@ public class JoinFunctionEvaluator {
      */
     public static Function<SolrDocument, String> joinFunction(String[] filterQueries) {
         if (filterQueries == null || filterQueries.length == 0) {
-            return defaultJoinFunction;
+            return DEFAULT_JOIN_FUNCTION;
         }
 
         for (String filterQuery : filterQueries) {
@@ -54,7 +54,7 @@ public class JoinFunctionEvaluator {
             }
         }
 
-        return defaultJoinFunction;
+        return DEFAULT_JOIN_FUNCTION;
     }
 
     private static String[] fields(String filterQuery) {

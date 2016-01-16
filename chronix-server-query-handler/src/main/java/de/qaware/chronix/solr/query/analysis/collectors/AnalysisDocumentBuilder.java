@@ -36,7 +36,7 @@ import java.util.function.Function;
 /**
  * @author f.lautenschlager
  */
-public class AnalysisDocumentBuilder {
+public final class AnalysisDocumentBuilder {
 
     private AnalysisDocumentBuilder() {
         //avoid instances
