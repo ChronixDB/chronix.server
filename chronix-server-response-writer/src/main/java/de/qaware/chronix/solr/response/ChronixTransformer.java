@@ -56,7 +56,7 @@ public class ChronixTransformer extends TransformerFactory {
     }
 
     static class DataFieldSerializer extends DocTransformer {
-        final String name;
+        private final String name;
 
         public DataFieldSerializer(String flName) {
             LOGGER.debug("Constructing chronix transformer for field {}", flName);
