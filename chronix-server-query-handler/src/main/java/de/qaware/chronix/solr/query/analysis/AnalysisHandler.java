@@ -126,7 +126,7 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     private String printResponse(SolrQueryResponse rsp, String[] filterQueries) {
-        return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/";
+        return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : Arrays.toString(filterQueries))) + "/";
     }
 
 
