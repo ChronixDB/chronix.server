@@ -44,6 +44,7 @@ allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'com.github.kt3k.coveralls'
 
+    version '0.1.2'
     group 'de.qaware.chronix'
 
     repositories {
@@ -63,8 +64,6 @@ allprojects {
 
 
 subprojects {
-
-    version '0.1.2'
 
     //Some plugins
     apply plugin: 'base'
@@ -186,7 +185,7 @@ tasks.coveralls {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2'
+    gradleVersion = '2.4'
 }
 
 sonarRunner {
@@ -207,6 +206,7 @@ sonarRunner {
         property "sonar.jdbc.password", "$jdbcPw"
         property "sonar.projectName", "ChronixDB-Server"
         property "sonar.projectKey", "de.qaware.chronix:chronix-server"
+        property "sonar.projectVersoin", "$project.version"
 
     }
 }
