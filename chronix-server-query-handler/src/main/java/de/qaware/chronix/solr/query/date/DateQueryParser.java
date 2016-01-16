@@ -162,7 +162,7 @@ public class DateQueryParser {
     private String getTokenTerm(String query, String startToken) {
         int tokenLength = startToken.length();
         int index = query.indexOf(startToken);
-        int stopIndex = query.indexOf(" ", index);
+        int stopIndex = query.indexOf(' ', index);
 
         if (stopIndex > -1) {
             return query.substring(index + tokenLength, stopIndex);

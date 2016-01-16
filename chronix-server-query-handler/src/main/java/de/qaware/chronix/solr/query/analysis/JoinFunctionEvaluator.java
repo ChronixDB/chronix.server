@@ -58,7 +58,7 @@ public final class JoinFunctionEvaluator {
     }
 
     private static String[] fields(String filterQuery) {
-        int startIndex = filterQuery.indexOf("=") + 1;
+        int startIndex = filterQuery.indexOf('=') + 1;
         String stringFields = filterQuery.substring(startIndex);
         return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
     }
