@@ -89,7 +89,7 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(aggregatedDocs.size());
         }
         rsp.add("response", results);
-        LOGGER.debug("Sending response {}", rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/");
+        LOGGER.debug("Sending response {}", printResponse(rsp, filterQueries));
 
     }
 
@@ -123,6 +123,10 @@ public class AnalysisHandler extends SearchHandler {
             }
         });
         return solrDocuments;
+    }
+
+    private String printResponse(SolrQueryResponse rsp, String[] filterQueries) {
+        return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : "")) + "/";
     }
 
 
