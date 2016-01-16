@@ -41,7 +41,7 @@ public final class ReflectionHelper {
      * @param field - the field as string
      * @param clazz - the class
      * @return the modified field
-     * @throws Exception if any error occurs
+     * @throws IllegalAccessException if any error occurs
      */
     public static Field makeFieldModifiable(String field, Class clazz) throws IllegalAccessException {
         try {

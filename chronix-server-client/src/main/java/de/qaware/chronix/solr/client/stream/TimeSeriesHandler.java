@@ -86,7 +86,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
 
         } catch (InterruptedException e) {
             LOGGER.warn("InterruptedException occurred. Returning null value to callee.", e);
-            throw new RuntimeException("Try to poll time series records for more than 1 Minute. Stopping.");
+            throw new RuntimeException("Try to poll time series records for more than 1 Minute. Stopping.", e);
         }
     }
 }
