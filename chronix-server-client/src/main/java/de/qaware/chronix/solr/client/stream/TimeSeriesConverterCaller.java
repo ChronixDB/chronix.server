@@ -56,6 +56,7 @@ public class TimeSeriesConverterCaller<T> implements Callable<T> {
 
 
     @Override
+    @SuppressWarnings("violationSuppressRegex")
     public T call() throws Exception {
         BinaryTimeSeries.Builder timeSeriesBuilder = new BinaryTimeSeries.Builder();
 
