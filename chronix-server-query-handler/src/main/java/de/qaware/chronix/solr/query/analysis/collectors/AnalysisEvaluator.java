@@ -41,21 +41,31 @@ public final class AnalysisEvaluator {
     /**
      * Evaluates the given isAggregation on the given time series
      *
-     * @param timestamps           - the timestamps
-     * @param values               - a the values
-     * @param analysis             - the analysis (avg, min, max, dev, p, trend, outlier, frequency)
-     * @param aggregationArguments - the isAggregation value used for p (0 - 1), e.g., 0.25
+     * @param timestamps        the timestamps of the time series
+     * @param values            the belonging values
+     * @param analysis          the analysis (avg, min, max, dev, p, trend, outlier, frequency)
+     * @param analysisArguments additional arguments e.g. p=0.25 => 0.25
      * @return the aggregated value or in case of a high level analysis 1 for anomaly detected or -1 for not.
      */
-    public static double evaluate(LongList timestamps, DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
+    public static double evaluate(LongList timestamps, DoubleList values, AnalysisType analysis, String[] analysisArguments) {
         if (AnalysisType.isHighLevel(analysis)) {
-            return highLevelAnalysisEvaluation(timestamps, values, analysis, aggregationArguments);
+            return highLevelAnalysisEvaluation(timestamps, values, analysis, analysisArguments);
         } else {
-            return aggregationAnalysisEvaluation(values, analysis, aggregationArguments);
+            return aggregationAnalysisEvaluation(values, analysis, analysisArguments);
         }
     }
 
-    private static double aggregationAnalysisEvaluation(DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
+    /**
+     * If the analysis is an aggregation the function returns the aggregation result.
+     * In the case, that the analysis is high level analysis (outlier) -1 indicates that the analysis did not find
+     * any suspicious values. All values != -1 marks that the time series has suspicious values.
+     *
+     * @param values            the values (doubles) of the time series
+     * @param analysis          the analysis (avg, outlier, ...)
+     * @param analysisArguments additional analysis arguments (e.g. 0.25 for p=q0.25)
+     * @return the analysis value.
+     */
+    private static double aggregationAnalysisEvaluation(DoubleList values, AnalysisType analysis, String[] analysisArguments) {
         double value;
         switch (analysis) {
             case AVG:
@@ -71,7 +81,7 @@ public final class AnalysisEvaluator {
                 value = StdDev.dev(values);
                 break;
             case P:
-                value = Percentile.evaluate(values, Double.parseDouble(aggregationArguments[0]));
+                value = Percentile.evaluate(values, Double.parseDouble(analysisArguments[0]));
                 break;
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "The high-level analysis " + analysis + " is not present within the enum.");
@@ -80,8 +90,14 @@ public final class AnalysisEvaluator {
         return value;
     }
 
+    /**
+     * Calculates the maximum value
+     *
+     * @param values the time series values
+     * @return the maximum or 0 if the list is empty
+     */
     private static double max(DoubleList values) {
-        double current = -1;
+        double current = 0;
 
         if (values.size() <= 0) {
             return current;
@@ -98,6 +114,12 @@ public final class AnalysisEvaluator {
         return current;
     }
 
+    /**
+     * Calculates the minimum value
+     *
+     * @param values the time series values
+     * @return the maximum or 0 if the list is empty
+     */
     private static double min(DoubleList values) {
         double current = 0;
 
@@ -115,6 +137,12 @@ public final class AnalysisEvaluator {
         return current;
     }
 
+    /**
+     * Calculates the average value
+     *
+     * @param values the time series values
+     * @return the maximum or 0 if the list is empty
+     */
     private static double avg(DoubleList values) {
         double current = 0;
         double count = 0;
@@ -126,19 +154,36 @@ public final class AnalysisEvaluator {
         return current / count;
     }
 
-    private static double highLevelAnalysisEvaluation(LongList timestamps, DoubleList values, AnalysisType analysis, String[] aggregationArguments) {
+    /**
+     * Applies an high level analysis (outlier, trend, frequency) on the timestamps and values.
+     * If the result is =-1, the time series contains suspicions values, otherwise not.
+     *
+     * @param timestamps        the timestamps of the time series
+     * @param values            the values of the time series
+     * @param analysis          the analysis itself
+     * @param analysisArguments the additional arguments for the analysis
+     * @return -1 if no suspicious values are found, otherwise 1 which means that there are suspicious values.
+     */
+    private static double highLevelAnalysisEvaluation(LongList timestamps, DoubleList values, AnalysisType analysis, String[] analysisArguments) {
         switch (analysis) {
             case OUTLIER:
                 return detectOutlier(values);
             case TREND:
                 return detectTrend(timestamps, values);
             case FREQUENCY:
-                return detectFrequency(timestamps, aggregationArguments);
+                return detectFrequency(timestamps, analysisArguments);
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "The aggregation " + analysis + " is not present within the enum.");
         }
     }
 
+    /**
+     * Detects if a points occurs multiple times within a defined time range
+     *
+     * @param timestamps        the timestamps of the time series
+     * @param analysisArguments the additional analysis arguments
+     * @return 1 if there are more points than the defined threshold, otherwise -1
+     */
     private static int detectFrequency(LongList timestamps, String[] analysisArguments) {
         long windowSize = Long.parseLong(analysisArguments[0]);
         long windowThreshold = Long.parseLong(analysisArguments[1]);
@@ -183,15 +228,25 @@ public final class AnalysisEvaluator {
         return -1;
     }
 
+    /**
+     * Detects trends in time series using a linear regression.
+     *
+     * @param timestamps the timestamps of the time series
+     * @param values     the belonging values
+     * @return 1 if there is a positive trend, otherwise -1
+     */
     private static int detectTrend(LongList timestamps, DoubleList values) {
-
         LinearRegression linearRegression = new LinearRegression(timestamps, values);
-
         double slope = linearRegression.slope();
-
         return slope > 0 ? 1 : -1;
     }
 
+    /**
+     * Detects outliers using the default box plot implementation.
+     *
+     * @param points the values
+     * @return 1 if there are outliers, otherwise -1
+     */
     private static int detectOutlier(DoubleList points) {
 
         double q1 = Percentile.evaluate(points, .25);
