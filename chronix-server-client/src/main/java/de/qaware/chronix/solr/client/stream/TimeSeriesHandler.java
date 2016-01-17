@@ -40,7 +40,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
     /**
      * Constructs a time series callback handler
      *
-     * @param nrOfTimeDocumentsPerBatch- the max nr of elements in the queue
+     * @param nrOfTimeDocumentsPerBatch the max nr of elements in the queue
      */
     public TimeSeriesHandler(int nrOfTimeDocumentsPerBatch) {
         this.queue = new ArrayBlockingQueue<>(nrOfTimeDocumentsPerBatch);
@@ -86,7 +86,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
 
         } catch (InterruptedException e) {
             LOGGER.warn("InterruptedException occurred. Returning null value to callee.", e);
-            throw new RuntimeException("Try to poll time series records for more than 1 Minute. Stopping.", e);
+            throw new IllegalStateException("Try to poll time series records for more than 1 Minute. Stopping.", e);
         }
     }
 }

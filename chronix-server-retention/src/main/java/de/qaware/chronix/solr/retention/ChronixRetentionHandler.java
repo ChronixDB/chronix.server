@@ -96,6 +96,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
         this.retentionURL = String.valueOf(invariants.get(RetentionConstants.RETENTION_URL));
 
         scheduledDeletion();
+        addShutdownHook();
     }
 
     /**
@@ -124,7 +125,12 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
         } catch (SchedulerException e) {
             LOGGER.warn("Got an scheduler exception.", e);
         }
+    }
 
+    /**
+     * Adds an shutdown hook to stop the deletion job
+     */
+    private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 scheduler.shutdown(false);
@@ -132,7 +138,6 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
                 LOGGER.warn("Could not add shutdown hook data retention thread.", e);
             }
         }));
-
     }
 
     /**
@@ -140,7 +145,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      *
      * @param req - the solr query request information
      * @param rsp - the solr query response information
-     * @throws Exception - if bad things are happen
+     * @throws ParseException,IOException,SyntaxError - if bad things happen
      */
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws ParseException, IOException, SyntaxError {
@@ -160,7 +165,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
      * @param req - the solr query request information
      * @param rsp - the solr query response information
      * @return true if the hit count is greater zero, otherwise false
-     * @throws Exception
+     * @throws SyntaxError, IOException if bad things happen
      */
     private boolean olderDocumentsExists(String queryString, SolrQueryRequest req, SolrQueryResponse rsp) throws SyntaxError, IOException {
         String defType = req.getParams().get(QueryParsing.DEFTYPE, QParserPlugin.DEFAULT_QTYPE);
@@ -194,9 +199,9 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
     /**
      * Triggers the deletion
      *
-     * @param processor - the update processor do process deletions
-     * @param req       - the solr query request information
-     * @throws Exception
+     * @param processor the update processor do process deletions
+     * @param req       the solr query request information
+     * @throws IOException if bad things happen
      */
     private void deleteOldDocuments(String deletionQuery, UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {
         DeleteUpdateCommand delete = new DeleteUpdateCommand(req);
@@ -207,9 +212,9 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
     /**
      * Triggers a commit to make the deletion visible on the index
      *
-     * @param processor - the update processor do process deletions
-     * @param req       - the solr query request information
-     * @throws Exception
+     * @param processor the update processor do process deletions
+     * @param req       the solr query request information
+     * @throws IOException if bad things happen
      */
     private void commitDeletions(UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {
         CommitUpdateCommand commit = new CommitUpdateCommand(req, optimizeAfterDeletion);
@@ -218,16 +223,20 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
     }
 
     /**
+     * Builds the deletion query for documents that are older than timeSeriesAge
+     *
      * @return the deletion query
-     * @throws ParseException
+     * @throws ParseException if the term is not a solr date maths expression
      */
     private String getDeletionQuery() throws ParseException {
         return String.format("%s:[* TO %d]", queryField, parseEndDate().getTime());
     }
 
     /**
+     * Parses the timeSeriesAge term with solr date math
+     *
      * @return the end date for the range query
-     * @throws ParseException
+     * @throws ParseException if the term is not a solr date math expression
      */
     private Date parseEndDate() throws ParseException {
         return new DateMathParser().parseMath(String.format("+0MILLISECOND-%s", timeSeriesAge));

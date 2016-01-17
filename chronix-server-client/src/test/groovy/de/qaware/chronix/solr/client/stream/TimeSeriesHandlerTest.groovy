@@ -68,7 +68,7 @@ class TimeSeriesHandlerTest extends Specification {
         0 * logger.debug(_ as String)
         1 * logger.warn(_ as String, _ as Throwable)
         result == null
-        thrown RuntimeException
+        thrown IllegalStateException
 
     }
 

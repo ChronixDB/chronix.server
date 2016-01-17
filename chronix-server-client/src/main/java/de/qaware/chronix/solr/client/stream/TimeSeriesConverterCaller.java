@@ -29,6 +29,7 @@ import java.util.concurrent.Callable;
 /**
  * Converts the solr document into a binary time series and calls the given document converter.
  *
+ * @param <T> the type of the returned time series class
  * @author f.lautenschlager
  */
 public class TimeSeriesConverterCaller<T> implements Callable<T> {

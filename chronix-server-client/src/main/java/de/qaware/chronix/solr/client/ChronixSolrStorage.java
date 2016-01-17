@@ -46,6 +46,13 @@ public class ChronixSolrStorage<T> implements StorageService<T, SolrClient, Solr
     private final BinaryOperator<T> reduce;
     private final Function<T, String> groupBy;
 
+    /**
+     * Constructs a Chronix storage that is based on Apache solr.
+     *
+     * @param nrOfDocumentPerBatch number of documents that are processed in one batch
+     * @param groupBy              the function to group time series records
+     * @param reduce               the function to reduce the grouped time series records into one time series
+     */
     public ChronixSolrStorage(final int nrOfDocumentPerBatch, final Function<T, String> groupBy, final BinaryOperator<T> reduce) {
         this.nrOfDocumentPerBatch = nrOfDocumentPerBatch;
         this.groupBy = groupBy;

@@ -49,21 +49,23 @@ public class DateQueryParser {
      * @param dateFields - the date fields
      */
     public DateQueryParser(String[] dateFields) {
-        this.dateFields = dateFields;
+        this.dateFields = dateFields.clone();
         this.solrDateMathPattern = Pattern.compile(".*(NOW|DAY|MONTH|YEAR).*");
         this.instantDatePattern = Pattern.compile("\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z");
     }
 
     /**
      * Converts the term for the date fields into an numeric representation.
+     * <p>
      * [0] -> numeric value for date field [0]
+     * <p>
      * [1] -> numeric value for date field [1]
      * <p>
      * If the query does not contain a date field the value is represented as -1.
      *
-     * @param query - the user query
+     * @param query the user defined solr query
      * @return an array containing numeric representations of the date fields
-     * @throws ParseException
+     * @throws ParseException if the date term is not a numeric or solr date expression
      */
     public long[] getNumericQueryTerms(String query) throws ParseException {
         long[] result = new long[dateFields.length];
@@ -81,7 +83,9 @@ public class DateQueryParser {
     }
 
     /**
-     * @param query - the plain user query
+     * Replaces the date fields with range queries.
+     *
+     * @param query the plain user query
      * @return an enriched plain solr query
      * @throws ParseException if there are characters that can not be parsed
      */
@@ -95,7 +99,7 @@ public class DateQueryParser {
     /**
      * Converts the given date term into a numeric representation
      *
-     * @param dateTerm - the date term, e.g, start:NOW+30DAYS
+     * @param dateTerm the date term, e.g, start:NOW+30DAYS
      * @return the long representation of the date term
      * @throws ParseException if the date term could not be evaluated
      */
@@ -116,8 +120,8 @@ public class DateQueryParser {
     /**
      * Replaces the placeholders with concrete values
      *
-     * @param query        - the query with placeholders
-     * @param replacements - the replacements
+     * @param query        the query with placeholders
+     * @param replacements the replacements
      * @return a query with concrete values
      */
     private String replacePlaceholders(String query, Map<String, String> replacements) {
@@ -129,8 +133,8 @@ public class DateQueryParser {
     }
 
     /**
-     * @param query        - the origin query
-     * @param replacements - a map for to put in the replacements
+     * @param query        the origin query
+     * @param replacements a map for to put in the replacements
      * @return a query with placeholders and the matching replacements
      * @throws ParseException if the date term could not be parsed
      */
@@ -155,8 +159,8 @@ public class DateQueryParser {
     /**
      * Important: The end of an term is marked by an " "
      *
-     * @param query      - the origin query
-     * @param startToken - the start token
+     * @param query      the origin query
+     * @param startToken the start token
      * @return the term for the start token
      */
     private String getTokenTerm(String query, String startToken) {
@@ -173,8 +177,11 @@ public class DateQueryParser {
     }
 
     /**
-     * @return the end date for the range query
-     * @throws ParseException
+     * Parses the given date query term into a date representation
+     *
+     * @param dateQueryTerm the date query term as string
+     * @return the milliseconds since 1970 of the given dateQueryTerm
+     * @throws ParseException if the term could not be parsed
      */
     private long parseDate(String dateQueryTerm) throws ParseException {
         return new DateMathParser().parseMath(dateQueryTerm).getTime();
@@ -209,9 +216,9 @@ public class DateQueryParser {
     /**
      * Parses a solr date to long representation
      *
-     * @param term - the solr date term (NOW + 30 DAYS)
+     * @param term the solr date term (NOW + 30 DAYS)
      * @return the term as long
-     * @throws ParseException - if the term could not be parsed
+     * @throws ParseException if the term could not be parsed
      */
     private long parseDateTerm(String term) throws ParseException {
         String dateTerm = term.replace("NOW", "+0MILLISECOND");
