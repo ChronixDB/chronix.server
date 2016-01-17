@@ -55,16 +55,24 @@ public class ChronixTransformer extends TransformerFactory {
         return new DataFieldSerializer(field);
     }
 
-    static class DataFieldSerializer extends DocTransformer {
+    /**
+     * Class to transform the data field into a json representation.
+     */
+    private static class DataFieldSerializer extends DocTransformer {
         private final String name;
 
+        /**
+         * Constructs a solr document transformer for the date field.
+         *
+         * @param flName the name of the field
+         */
         public DataFieldSerializer(String flName) {
             LOGGER.debug("Constructing chronix transformer for field {}", flName);
             this.name = flName;
         }
 
         /**
-         * @return -the name of the transformer
+         * @return the name of the transformer
          */
         public String getName() {
             return this.name;
@@ -74,11 +82,11 @@ public class ChronixTransformer extends TransformerFactory {
          * Transforms the given solr document.
          * Overrides the data field with the raw json data
          *
-         * @param doc   - the document
-         * @param docid -the doc id (not used)
+         * @param doc   the document
+         * @param docID the doc id (not used)
          * @throws UnsupportedEncodingException when the decompressed data could be correctly encoded
          */
-        public void transform(SolrDocument doc, int docid) throws UnsupportedEncodingException {
+        public void transform(SolrDocument doc, int docID) throws UnsupportedEncodingException {
 
             if (doc.containsKey(Schema.DATA)) {
                 LOGGER.debug("Transforming data field to json. Document {}", doc);
@@ -101,6 +109,12 @@ public class ChronixTransformer extends TransformerFactory {
             }
         }
 
+        /**
+         * Gets an iterator of pairs (timestamp,value) over the time series records data.
+         *
+         * @param doc the solr document representing the time series record
+         * @return an iterator with pairs of timestamp and value
+         */
         private Iterator<Pair> getRawPoints(SolrDocument doc) {
             StoredField data = (StoredField) doc.getFieldValue(Schema.DATA);
             doc.remove(Schema.DATA);
@@ -113,6 +127,12 @@ public class ChronixTransformer extends TransformerFactory {
             return ProtoBufKassiopeiaSimpleSerializer.from(decompressed, tsStart, tsEnd);
         }
 
+        /**
+         * Gets the numeric (long) representation of the fields value.
+         *
+         * @param field the field as object
+         * @return -1 if the field value has no numeric value, otherwise the numeric value as long
+         */
         private long getLong(Object field) {
             if (field instanceof LongField) {
                 return ((LongField) field).numericValue().longValue();
