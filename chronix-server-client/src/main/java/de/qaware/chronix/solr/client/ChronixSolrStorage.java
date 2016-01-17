@@ -59,6 +59,14 @@ public class ChronixSolrStorage<T> implements StorageService<T, SolrClient, Solr
         this.reduce = reduce;
     }
 
+    /**
+     * Queries apache solr and returns the time series in a stream.
+     *
+     * @param converter  the time series converter
+     * @param connection the connection to apache solr
+     * @param query      the user query
+     * @return a stream of time series
+     */
     @Override
     public Stream<T> stream(TimeSeriesConverter<T> converter, SolrClient connection, SolrQuery query) {
         LOGGER.debug("Streaming data from solr using converter {}, Solr Client {}, and Solr Query {}", converter, connection, query);
@@ -71,6 +79,15 @@ public class ChronixSolrStorage<T> implements StorageService<T, SolrClient, Solr
 
     }
 
+    /**
+     * Adds the given collection of documents to the solr connection using the collector.
+     * Note: The function does not call commit on the connection. Documents are just added to apache solr.
+     *
+     * @param converter  the converter matching the type <T>
+     * @param documents  the documents of type <T>
+     * @param connection the connection to apache solr
+     * @return true if the documents are added to apache solr.
+     */
     @Override
     public boolean add(TimeSeriesConverter<T> converter, Collection<T> documents, SolrClient connection) {
         return SolrAddingService.add(converter, documents, connection);
