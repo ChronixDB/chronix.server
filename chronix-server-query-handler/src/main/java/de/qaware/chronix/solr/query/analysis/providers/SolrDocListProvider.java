@@ -28,16 +28,36 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Solr DocList provider implementation
+ * Solr DocList provider implementation.
  *
  * @author f.lautenschlager
  */
 public class SolrDocListProvider implements DocListProvider {
+    /**
+     * Calls apache solr to answer the given user request.
+     *
+     * @param q     the user query
+     * @param req   the solr query request object
+     * @param start start of the query
+     * @param limit the document limit
+     * @return the result of the query
+     * @throws IOException if bad things happen
+     */
     @Override
     public DocList doSimpleQuery(String q, SolrQueryRequest req, int start, int limit) throws IOException {
         return SolrPluginUtils.doSimpleQuery(q, req, start, limit);
     }
 
+    /**
+     * Converts the docs into a solr document list.
+     *
+     * @param docs     The {@link org.apache.solr.search.DocList} to convert
+     * @param searcher The {@link org.apache.solr.search.SolrIndexSearcher} to use to load the docs from the Lucene index
+     * @param fields   The names of the Fields to load
+     * @param ids      A map to store the ids of the docs
+     * @return the docs as solr document list.
+     * @throws IOException if bad things happen.
+     */
     @Override
     public SolrDocumentList docListToSolrDocumentList(DocList docs, SolrIndexSearcher searcher, Set<String> fields, Map<SolrDocument, Integer> ids) throws IOException {
         return SolrPluginUtils.docListToSolrDocumentList(docs, searcher, fields, ids);

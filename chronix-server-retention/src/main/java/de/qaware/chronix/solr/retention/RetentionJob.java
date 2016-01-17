@@ -46,6 +46,12 @@ public class RetentionJob implements Job {
         httpClient = HttpClients.createDefault();
     }
 
+    /**
+     * Executes the job that calls the retention plugin.
+     *
+     * @param context the current job context
+     * @throws JobExecutionException if the solr server could not be reached.
+     */
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Starting retention job");

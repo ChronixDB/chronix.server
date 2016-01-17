@@ -34,10 +34,10 @@ public interface DocListProvider {
     /**
      * Returns a Solr DocList result
      *
-     * @param q     - the user query
-     * @param req   - the solr query request object
-     * @param start - start of the query
-     * @param limit - the document limit
+     * @param q     the user query
+     * @param req   the solr query request object
+     * @param start start of the query
+     * @param limit the document limit
      * @return DocList matching to the query
      * @throws IOException if there are problems with solr
      */
