@@ -57,7 +57,7 @@ class ReflectionHelperTest extends Specification {
         ReflectionHelper.setValueToFieldOfObject("Father-Modified", "father-not-exists", someClass)
 
         then:
-        thrown IllegalAccessException
+        thrown NoSuchFieldException
 
     }
 }
