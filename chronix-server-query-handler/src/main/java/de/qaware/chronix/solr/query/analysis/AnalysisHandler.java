@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Aggregation search handler
+ * Analyis search handler
  *
  * @author f.lautenschlager
  */
@@ -54,6 +54,13 @@ public class AnalysisHandler extends SearchHandler {
         this.docListProvider = docListProvider;
     }
 
+    /**
+     * Executes the user search request.
+     *
+     * @param req the solr query request
+     * @param rsp the solr query response holding the result
+     * @throws Exception if bad things happen
+     */
     @Override
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
@@ -71,7 +78,7 @@ public class AnalysisHandler extends SearchHandler {
 
 
         //Do a query and collect them on the join function
-        Map<String, List<SolrDocument>> collectedDocs = findDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
+        Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, JoinFunctionEvaluator.joinFunction(filterQueries));
 
         //If now rows should returned, we only return the num found
         if (rows == 0) {
@@ -90,11 +97,23 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(aggregatedDocs.size());
         }
         rsp.add("response", results);
-        LOGGER.debug("Sending response {}", printResponse(rsp, filterQueries));
+
+        //avoid calling the print response method
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Sending response {}", printResponse(rsp, filterQueries));
+        }
 
     }
 
-    private Map<String, List<SolrDocument>> findDocuments(SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
+    /**
+     * Collects the document matching the given solr query request by using the given collection key function.
+     *
+     * @param req           the solr query request
+     * @param collectionKey the collection key function to group documents
+     * @return the collected and grouped documents
+     * @throws IOException if bad things happen
+     */
+    private Map<String, List<SolrDocument>> collectDocuments(SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
         String query = req.getParams().get(CommonParams.Q);
         Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
 
@@ -104,6 +123,12 @@ public class AnalysisHandler extends SearchHandler {
         return AnalysisDocumentBuilder.collect(docs, collectionKey);
     }
 
+    /**
+     * Converts the fields parameter in a set with single fields
+     *
+     * @param fl the fields parameter as string
+     * @return a set containing the single fields split on ','
+     */
     private Set<String> getFields(String fl) {
         if (fl == null) {
             return null;
@@ -114,7 +139,15 @@ public class AnalysisHandler extends SearchHandler {
         return returnFields;
     }
 
-
+    /**
+     * Analyzes the collected documents using the given analysis
+     *
+     * @param collectedDocs the collected solr documents (time series records)
+     * @param analysis      the analysis that should be applied
+     * @param queryStart    the start from the given query
+     * @param queryEnd      the end from the given query
+     * @return a list with analyzed solr documents
+     */
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map.Entry<AnalysisType, String[]> analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
@@ -126,11 +159,20 @@ public class AnalysisHandler extends SearchHandler {
         return solrDocuments;
     }
 
+    /**
+     * Converts the response and the filter query in a string representation.
+     *
+     * @param rsp           the solr query response
+     * @param filterQueries the filter queries
+     * @return a string representation
+     */
     private String printResponse(SolrQueryResponse rsp, String[] filterQueries) {
         return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : Arrays.toString(filterQueries))) + "/";
     }
 
-
+    /**
+     * @return the description shown in apache solr
+     */
     @Override
     public String getDescription() {
         return "Chronix Aggregation Request Handler";
