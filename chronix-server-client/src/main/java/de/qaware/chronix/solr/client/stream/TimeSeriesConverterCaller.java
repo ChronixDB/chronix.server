@@ -54,31 +54,49 @@ public class TimeSeriesConverterCaller<T> implements Callable<T> {
         this.queryEnd = queryEnd;
     }
 
-
+    /**
+     * Converts the solr document given in the constructor into a time series of type <T>
+     *
+     * @return a time series of type <T>
+     * @throws Exception if bad things happen.
+     */
     @Override
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public T call() throws Exception {
         BinaryTimeSeries.Builder timeSeriesBuilder = new BinaryTimeSeries.Builder();
 
-        document.forEach(mapEntry -> addToBuilder(timeSeriesBuilder, mapEntry));
+        document.forEach(attributeField -> addToBuilder(timeSeriesBuilder, attributeField));
         LOGGER.debug("Calling document converter with {}", document);
         T timeSeries = documentConverter.from(timeSeriesBuilder.build(), queryStart, queryEnd);
         LOGGER.debug("Returning time series {} to callee", timeSeries);
         return timeSeries;
     }
 
-    private void addToBuilder(BinaryTimeSeries.Builder timeSeriesBuilder, Map.Entry<String, Object> mapEntry) {
-        Object valueType = mapEntry.getValue();
+    /**
+     * Adds user defined attributes to the binary time series builder.
+     * Checks if the attribute is of type byte[], String, Number or Collection.
+     * Otherwise the attribute is ignored.
+     *
+     * @param timeSeriesBuilder the binary time series builder
+     * @param attributeField    the attribute field
+     */
+    private void addToBuilder(BinaryTimeSeries.Builder timeSeriesBuilder, Map.Entry<String, Object> attributeField) {
+        Object valueType = attributeField.getValue();
 
-        //If we use the default remote solr server, we get pojo's
-        if (isPOJO(valueType)) {
-            timeSeriesBuilder.field(mapEntry.getKey(), mapEntry.getValue());
+        if (isValidType(valueType)) {
+            timeSeriesBuilder.field(attributeField.getKey(), attributeField.getValue());
         } else {
-            LOGGER.warn("Field {} is not of type field or collection", mapEntry);
+            LOGGER.warn("Field {} is not of type field or collection", attributeField);
         }
     }
 
-    private boolean isPOJO(Object valueType) {
+    /**
+     * Checks if the given object is an byte[], String, Number or Collection.
+     *
+     * @param valueType the object holding the value
+     * @return true if the object is an instance of byte[], String, Number or Collection.
+     */
+    private boolean isValidType(Object valueType) {
         return valueType instanceof byte[] || valueType instanceof String || valueType instanceof Number || valueType instanceof Collection;
     }
 }
