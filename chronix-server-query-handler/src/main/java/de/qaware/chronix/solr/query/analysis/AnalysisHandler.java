@@ -55,7 +55,7 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     @Override
-    @SuppressWarnings("pmd:SignatureDeclareThrowsException")
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         LOGGER.debug("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0

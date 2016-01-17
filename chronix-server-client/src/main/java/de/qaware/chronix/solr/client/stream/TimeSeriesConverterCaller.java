@@ -56,7 +56,7 @@ public class TimeSeriesConverterCaller<T> implements Callable<T> {
 
 
     @Override
-    @SuppressWarnings("pmd:SignatureDeclareThrowsException")
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public T call() throws Exception {
         BinaryTimeSeries.Builder timeSeriesBuilder = new BinaryTimeSeries.Builder();
 

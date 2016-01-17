@@ -73,7 +73,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     }
 
     @Override
-    @SuppressWarnings("pmd:SignatureDeclareThrowsException")
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(req.getParams());
 
