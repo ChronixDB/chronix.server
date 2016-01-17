@@ -41,7 +41,8 @@ public final class ReflectionHelper {
      * @param field the field as string
      * @param clazz the class
      * @return the modified field
-     * @throws NoSuchFieldException, IllegalAccessException if the field could not be found, or the field is not accessible
+     * @throws NoSuchFieldException   if the field could not be found
+     * @throws IllegalAccessException if the field is not accessible
      */
     public static Field makeFieldModifiable(String field, Class clazz) throws NoSuchFieldException, IllegalAccessException {
         try {
@@ -88,7 +89,8 @@ public final class ReflectionHelper {
      * @param newValue the new value that is placed to the fields value
      * @param field    the field name as string of the object
      * @param obj      the object holding the field
-     * @throws NoSuchFieldException, IllegalAccessException if the field does not exists, or the field is not accessible
+     * @throws NoSuchFieldException   if the field does not exist
+     * @throws IllegalAccessException if the field is not accessible
      */
     public static void setValueToFieldOfObject(Object newValue, String field, Object obj) throws NoSuchFieldException, IllegalAccessException {
         Field modifiable = makeFieldModifiable(field, obj.getClass());
