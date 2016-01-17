@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Analyis search handler
+ * Analysis search handler
  *
  * @author f.lautenschlager
  */
