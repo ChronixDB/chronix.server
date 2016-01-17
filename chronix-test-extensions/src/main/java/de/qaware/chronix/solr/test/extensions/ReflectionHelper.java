@@ -38,10 +38,10 @@ public final class ReflectionHelper {
     /**
      * Makes the field of the given class modifiable
      *
-     * @param field  the field as string
-     * @param clazz  the class
+     * @param field the field as string
+     * @param clazz the class
      * @return the modified field
-     * @throws IllegalAccessException if any error occurs
+     * @throws NoSuchFieldException, IllegalAccessException if the field could not be found, or the field is not accessible
      */
     public static Field makeFieldModifiable(String field, Class clazz) throws NoSuchFieldException, IllegalAccessException {
         try {
@@ -61,6 +61,15 @@ public final class ReflectionHelper {
         }
     }
 
+    /**
+     * Returns the field object for the given class.
+     * Also checks the superclass.
+     *
+     * @param field the field name
+     * @param clazz the class holding the field
+     * @return the field instance
+     * @throws NoSuchFieldException if the class or the superclass do not contain the field
+     */
     private static Field getField(String field, Class clazz) throws NoSuchFieldException {
         Field fieldInstance;
         try {
@@ -76,10 +85,10 @@ public final class ReflectionHelper {
     /**
      * Sets the new value to the given field of the given class
      *
-     * @param newValue  the new value
-     * @param field     the field name as string
-     * @param obj       the object
-     * @throws NoSuchFieldException, IllegalAccessException if any error occurs
+     * @param newValue the new value that is placed to the fields value
+     * @param field    the field name as string of the object
+     * @param obj      the object holding the field
+     * @throws NoSuchFieldException, IllegalAccessException if the field does not exists, or the field is not accessible
      */
     public static void setValueToFieldOfObject(Object newValue, String field, Object obj) throws NoSuchFieldException, IllegalAccessException {
         Field modifiable = makeFieldModifiable(field, obj.getClass());
