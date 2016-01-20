@@ -102,7 +102,7 @@ class ChronixClientTestIT extends Specification {
     def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
-        solr = new HttpSolrClient("http://localhost:8983/solr/chronix/")
+        solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
         chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, groupBy, reduce))
 
         when: "We clean the index to ensure that no old data is loaded."

@@ -208,23 +208,23 @@ class ExecWait extends DefaultTask {
 String osName = System.getProperty("os.name").toLowerCase();
 task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
-        command 'cmd.exe /C solr.cmd start'
-        ready "Started Solr server on port 8983. Happy searching!"
+        command 'cmd.exe /C solr.cmd start -p 8913'
+        ready "Started Solr server on port 8913. Happy searching!"
         directory "$buildDir/solr-${solrVersion}/bin/"
     } else {
-        command 'bash solr start'
-        ready "Started Solr server on port 8983. Happy searching!"
+        command 'bash solr start -p 8913'
+        ready "Started Solr server on port 8913. Happy searching!"
         directory "$buildDir/solr-${solrVersion}/bin/"
     }
 }
 
 task stopSolr(type: ExecWait) {
     if (osName.contains("windows")) {
-        command 'cmd.exe /C solr.cmd stop -p 8983'
+        command 'cmd.exe /C solr.cmd stop -p 8913'
         ready ""
         directory "$buildDir/solr-${solrVersion}/bin/"
     } else {
-        command 'bash solr stop -p 8983'
+        command 'bash solr stop -p 8913'
         ready ""
         directory "$buildDir/solr-${solrVersion}/bin/"
     }
