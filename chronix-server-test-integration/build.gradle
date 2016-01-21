@@ -1,3 +1,9 @@
+sonarqube {
+    properties {
+        property "sonar.projectName", "de.qaware.chronix:chronix-server-test-integration"
+    }
+}
+
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
     testCompile 'commons-codec:commons-codec:1.10'
@@ -10,7 +16,7 @@ dependencies {
 
 
     testCompile project(':chronix-server-client')
-    testCompile project(':chronix-test-extensions')
+    testCompile project(':chronix-server-test-extensions')
 
     testCompile project(':chronix-server-query-handler')
     testCompile project(':chronix-server-retention')

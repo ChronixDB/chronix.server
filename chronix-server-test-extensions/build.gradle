@@ -1,3 +1,9 @@
+sonarqube {
+    properties {
+        property "sonar.projectName", "de.qaware.chronix:chronix-server-test-extensions"
+    }
+}
+
 dependencies{
     compile 'de.qaware.chronix:chronix-api:0.1'
 }
