@@ -14,18 +14,20 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.query.analysis.collectors
+
 import spock.lang.Specification
+
 /**
  * @author f.lautenschlager
  */
 class AnalysisQueryEvaluatorTest extends Specification {
 
-    def "test ag query strings"() {
+    def "test query strings"() {
         when:
-        Map.Entry<AnalysisType, String[]> aggregation = AnalysisQueryEvaluator.buildAnalysis(fqs)
+        ChronixAnalysis aggregation = AnalysisQueryEvaluator.buildAnalysis(fqs)
         then:
-        aggregation.key == expectedAggreation
-        aggregation.value == expectedValue
+        aggregation.getType() == expectedAggreation
+        aggregation.getArguments() == expectedValue
         where:
         fqs << [["ag=min"] as String[],
                 ["ag=max"] as String[],
@@ -34,13 +36,14 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["ag=p:0.4"] as String[],
                 ["analysis=trend"] as String[],
                 ["analysis=outlier"] as String[],
-                ["analysis=frequency:10:6"] as String[],
+                ["analysis=frequency:10,6"] as String[],
+                ["analysis=fastdtw:(metric:load*),0.5,20"] as String[],
         ]
 
         expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P,
-                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY]
+                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
         expectedValue << [new String[0], new String[0], new String[0], new String[0], ["0.4"] as String[],
-                          new String[0], new String[0], ["10", "6"] as String[]]
+                          new String[0], new String[0], ["10", "6"] as String[], ["(metric:load*)", "0.5", "20"] as String[]]
     }
 
     def "test ag query strings that produce exceptions"() {

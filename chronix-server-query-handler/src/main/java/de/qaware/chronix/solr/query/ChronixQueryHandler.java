@@ -49,7 +49,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     private final SearchHandler searchHandler = new SearchHandler();
 
     /**
-     * The isAggregation handler
+     * The analysis handler
      */
     private final SearchHandler analysisHandler = new AnalysisHandler(new SolrDocListProvider());
 

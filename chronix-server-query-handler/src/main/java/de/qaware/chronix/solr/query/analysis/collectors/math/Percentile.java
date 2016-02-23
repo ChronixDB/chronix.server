@@ -48,7 +48,7 @@ public final class Percentile {
      * }
      * </code>
      *
-     * @param values     - the values to evaluate the percentile
+     * @param values     - the values to aggregate the percentile
      * @param percentile - the percentile (0 - 1), e.g. 0.25
      * @return the value of the n-th percentile
      */

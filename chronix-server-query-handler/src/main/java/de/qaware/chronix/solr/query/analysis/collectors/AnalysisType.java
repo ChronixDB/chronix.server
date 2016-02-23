@@ -31,7 +31,8 @@ public enum AnalysisType {
     //Analysis
     TREND,
     OUTLIER,
-    FREQUENCY;
+    FREQUENCY,
+    FASTDTW;
 
     /**
      * Checks if the given type is a high level analysis
@@ -40,7 +41,7 @@ public enum AnalysisType {
      * @return true if the analysis type is a high level analysis, otherwise false
      */
     public static boolean isHighLevel(AnalysisType type) {
-        return TREND == type || OUTLIER == type || FREQUENCY == type;
+        return TREND == type || OUTLIER == type || FREQUENCY == type || FASTDTW == type;
     }
 
     /**
@@ -52,4 +53,6 @@ public enum AnalysisType {
     public static boolean isAggregation(AnalysisType type) {
         return !isHighLevel(type);
     }
+
+
 }

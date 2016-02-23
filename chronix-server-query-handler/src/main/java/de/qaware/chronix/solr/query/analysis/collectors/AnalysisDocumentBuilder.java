@@ -67,28 +67,57 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * @param aggregation - the isAggregation including its parameter
-     * @param queryStart  - the user query start
-     * @param queryEnd    - the user query end
-     * @param docs        - the lucene documents that belong to the requested time series
+     * Aggregates the given list with time series records
+     *
+     * @param aggregation the aggregation including the arguments
+     * @param queryStart  the user query start
+     * @param queryEnd    the user query end
+     * @param docs        the lucene documents that belong to the requested time series
      * @return the aggregated solr document
      */
-    public static SolrDocument analyze(Map.Entry<AnalysisType, String[]> aggregation, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs) {
+    public static SolrDocument aggregate(ChronixAnalysis aggregation, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        double value = analyzeTimeSeries(timeSeries, aggregation);
-        return buildDocument(timeSeries, value, aggregation, docs.getKey());
+        double value = AggregationEvaluator.aggregate(timeSeries, aggregation);
+        return buildDocument(timeSeries, value, aggregation, joinKey);
     }
 
+    /**
+     * @param analysis   the analysis including the arguments
+     * @param queryStart the user query start
+     * @param queryEnd   the user query end
+     * @param docs       the lucene documents that belong to the requested time series
+     * @return the analyzed solr document
+     */
+    public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
+        MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
+        double value = HighLevelAnalysisEvaluator.analyze(timeSeries, analysis);
+        return buildDocument(timeSeries, value, analysis, joinKey);
+    }
 
     /**
-     * Collects the lucene documents into a single time series
+     * @param analysis
+     * @param queryStart
+     * @param queryEnd
+     * @param docs
+     * @param subDocs
+     * @return
+     */
+    public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs, List<SolrDocument> subDocs) {
+        MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
+        MetricTimeSeries subTimeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, subDocs);
+        double value = HighLevelAnalysisEvaluator.analyze(timeSeries, subTimeSeries, analysis);
+        return buildDocument(timeSeries, value, analysis, joinKey);
+    }
+
+    /**
+     * Collects the documents into a single time series
      *
      * @param queryStart - the user query start
      * @param queryEnd   - the user query end
      * @param documents  - the lucene documents
      * @return a metric time series that holds all the points
      */
-    private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> documents) {
+    private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
         //Collect all document of a time series
 
         LongList timestamps = new LongList();
@@ -96,7 +125,7 @@ public final class AnalysisDocumentBuilder {
         Map<String, Object> attributes = new HashMap<>();
         String metric = null;
 
-        for (SolrDocument doc : documents.getValue()) {
+        for (SolrDocument doc : documents) {
             MetricTimeSeries ts = convert(doc, queryStart, queryEnd);
 
             timestamps.addAll(ts.getTimestamps());
@@ -118,17 +147,6 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Aggregates the metric time series using the given isAggregation
-     *
-     * @param timeSeries  - the time series
-     * @param aggregation - the isAggregation
-     * @return the aggregated value
-     */
-    private static double analyzeTimeSeries(MetricTimeSeries timeSeries, Map.Entry<AnalysisType, String[]> aggregation) {
-        return AnalysisEvaluator.evaluate(timeSeries.getTimestamps(), timeSeries.getValues(), aggregation.getKey(), aggregation.getValue());
-    }
-
-    /**
      * Builds a solr document that is needed for the response from the aggregated time series
      *
      * @param timeSeries  - the time series
@@ -137,9 +155,9 @@ public final class AnalysisDocumentBuilder {
      * @param key         - the join key
      * @return a solr document holding the attributes and the aggregated value
      */
-    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, Map.Entry<AnalysisType, String[]> aggregation, String key) {
+    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, ChronixAnalysis aggregation, String key) {
 
-        boolean highLevelAnalysis = AnalysisType.isHighLevel(aggregation.getKey());
+        boolean highLevelAnalysis = AnalysisType.isHighLevel(aggregation.getType());
 
         //-1 on high level analyses marks that the time series is ok and should not returned
         if (highLevelAnalysis && value < 0) {
@@ -156,8 +174,8 @@ public final class AnalysisDocumentBuilder {
         }
 
         //Add some information about the analysis
-        doc.put("analysis", aggregation.getKey().name());
-        doc.put("analysisParam", String.join("-", aggregation.getValue()));
+        doc.put("analysis", aggregation.getType().name());
+        doc.put("analysisParam", String.join(",", aggregation.getArguments()));
 
         //add the join key
         doc.put("joinKey", key);
@@ -206,4 +224,5 @@ public final class AnalysisDocumentBuilder {
 
         return doc;
     }
+
 }

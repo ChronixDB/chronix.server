@@ -28,6 +28,7 @@ public final class AnalysisQueryEvaluator {
 
     private static final String AGGREGATION_DELIMITER = "=";
     private static final String AGGREGATION_ARGUMENT_DELIMITER = ":";
+    private static final String AGGREGATION_ARGUMENT_SPLITTER = ",";
 
 
     private AnalysisQueryEvaluator() {
@@ -44,7 +45,7 @@ public final class AnalysisQueryEvaluator {
      * @param filterQueries - the filter queries of the user query
      * @return an entry containing the isAggregation and an isAggregation argument
      */
-    public static Map.Entry<AnalysisType, String[]> buildAnalysis(String[] filterQueries) {
+    public static ChronixAnalysis buildAnalysis(String[] filterQueries) {
 
         String unmodifiedAnalysis = getAnalysis(filterQueries);
 
@@ -55,14 +56,12 @@ public final class AnalysisQueryEvaluator {
             arguments = extractAggregationParameter(aggregation);
             aggregation = aggregation.substring(0, aggregation.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
         }
-
-        return new HashMap.SimpleEntry<>(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
-
+        return new ChronixAnalysis(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
     }
 
     private static String[] extractAggregationParameter(String argumentString) {
         String arguments = extractArguments(argumentString);
-        return arguments.split(AGGREGATION_ARGUMENT_DELIMITER);
+        return arguments.split(AGGREGATION_ARGUMENT_SPLITTER);
     }
 
     private static String extractArguments(String argumentString) {

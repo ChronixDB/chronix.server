@@ -18,11 +18,13 @@ package de.qaware.chronix.solr.query.analysis.collectors
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 import spock.lang.Unroll
+
 /**
  * Unit test for the isAggregation Evaluator
  * @author f.lautenschlager
  */
-class AnalysisEvaluatorTest extends Specification {
+class AggregationEvaluatorTest extends Specification {
+
     @Unroll
     def "test evaluate aggregation '#analysis'. Expected value is #expected"() {
         given:
@@ -35,7 +37,7 @@ class AnalysisEvaluatorTest extends Specification {
 
 
         when:
-        double analysisValue = AnalysisEvaluator.evaluate(ts.getTimestamps(),ts.getValues(), analysis, analysisArgs)
+        double analysisValue = AggregationEvaluator.aggregate(ts, new ChronixAnalysis(analysis,analysisArgs))
 
         then:
         analysisValue == expected
@@ -43,19 +45,16 @@ class AnalysisEvaluatorTest extends Specification {
         where:
         analysis << [AnalysisType.MIN, AnalysisType.MAX,
                      AnalysisType.AVG, AnalysisType.DEV,
-                     AnalysisType.P, AnalysisType.TREND,
-                     AnalysisType.OUTLIER, AnalysisType.FREQUENCY]
+                     AnalysisType.P]
         analysisArgs << [[] as String, [] as String,
                          [] as String, [] as String,
-                         ["0.25d"] as String[], [] as String[],
-                         [] as String, ["10", "6"] as String[]]
-        expected << [0d, 9999d, 949.9090909090909d, 3001.381363790528, 25.0,
-                     1, 1, -1]
+                         ["0.25d"] as String[]]
+        expected << [0d, 9999d, 949.9090909090909d, 3001.381363790528, 25.0]
     }
 
     def "test private constructor"() {
         when:
-        AnalysisEvaluator.newInstance()
+        AggregationEvaluator.newInstance()
 
         then:
         noExceptionThrown()

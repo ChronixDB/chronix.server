@@ -31,7 +31,7 @@ class AnalysisTypeTest extends Specification {
         result == expected
 
         where:
-        type << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P, AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY]
-        expected << [true, true, true, true, true, false, false, false]
+        type << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P, AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
+        expected << [true, true, true, true, true, false, false, false, false]
     }
 }

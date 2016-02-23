@@ -63,53 +63,20 @@ class AnalysisDocumentBuilderTest extends Specification {
         collectedDocs.get("groovy-laptop").size() == 2
     }
 
-    def "test high level analysis"() {
-        given:
-        def collectedDocs = new HashMap<String, List<SolrDocument>>();
-
-        def docs = fillDocs()
-        collectedDocs.put("groovy-laptop", docs);
-        def collectedDoc = collectedDocs.entrySet().iterator().next()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
-
-        when:
-        def document = AnalysisDocumentBuilder.analyze(analysis, 1l, Long.MAX_VALUE, collectedDoc);
-
-        then:
-        document.getFieldValue("host") as String == "laptop"
-        document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 991
-        document.getFieldValue("value") == null
-        document.getFieldValue("analysis") as String == "TREND"
-        document.getFieldValue("analysisParam") as String == ""
-        document.getFieldValue("joinKey") as String == "groovy-laptop"
-        document.getFieldValue("data") != null
-
-        document.getFieldValue("someInt") as int == 1i
-        document.getFieldValue("someFloat") as float == 1.1f
-        document.getFieldValue("someDouble") as double == 2.0d
-
-    }
 
     def "test aggregate"() {
         given:
-        def collectedDocs = new HashMap<String, List<Document>>();
-
         def docs = fillDocs()
-        collectedDocs.put("groovy-laptop", docs);
-        def collectedDoc = collectedDocs.entrySet().iterator().next()
         def aggregation = AnalysisQueryEvaluator.buildAnalysis(["ag=max"] as String[])
 
         when:
-
-        def document = AnalysisDocumentBuilder.analyze(aggregation, 0l, Long.MAX_VALUE, collectedDoc);
+        def document = AnalysisDocumentBuilder.aggregate(aggregation, 0l, Long.MAX_VALUE, "groovy-laptop", docs);
 
         then:
         document.getFieldValue("host") as String == "laptop"
         document.getFieldValue("metric") as String == "groovy"
         document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 991
+        document.getFieldValue("end") as long == 1495
         document.getFieldValue("value") as double == 99000.0d
         document.getFieldValue("analysis") as String == "MAX"
         document.getFieldValue("analysisParam") as String == ""
@@ -122,7 +89,54 @@ class AnalysisDocumentBuilderTest extends Specification {
 
     }
 
-    ArrayList<Document> fillDocs() {
+    def "test analyze"() {
+        given:
+        def docs = fillDocs()
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
+
+        when:
+        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, "groovy-laptop", docs);
+
+        then:
+        document.getFieldValue("host") as String == "laptop"
+        document.getFieldValue("metric") as String == "groovy"
+        document.getFieldValue("start") as long == 1
+        document.getFieldValue("end") as long == 1495
+        document.getFieldValue("analysis") as String == "TREND"
+        document.getFieldValue("analysisParam") as String == ""
+        document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("data") != null
+
+        document.getFieldValue("someInt") as int == 1i
+        document.getFieldValue("someFloat") as float == 1.1f
+        document.getFieldValue("someDouble") as double == 2.0d
+    }
+
+    def "test analyze with subquery"() {
+        given:
+        def docs = fillDocs()
+        def docs2 = fillDocs()
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=fastdtw:(metric:*),10,0.5"] as String[])
+
+        when:
+        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, "groovy-laptop", docs, docs2);
+
+        then:
+        document.getFieldValue("host") as String == "laptop"
+        document.getFieldValue("metric") as String == "groovy"
+        document.getFieldValue("start") as long == 1
+        document.getFieldValue("end") as long == 1495
+        document.getFieldValue("analysis") as String == "FASTDTW"
+        document.getFieldValue("analysisParam") as String == "(metric:*),10,0.5"
+        document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("data") != null
+
+        document.getFieldValue("someInt") as int == 1i
+        document.getFieldValue("someFloat") as float == 1.1f
+        document.getFieldValue("someDouble") as double == 2.0d
+    }
+
+    List<Document> fillDocs() {
         def result = new ArrayList<SolrDocument>();
 
         TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
@@ -156,7 +170,7 @@ class AnalysisDocumentBuilderTest extends Specification {
     def LongList times(int i) {
         def times = new LongList()
         100.times {
-            times.add(it * i + 1 as long)
+            times.add(it * 15 + i as long)
         }
         times
     }
