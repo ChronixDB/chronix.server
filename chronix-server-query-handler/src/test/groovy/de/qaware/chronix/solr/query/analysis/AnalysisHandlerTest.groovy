@@ -53,6 +53,12 @@ class AnalysisHandlerTest extends Specification {
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                            .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
+                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
+                           .add("fq", "analysis=fastdtw:(metric:*),10,0.5").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
+                   new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
+                           .add("fq", "analysis=trend").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
         ]
 
     }

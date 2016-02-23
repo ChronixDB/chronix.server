@@ -189,11 +189,13 @@ public class AnalysisHandler extends SearchHandler {
 
 
     /**
-     * @param collectedDocs
-     * @param analysis
-     * @param queryStart
-     * @param queryEnd
-     * @return
+     * Analyzes one set of time series
+     *
+     * @param collectedDocs the collected solr documents (time series records)
+     * @param analysis      the analysis that should be applied
+     * @param queryStart    the start from the given query
+     * @param queryEnd      the end from the given query
+     * @return a list with analyzed solr documents
      */
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
@@ -209,25 +211,23 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     /**
-     * Analyzes two sets of time series
+     * Analyzes two sets of time series.
      *
      * @param collectedDocs     the documents of the outer query
      * @param subQueryDocuments the document of the inner query
      * @param analysis          the chronix analysis
      * @param queryStart        the start of the query
      * @param queryEnd          the end of the query
-     * @return
+     * @return a list with analyzed solr documents
      */
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map<String, List<SolrDocument>> subQueryDocuments, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-        collectedDocs.entrySet().parallelStream().forEach(docs -> {
-            subQueryDocuments.entrySet().forEach(subDocs -> {
-                SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
-                if (doc != null) {
-                    solrDocuments.add(doc);
-                }
-            });
-        });
+        collectedDocs.entrySet().parallelStream().forEach(docs -> subQueryDocuments.entrySet().forEach(subDocs -> {
+            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
+            if (doc != null) {
+                solrDocuments.add(doc);
+            }
+        }));
         return solrDocuments;
     }
 
@@ -238,7 +238,6 @@ public class AnalysisHandler extends SearchHandler {
      * @param filterQueries the filter queries
      * @return a string representation
      */
-
     private String printResponse(SolrQueryResponse rsp, String[] filterQueries) {
         return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : Arrays.toString(filterQueries))) + "/";
     }
