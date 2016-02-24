@@ -35,7 +35,7 @@ public final class ChronixAnalysis {
      */
     public ChronixAnalysis(AnalysisType type, String[] arguments) {
         this.type = type;
-        this.arguments = arguments;
+        this.arguments = arguments.clone();
         this.subqueryIndex = subqueryIndex(arguments);
     }
 
@@ -65,7 +65,7 @@ public final class ChronixAnalysis {
      * @return the generic arguments
      */
     public String[] getArguments() {
-        return arguments;
+        return arguments.clone();
     }
 
     /**
