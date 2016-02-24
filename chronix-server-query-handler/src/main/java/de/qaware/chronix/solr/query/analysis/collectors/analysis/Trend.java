@@ -39,6 +39,7 @@ public final class Trend implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
+        timeSeries.sort();
 
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();

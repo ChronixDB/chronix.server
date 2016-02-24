@@ -150,14 +150,10 @@ public final class AnalysisDocumentBuilder {
             }
         }
 
-        MetricTimeSeries ts = new MetricTimeSeries.Builder(metric)
+        return new MetricTimeSeries.Builder(metric)
                 .data(timestamps, values)
                 .attributes(attributes)
                 .build();
-
-        ts.sort();
-
-        return ts;
     }
 
     /**
