@@ -226,9 +226,12 @@ public class AnalysisHandler extends SearchHandler {
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map<String, List<SolrDocument>> subQueryDocuments, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
         collectedDocs.entrySet().forEach(docs -> subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
-            if (doc != null) {
-                solrDocuments.add(doc);
+            //Only if have different time series
+            if (!docs.getKey().equals(subDocs.getKey())) {
+                SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
+                if (doc != null) {
+                    solrDocuments.add(doc);
+                }
             }
         }));
         return solrDocuments;
