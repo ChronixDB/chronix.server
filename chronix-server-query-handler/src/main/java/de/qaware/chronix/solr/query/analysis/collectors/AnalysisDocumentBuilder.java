@@ -82,6 +82,8 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
+     * Analyzes the given chunks of time series that match the given join key
+     *
      * @param analysis   the analysis including the arguments
      * @param queryStart the user query start
      * @param queryEnd   the user query end
@@ -95,12 +97,13 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * @param analysis
-     * @param queryStart
-     * @param queryEnd
-     * @param docs
-     * @param subDocs
-     * @return
+     * Analyzes the given chunk sets of the two time series
+     *
+     * @param analysis   the analysis including the arguments
+     * @param queryStart the user query start
+     * @param queryEnd   the user query end
+     * @param docs       the lucene documents that belong to the requested time series
+     * @return the analyzed solr document
      */
     public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs, List<SolrDocument> subDocs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);

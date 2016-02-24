@@ -171,6 +171,8 @@ task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
     include("*chronix-server-*.jar")
+    include("*chronix.fastdtw-*.jar")
+    include("*commons-lang3-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")

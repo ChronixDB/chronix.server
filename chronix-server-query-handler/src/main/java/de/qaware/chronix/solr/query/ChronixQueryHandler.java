@@ -30,6 +30,8 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +43,8 @@ import java.util.Set;
  * @author f.lautenschlager
  */
 public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreAware, PluginInfoInitialized {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronixQueryHandler.class);
 
     private static final Set<String> REQUIRED_FIELDS = new HashSet<>();
     /**
@@ -75,6 +79,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     @Override
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        LOGGER.debug("Handling request {}", req);
         ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(req.getParams());
 
         String originQuery = modifiableSolrParams.get(CommonParams.Q);
@@ -98,12 +103,13 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         //check the filter queries
         String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
 
-        //if we have an isAggregation
+        //if we have an analysis or aggregation request
         if (contains(filterQueries, ChronixQueryParams.AGGREGATION_PARAM) || contains(filterQueries, ChronixQueryParams.ANALYSIS_PARAM)) {
+            LOGGER.debug("Request is an analysis or aggregation request.");
             analysisHandler.handleRequestBody(req, rsp);
-
         } else {
             //let the default search handler do its work
+            LOGGER.debug("Request is a default request");
             searchHandler.handleRequestBody(req, rsp);
         }
 

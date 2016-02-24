@@ -96,7 +96,7 @@ public class AnalysisHandler extends SearchHandler {
             if (AnalysisType.isAggregation(analysis.getType())) {
                 //We have an analysis query
                 resultDocuments = aggregate(collectedDocs, analysis, queryStart, queryEnd);
-            } else {
+            } else if (AnalysisType.isHighLevel(analysis.getType())) {
                 //Check if the analysis needs a sub query
                 if (analysis.hasSubquery()) {
                     Map<String, List<SolrDocument>> subqueryDocuments = collectDocuments(analysis.getSubQuery(), req, key);
@@ -104,7 +104,8 @@ public class AnalysisHandler extends SearchHandler {
                 } else {
                     resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
                 }
-
+            } else {
+                throw new IllegalArgumentException("Analysis type is unknown " + analysis.getType());
             }
 
             results.addAll(resultDocuments);
@@ -222,7 +223,7 @@ public class AnalysisHandler extends SearchHandler {
      */
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map<String, List<SolrDocument>> subQueryDocuments, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-        collectedDocs.entrySet().parallelStream().forEach(docs -> subQueryDocuments.entrySet().forEach(subDocs -> {
+        collectedDocs.entrySet().forEach(docs -> subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
             SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
             if (doc != null) {
                 solrDocuments.add(doc);
