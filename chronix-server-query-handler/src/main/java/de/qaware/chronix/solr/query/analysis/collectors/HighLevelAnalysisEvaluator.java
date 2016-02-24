@@ -34,9 +34,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class is used to evaluate the high level analyses
+ *
  * @author f.lautenschlager
  */
-public class HighLevelAnalysisEvaluator {
+public final class HighLevelAnalysisEvaluator {
 
     private HighLevelAnalysisEvaluator() {
         //avoid instances
