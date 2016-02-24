@@ -34,13 +34,18 @@ public final class FastDtw implements ChronixAnalysis {
 
     private final DistanceFunction distanceFunction;
     private final int searchRadius;
-    private final double maxDifference;
+    private final double maxNormalizedWarpingCost;
     private final String subquery;
 
-    public FastDtw(String subquery, int searchRadius, double maxDifference) {
+    /**
+     * @param subquery                 the subquery to describe the other set of time series
+     * @param searchRadius             the search radius
+     * @param maxNormalizedWarpingCost the maximum normalized maximum warping cost
+     */
+    public FastDtw(String subquery, int searchRadius, double maxNormalizedWarpingCost) {
         this.subquery = subquery;
         this.searchRadius = searchRadius;
-        this.maxDifference = maxDifference;
+        this.maxNormalizedWarpingCost = maxNormalizedWarpingCost;
         this.distanceFunction = DistanceFunctionFactory.getDistanceFunction(DistanceFunctionEnum.EUCLIDEAN);
     }
 
@@ -53,7 +58,7 @@ public final class FastDtw implements ChronixAnalysis {
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(args[0]);
         MultivariateTimeSeries other = buildMultiVariateTimeSeries(args[1]);
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
-        if (result.getNormalizedDistance() <= maxDifference) {
+        if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
             return result.getNormalizedDistance();
         }
         return -1;
@@ -71,7 +76,7 @@ public final class FastDtw implements ChronixAnalysis {
 
     @Override
     public Object[] getArguments() {
-        return new Object[]{searchRadius, maxDifference, distanceFunction};
+        return new Object[]{searchRadius, maxNormalizedWarpingCost, distanceFunction};
     }
 
     @Override
