@@ -16,16 +16,19 @@
 package de.qaware.chronix.solr.query.analysis.collectors;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.BinaryTimeSeries;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
-import de.qaware.chronix.converter.TimeSeriesConverter;
+import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.common.MetricTSSchema;
+import de.qaware.chronix.converter.serializer.gen.SimpleProtocolBuffers;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +42,8 @@ import java.util.function.Function;
  * @author f.lautenschlager
  */
 public final class AnalysisDocumentBuilder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisDocumentBuilder.class);
 
     private AnalysisDocumentBuilder() {
         //avoid instances
@@ -145,10 +150,14 @@ public final class AnalysisDocumentBuilder {
             }
         }
 
-        return new MetricTimeSeries.Builder(metric)
+        MetricTimeSeries ts = new MetricTimeSeries.Builder(metric)
                 .data(timestamps, values)
                 .attributes(attributes)
                 .build();
+
+        ts.sort();
+
+        return ts;
     }
 
     /**
@@ -192,19 +201,73 @@ public final class AnalysisDocumentBuilder {
      * @return a metric time series
      */
     private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
-        BinaryTimeSeries.Builder binaryDocument = new BinaryTimeSeries.Builder();
-        for (Map.Entry<String, Object> field : doc) {
 
-            Object value = field.getValue();
-            if (value instanceof ByteBuffer) {
-                binaryDocument.field(field.getKey(), ((ByteBuffer) value).array());
-            } else {
-                binaryDocument.field(field.getKey(), value);
+
+        String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
+        long tsStart = (long) doc.getFieldValue(Schema.START);
+        long tsEnd = (long) doc.getFieldValue(Schema.END);
+        byte[] data = ((ByteBuffer) doc.getFieldValue(Schema.DATA)).array();
+
+        MetricTimeSeries.Builder ts = new MetricTimeSeries.Builder(metric);
+
+        for (Map.Entry<String, Object> field : doc) {
+            if (MetricTSSchema.isUserDefined(field.getKey())) {
+                if (field.getValue() instanceof ByteBuffer) {
+                    ts.attribute(field.getKey(), ((ByteBuffer) field.getValue()).array());
+                } else {
+                    ts.attribute(field.getKey(), field.getValue());
+                }
+
             }
         }
 
-        TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
-        return converter.from(binaryDocument.build(), queryStart, queryEnd);
+        try {
+            SimpleProtocolBuffers.Points points = SimpleProtocolBuffers.Points.parseFrom(Compression.decompressToStream(data));
+            long lastOffset = 0;
+            long calculatedPointDate = tsStart;
+
+            for (SimpleProtocolBuffers.Point p : points.getPList()) {
+
+                long offset = p.getT();
+                if (offset != 0) {
+                    lastOffset = offset;
+                }
+                calculatedPointDate += lastOffset;
+
+                //only add the point if it is within the date
+                if (inQueryRange(queryStart, queryEnd, tsStart, tsEnd, calculatedPointDate)) {
+                    ts.point(calculatedPointDate, p.getV());
+                }
+            }
+
+        } catch (IOException e) {
+            LOGGER.error("Could not parse protocol buffers due to an io exception", e);
+        }
+
+        return ts.build();
+
+
+        // TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
+        // return converter.from(binaryDocument.build(), queryStart, queryEnd);
+    }
+
+    private static boolean inQueryRange(long from, long to, long tsStart, long tsEnd, long pointTS) {
+        //if to is left of the time series, we have no points to return
+        if (to < tsStart) {
+            return false;
+        }
+        //if from is greater  to, we have nothing to return
+        if (from > to) {
+            return false;
+        }
+        //if from is right of the time series we have nothing to return
+        if (from > tsEnd) {
+            return false;
+        }
+
+        //check if the last date is greater than to
+        return pointTS < to;
+
     }
 
     private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
@@ -214,7 +277,14 @@ public final class AnalysisDocumentBuilder {
         if (withData) {
             new KassiopeiaSimpleConverter().to(timeSeries).getFields().forEach(doc::addField);
         } else {
-            timeSeries.attributes().forEach(doc::addField);
+            timeSeries.attributes().forEach((key, value) -> {
+
+                if (value instanceof ByteBuffer) {
+                    doc.addField(key, ((ByteBuffer) value).array());
+                } else {
+                    doc.addField(key, value);
+                }
+            });
             //add the metric field as it is not stored in the attributes
             doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
             doc.addField(Schema.START, timeSeries.getStart());

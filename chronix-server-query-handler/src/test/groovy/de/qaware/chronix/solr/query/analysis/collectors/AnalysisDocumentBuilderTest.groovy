@@ -27,6 +27,8 @@ import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
 
+import java.nio.ByteBuffer
+
 /**
  * @author f.lautenschlager
  */
@@ -156,7 +158,7 @@ class AnalysisDocumentBuilderTest extends Specification {
     def SolrDocument asSolrDoc(BinaryTimeSeries binaryStorageDocument) {
         def doc = new SolrDocument()
         doc.addField("host", binaryStorageDocument.get("host"))
-        doc.addField("data", binaryStorageDocument.getPoints())
+        doc.addField("data", ByteBuffer.wrap(binaryStorageDocument.getPoints()))
         doc.addField("metric", binaryStorageDocument.get("metric"))
         doc.addField("start", binaryStorageDocument.getStart())
         doc.addField("end", binaryStorageDocument.getEnd())
