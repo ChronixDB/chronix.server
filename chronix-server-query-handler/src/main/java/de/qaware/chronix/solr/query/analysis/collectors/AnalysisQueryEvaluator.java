@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.query.analysis.collectors;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
+import de.qaware.chronix.solr.query.analysis.collectors.aggregation.*;
+import de.qaware.chronix.solr.query.analysis.collectors.analysis.FastDtw;
+import de.qaware.chronix.solr.query.analysis.collectors.analysis.Frequency;
+import de.qaware.chronix.solr.query.analysis.collectors.analysis.Outlier;
+import de.qaware.chronix.solr.query.analysis.collectors.analysis.Trend;
 
 import java.lang.reflect.MalformedParametersException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author f.lautenschlager
@@ -56,7 +59,40 @@ public final class AnalysisQueryEvaluator {
             arguments = extractAggregationParameter(aggregation);
             aggregation = aggregation.substring(0, aggregation.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
         }
-        return new ChronixAnalysis(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
+        return getImplementation(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
+    }
+
+    private static ChronixAnalysis getImplementation(AnalysisType type, String[] arguments) {
+
+        switch (type) {
+            case AVG:
+                return new Avg();
+            case MIN:
+                return new Min();
+            case MAX:
+                return new Max();
+            case DEV:
+                return new StdDev();
+            case P:
+                double p = Double.parseDouble(arguments[0]);
+                return new Percentile(p);
+            case TREND:
+                return new Trend();
+            case OUTLIER:
+                return new Outlier();
+            case FREQUENCY:
+                long windowSize = Long.parseLong(arguments[0]);
+                long windowThreshold = Long.parseLong(arguments[1]);
+                return new Frequency(windowSize, windowThreshold);
+            case FASTDTW:
+                String subquery = arguments[0];
+                int searchRadius = Integer.parseInt(arguments[1]);
+                double maxAvgWarpingCost = Double.parseDouble(arguments[2]);
+                return new FastDtw(subquery, searchRadius, maxAvgWarpingCost);
+
+            default:
+                throw new EnumConstantNotPresentException(AnalysisType.class, "Type: " + type + " not present.");
+        }
     }
 
     private static String[] extractAggregationParameter(String argumentString) {

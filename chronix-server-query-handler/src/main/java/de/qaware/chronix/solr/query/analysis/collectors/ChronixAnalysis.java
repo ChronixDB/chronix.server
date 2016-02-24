@@ -15,70 +15,40 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors;
 
+import de.qaware.chronix.timeseries.MetricTimeSeries;
+
 /***
  * A class holding the parsed analysis with its arguments
  *
  * @author f.lautenschlager
  */
-public final class ChronixAnalysis {
-
-    private final AnalysisType type;
-    private final String[] arguments;
-    private final int subqueryIndex;
-
+public interface ChronixAnalysis {
 
     /**
-     * Constructs a chronix analysis
+     * Executes the analysis
      *
-     * @param type      the analysis type
-     * @param arguments the arguments
+     * @param args the time series
+     * @return the value of the analysis
      */
-    public ChronixAnalysis(AnalysisType type, String[] arguments) {
-        this.type = type;
-        this.arguments = arguments.clone();
-        this.subqueryIndex = subqueryIndex(arguments);
-    }
-
-    private int subqueryIndex(String[] arguments) {
-        if (arguments == null || arguments.length == 0) {
-            return -1;
-        }
-
-        for (int i = 0; i < arguments.length; i++) {
-            String argument = arguments[i];
-            if (argument.matches("(.*)")) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
+    double execute(MetricTimeSeries... args);
 
     /**
-     * @return the analysis type
+     * @return the arguments
      */
-    public AnalysisType getType() {
-        return type;
-    }
+    Object[] getArguments();
 
     /**
-     * @return the generic arguments
+     * @return the type of the analysis
      */
-    public String[] getArguments() {
-        return arguments.clone();
-    }
+    AnalysisType getType();
 
     /**
-     * @return true if the analysis needs further sub query
+     * @return if the analysis needs a getSubquery
      */
-    public boolean hasSubquery() {
-        return subqueryIndex != -1;
-    }
+    boolean needSubquery();
 
     /**
-     * @return the subquery
+     * @return the getSubquery of the analysis
      */
-    public String getSubQuery() {
-        return arguments[subqueryIndex];
-    }
+    String getSubquery();
 }

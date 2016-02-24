@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
+ * Class to build documents using the given analysis or aggregation
+ *
  * @author f.lautenschlager
  */
 public final class AnalysisDocumentBuilder {
@@ -77,7 +79,7 @@ public final class AnalysisDocumentBuilder {
      */
     public static SolrDocument aggregate(ChronixAnalysis aggregation, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        double value = AggregationEvaluator.aggregate(timeSeries, aggregation);
+        double value = aggregation.execute(timeSeries);
         return buildDocument(timeSeries, value, aggregation, joinKey);
     }
 
@@ -92,7 +94,7 @@ public final class AnalysisDocumentBuilder {
      */
     public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        double value = HighLevelAnalysisEvaluator.analyze(timeSeries, analysis);
+        double value = analysis.execute(timeSeries);
         return buildDocument(timeSeries, value, analysis, joinKey);
     }
 
@@ -108,7 +110,7 @@ public final class AnalysisDocumentBuilder {
     public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs, List<SolrDocument> subDocs) {
         MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
         MetricTimeSeries subTimeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, subDocs);
-        double value = HighLevelAnalysisEvaluator.analyze(timeSeries, subTimeSeries, analysis);
+        double value = analysis.execute(timeSeries, subTimeSeries);
         return buildDocument(timeSeries, value, analysis, joinKey);
     }
 
@@ -152,33 +154,27 @@ public final class AnalysisDocumentBuilder {
     /**
      * Builds a solr document that is needed for the response from the aggregated time series
      *
-     * @param timeSeries  - the time series
-     * @param value       - the isAggregation value
-     * @param aggregation - the isAggregation
-     * @param key         - the join key
+     * @param timeSeries      - the time series
+     * @param value           - the isAggregation value
+     * @param chronixAnalysis - the isAggregation
+     * @param key             - the join key
      * @return a solr document holding the attributes and the aggregated value
      */
-    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, ChronixAnalysis aggregation, String key) {
+    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, ChronixAnalysis chronixAnalysis, String key) {
 
-        boolean highLevelAnalysis = AnalysisType.isHighLevel(aggregation.getType());
+        boolean highLevelAnalysis = AnalysisType.isHighLevel(chronixAnalysis.getType());
 
         //-1 on high level analyses marks that the time series is ok and should not returned
         if (highLevelAnalysis && value < 0) {
             return null;
         }
 
-        SolrDocument doc;
-
-        if (highLevelAnalysis) {
-            doc = convert(timeSeries, true);
-        } else {
-            doc = convert(timeSeries, false);
-            doc.put("value", value);
-        }
+        SolrDocument doc = convert(timeSeries, highLevelAnalysis);
 
         //Add some information about the analysis
-        doc.put("analysis", aggregation.getType().name());
-        doc.put("analysisParam", String.join(",", aggregation.getArguments()));
+        doc.put("analysis", chronixAnalysis.getType().name());
+        doc.put("analysisParam", chronixAnalysis.getArguments());
+        doc.put("value", value);
 
         //add the join key
         doc.put("joinKey", key);

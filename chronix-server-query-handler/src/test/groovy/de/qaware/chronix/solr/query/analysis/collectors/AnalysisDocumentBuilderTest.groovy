@@ -79,7 +79,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         document.getFieldValue("end") as long == 1495
         document.getFieldValue("value") as double == 99000.0d
         document.getFieldValue("analysis") as String == "MAX"
-        document.getFieldValue("analysisParam") as String == ""
+        document.getFieldValue("analysisParam") as Object[] == new Object[0]
         document.getFieldValue("joinKey") as String == "groovy-laptop"
         document.getFieldValue("data") == null
 
@@ -103,7 +103,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         document.getFieldValue("start") as long == 1
         document.getFieldValue("end") as long == 1495
         document.getFieldValue("analysis") as String == "TREND"
-        document.getFieldValue("analysisParam") as String == ""
+        document.getFieldValue("analysisParam") as Object[] == new Object[0]
         document.getFieldValue("joinKey") as String == "groovy-laptop"
         document.getFieldValue("data") != null
 
@@ -127,7 +127,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         document.getFieldValue("start") as long == 1
         document.getFieldValue("end") as long == 1495
         document.getFieldValue("analysis") as String == "FASTDTW"
-        document.getFieldValue("analysisParam") as String == "(metric:*),10,0.5"
+        (document.getFieldValue("analysisParam") as Object[]).length == 3
         document.getFieldValue("joinKey") as String == "groovy-laptop"
         document.getFieldValue("data") != null
 

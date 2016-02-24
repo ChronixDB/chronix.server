@@ -219,8 +219,8 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier"]
-        points << [1, 1, 1, 1, 1, 7000, 7000]
+        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier", "analysis=frequency:10,6", "analysis=fastdtw:(metric:*Load*),1,0.8"]
+        points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000]
 
     }
 

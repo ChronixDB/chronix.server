@@ -98,8 +98,8 @@ public class AnalysisHandler extends SearchHandler {
                 resultDocuments = aggregate(collectedDocs, analysis, queryStart, queryEnd);
             } else if (AnalysisType.isHighLevel(analysis.getType())) {
                 //Check if the analysis needs a sub query
-                if (analysis.hasSubquery()) {
-                    Map<String, List<SolrDocument>> subqueryDocuments = collectDocuments(analysis.getSubQuery(), req, key);
+                if (analysis.needSubquery()) {
+                    Map<String, List<SolrDocument>> subqueryDocuments = collectDocuments(analysis.getSubquery(), req, key);
                     resultDocuments = analyze(collectedDocs, subqueryDocuments, analysis, queryStart, queryEnd);
                 } else {
                     resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
@@ -179,6 +179,8 @@ public class AnalysisHandler extends SearchHandler {
      */
     private List<SolrDocument> aggregate(Map<String, List<SolrDocument>> collectedDocs, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
+
+
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             SolrDocument doc = AnalysisDocumentBuilder.aggregate(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue());
             if (doc != null) {
