@@ -14,8 +14,8 @@
  *    limitations under the License.
  */
 package de.qaware.chronix.solr.response
+
 import de.qaware.chronix.Schema
-import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.converter.common.MetricTSSchema
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -27,6 +27,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import java.time.Instant
+
 /**
  * Unit test for the Chronix transformer
  * @author f.lautnschlager
@@ -85,8 +86,7 @@ class ChronixTransformerTest extends Specification {
                 .point(start.plusSeconds(3).toEpochMilli(), 4)
                 .build()
 
-        def bytes = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator()).toByteArray()
-        def compressed = Compression.compress(bytes);
-        new StoredField(Schema.DATA, compressed);
+        def bytes = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator())
+        new StoredField(Schema.DATA, bytes);
     }
 }

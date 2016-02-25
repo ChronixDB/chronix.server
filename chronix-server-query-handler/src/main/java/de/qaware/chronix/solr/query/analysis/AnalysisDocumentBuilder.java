@@ -17,9 +17,8 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
-import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.common.MetricTSSchema;
-import de.qaware.chronix.converter.serializer.gen.SimpleProtocolBuffers;
+import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -30,7 +29,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -219,54 +217,10 @@ public final class AnalysisDocumentBuilder {
             }
         }
 
-        try {
-            SimpleProtocolBuffers.Points points = SimpleProtocolBuffers.Points.parseFrom(Compression.decompressToStream(data));
-            long lastOffset = 0;
-            long calculatedPointDate = tsStart;
-
-            for (SimpleProtocolBuffers.Point p : points.getPList()) {
-
-                long offset = p.getT();
-                if (offset != 0) {
-                    lastOffset = offset;
-                }
-                calculatedPointDate += lastOffset;
-
-                //only add the point if it is within the date
-                if (inQueryRange(queryStart, queryEnd, tsStart, tsEnd, calculatedPointDate)) {
-                    ts.point(calculatedPointDate, p.getV());
-                }
-            }
-
-        } catch (IOException e) {
-            LOGGER.error("Could not parse protocol buffers due to an io exception", e);
-        }
-
+        ProtoBufKassiopeiaSimpleSerializer.from(data, tsStart, tsEnd, queryStart, queryEnd, ts);
         return ts.build();
-
-
-        // TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
-        // return converter.from(binaryDocument.build(), queryStart, queryEnd);
     }
 
-    private static boolean inQueryRange(long from, long to, long tsStart, long tsEnd, long pointTS) {
-        //if to is left of the time series, we have no points to return
-        if (to < tsStart) {
-            return false;
-        }
-        //if from is greater  to, we have nothing to return
-        if (from > to) {
-            return false;
-        }
-        //if from is right of the time series we have nothing to return
-        if (from > tsEnd) {
-            return false;
-        }
-
-        //check if the last date is greater than to
-        return pointTS < to;
-
-    }
 
     private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
 

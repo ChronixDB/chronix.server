@@ -8,9 +8,9 @@ dependencies {
     compile "org.apache.solr:solr-core:5.4.0"
 
     compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.1'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.3'
+    compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.3'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.3'
 }
 
 

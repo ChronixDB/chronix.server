@@ -16,10 +16,9 @@
 package de.qaware.chronix.solr.response;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
-import de.qaware.chronix.timeseries.dt.Pair;
+import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.solr.common.SolrDocument;
@@ -30,10 +29,8 @@ import org.apache.solr.response.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -67,7 +64,7 @@ public class ChronixTransformer extends TransformerFactory {
          * @param flName the name of the field
          */
         public DataFieldSerializer(String flName) {
-            LOGGER.debug("Constructing chronix transformer for field {}", flName);
+            LOGGER.debug("Constructing Chronix transformer for field {}", flName);
             this.name = flName;
         }
 
@@ -91,16 +88,16 @@ public class ChronixTransformer extends TransformerFactory {
             if (doc.containsKey(Schema.DATA)) {
                 LOGGER.debug("Transforming data field to json. Document {}", doc);
                 //we only have to decompress the field
-                Iterator<Pair> points = getRawPoints(doc);
+                MetricTimeSeries timeSeries = getRawPoints(doc);
 
                 List<Long> timestamps = new ArrayList<>(5000);
                 List<Double> values = new ArrayList<>(5000);
 
-                while (points.hasNext()) {
-                    Pair point = points.next();
-                    timestamps.add(point.getTimestamp());
-                    values.add(point.getValue());
-                }
+                timeSeries.sort();
+                timeSeries.points().forEachOrdered(p -> {
+                    timestamps.add(p.getTimestamp());
+                    values.add(p.getValue());
+                });
 
                 JsonKassiopeiaSimpleSerializer jsonSerializer = new JsonKassiopeiaSimpleSerializer();
                 byte[] json = jsonSerializer.toJson(timestamps.stream(), values.stream());
@@ -115,16 +112,16 @@ public class ChronixTransformer extends TransformerFactory {
          * @param doc the solr document representing the time series record
          * @return an iterator with pairs of timestamp and value
          */
-        private Iterator<Pair> getRawPoints(SolrDocument doc) {
+        private MetricTimeSeries getRawPoints(SolrDocument doc) {
             StoredField data = (StoredField) doc.getFieldValue(Schema.DATA);
             doc.remove(Schema.DATA);
-
-            InputStream decompressed = Compression.decompressToStream(data.binaryValue().bytes);
 
             long tsStart = getLong(doc.getFieldValue(Schema.START));
             long tsEnd = getLong(doc.getFieldValue(Schema.END));
 
-            return ProtoBufKassiopeiaSimpleSerializer.from(decompressed, tsStart, tsEnd);
+            MetricTimeSeries.Builder ts = new MetricTimeSeries.Builder("");
+            ProtoBufKassiopeiaSimpleSerializer.from(data.binaryValue().bytes, tsStart, tsEnd, ts);
+            return ts.build();
         }
 
         /**
