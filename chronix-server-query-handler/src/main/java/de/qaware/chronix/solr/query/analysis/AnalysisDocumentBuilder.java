@@ -26,8 +26,6 @@ import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -42,8 +40,6 @@ import java.util.function.Function;
  * @author f.lautenschlager
  */
 public final class AnalysisDocumentBuilder {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisDocumentBuilder.class);
 
     private AnalysisDocumentBuilder() {
         //avoid instances
