@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisQueryEvaluator;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
