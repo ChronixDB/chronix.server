@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.collectors
 
+import de.qaware.chronix.solr.query.analysis.AnalysisType
 import spock.lang.Specification
 
 /**

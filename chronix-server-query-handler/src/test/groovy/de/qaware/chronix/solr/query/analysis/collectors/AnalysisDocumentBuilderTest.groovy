@@ -18,6 +18,8 @@ package de.qaware.chronix.solr.query.analysis.collectors
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
+import de.qaware.chronix.solr.query.analysis.AnalysisDocumentBuilder
+import de.qaware.chronix.solr.query.analysis.AnalysisQueryEvaluator
 import de.qaware.chronix.solr.query.analysis.JoinFunctionEvaluator
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import de.qaware.chronix.timeseries.dt.DoubleList
