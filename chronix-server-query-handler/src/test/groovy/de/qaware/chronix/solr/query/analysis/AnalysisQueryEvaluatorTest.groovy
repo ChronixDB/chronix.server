@@ -13,12 +13,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis
 
-import de.qaware.chronix.solr.query.analysis.AnalysisType
-import de.qaware.chronix.solr.query.analysis.ChronixAnalysis
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis
 import spock.lang.Specification
-
 /**
  * @author f.lautenschlager
  */

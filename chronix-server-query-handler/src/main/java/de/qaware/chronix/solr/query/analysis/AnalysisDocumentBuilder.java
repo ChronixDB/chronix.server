@@ -20,6 +20,8 @@ import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.gen.SimpleProtocolBuffers;
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;

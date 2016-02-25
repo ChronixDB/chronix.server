@@ -20,8 +20,6 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.solr.query.analysis.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 
