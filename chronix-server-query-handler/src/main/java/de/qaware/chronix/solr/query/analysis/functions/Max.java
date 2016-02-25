@@ -43,7 +43,7 @@ public final class Max implements ChronixAnalysis {
         }
 
         for (int i = 0; i < timeSeries.size(); i++) {
-            double next = timeSeries.get(i);
+            double next = timeSeries.getValue(i);
             if (max < next) {
                 max = next;
             }

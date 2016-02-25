@@ -82,7 +82,7 @@ class ChronixClientTestIT extends Specification {
         @Override
         MetricTimeSeries apply(MetricTimeSeries t1, MetricTimeSeries t2) {
             MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
-                    .data(concat(t1.getTimestamps(), t2.getTimestamps()),
+                    .points(concat(t1.getTimestamps(), t2.getTimestamps()),
                     concat(t1.getValues(), t2.getValues()))
                     .attributes(t1.attributes());
             return reduced.build();
@@ -148,9 +148,9 @@ class ChronixClientTestIT extends Specification {
                                     .attribute("group", attributes[2])
 
                             //Add some generic fields an values
-                                    .attribute("myIntField", 5)
+                                    .attribute("myIntField", 5I)
                                     .attribute("myLongField", 8L)
-                                    .attribute("myDoubleField", 5.5)
+                                    .attribute("myDoubleField", 5.5D)
                                     .attribute("myByteField", "String as byte".getBytes("UTF-8"))
                                     .attribute("myStringList", listStringField)
                                     .attribute("myIntList", listIntField)

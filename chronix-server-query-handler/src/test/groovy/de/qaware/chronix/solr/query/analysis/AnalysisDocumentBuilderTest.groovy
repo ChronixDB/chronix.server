@@ -145,7 +145,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         10.times {
             MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")
                     .attribute("host", "laptop")
-                    .data(times(it + 1), values(it + 1))
+                    .points(times(it + 1), values(it + 1))
                     .build();
             def doc = converter.to(ts)
             result.add(asSolrDoc(doc))

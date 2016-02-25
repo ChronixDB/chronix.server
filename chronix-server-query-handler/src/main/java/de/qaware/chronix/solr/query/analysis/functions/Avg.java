@@ -38,7 +38,7 @@ public final class Avg implements ChronixAnalysis {
 
         double current = 0;
         for (int i = 0; i < timeSeries.size(); i++) {
-            current += timeSeries.get(i);
+            current += timeSeries.getValue(i);
         }
 
         return current / timeSeries.size();

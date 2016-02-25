@@ -110,14 +110,14 @@ Hence there is no need to build a custom modified Solr.
 We just plug the Chronix server parts into a standard Solr release.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
-The latest release of Chronix server is based on Apache Solr version 3.5.1.
+The latest release of Chronix server is based on Apache Solr version 5.5.0
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
 It splits a request based on the filter queries up in range or analysis queries:
 
 - fq=(ag | analysis) (for aggregations or analyses)
-- fg='' (empty, for range queries)
+- fq='' (empty, for range queries)
 
 But before the Chronix Query Handler delegates a request, it modifies the user query string.
 This is necessary as Chronix stores records and hence a query asking for a specific time range has to be modified.
@@ -157,7 +157,7 @@ A custom query handler answers an analysis query.
 Chronix determines if a query is an analysis query by using the filter query mechanism of Apache Solr.
 There are two types of analysis queries: Aggregations and High-level Analyses.
 
-- fq=ag=* marks an aggregation
+- fq=ag marks an aggregation
 - fq=analysis marks an high-level analysis
 
 Currently the following analyses are available:
@@ -169,7 +169,8 @@ Currently the following analyses are available:
 - Percentiles (ag=p:[0.1,...,1.0])
 - A linear trend detection (analysis=trend)
 - Outlier detection (analysis=outlier)
-- Frequency detection (analysis=frequency:10:6)
+- Frequency detection (analysis=frequency:10,6)
+- Time series similarity search (analysis=fastdtw(metric:\*Load\*),1,0.8)
  
 Only one analysis is allowed per query.
 If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
@@ -183,7 +184,8 @@ q=metric:*load* // Get all time series that metric name matches *load*
 + fq=ag=max //Get the maximum of 
 + fq=ag=p:0.25 //To get the 25% percentile of the time series data
 + fq=analysis=trend //Returns all time series that have a positive trend
-+ fq=frequency=10:6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
++ fq=analysis=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
++ fq=analysis=fastdtw(metric:\*load\*),1,0.8 //Uses fast dynamic time warping to search for similar time series
 ```
 
 #### Join Time Series Records
@@ -263,10 +265,10 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.1.1'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.1'
-   compile 'de.qaware.chronix:chronix-server-retention:0.1.1'
-   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.1'
+   compile 'de.qaware.chronix:chronix-server-client:0.1.2'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.2'
+   compile 'de.qaware.chronix:chronix-server-retention:0.1.2'
+   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.2'
 }
 ```
 
@@ -276,7 +278,7 @@ your improvements, to the Chronix projects. All you have to do is to fork this r
 improve the code and issue a pull request.
 
 ## Building Chronix from Scratch
-Everything should run out of the box. The only three things that must be available: 
+Everything should run out of the box. The only three things that must be available:
 - Git
 - JDK 1.8
 - Gradle

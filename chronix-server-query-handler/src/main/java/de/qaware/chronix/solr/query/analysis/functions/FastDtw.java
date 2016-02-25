@@ -62,7 +62,12 @@ public final class FastDtw implements ChronixAnalysis {
         return -1;
     }
 
-
+    /**
+     * Builds a multivariate time series of the given univariate time series
+     *
+     * @param timeSeries the metric time series
+     * @return a multivariate time series for the fast dtw analysis
+     */
     private MultivariateTimeSeries buildMultiVariateTimeSeries(MetricTimeSeries timeSeries) {
         MultivariateTimeSeries multivariateTimeSeries = new MultivariateTimeSeries(1);
         timeSeries.sort();

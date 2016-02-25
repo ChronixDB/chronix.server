@@ -147,7 +147,7 @@ public final class AnalysisDocumentBuilder {
         }
 
         return new MetricTimeSeries.Builder(metric)
-                .data(timestamps, values)
+                .points(timestamps, values)
                 .attributes(attributes)
                 .build();
     }

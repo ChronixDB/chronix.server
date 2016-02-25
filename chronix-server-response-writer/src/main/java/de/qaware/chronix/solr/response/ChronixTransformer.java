@@ -30,8 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Data field transformer to decompress data.
@@ -89,18 +87,8 @@ public class ChronixTransformer extends TransformerFactory {
                 LOGGER.debug("Transforming data field to json. Document {}", doc);
                 //we only have to decompress the field
                 MetricTimeSeries timeSeries = getRawPoints(doc);
-
-                List<Long> timestamps = new ArrayList<>(5000);
-                List<Double> values = new ArrayList<>(5000);
-
                 timeSeries.sort();
-                timeSeries.points().forEachOrdered(p -> {
-                    timestamps.add(p.getTimestamp());
-                    values.add(p.getValue());
-                });
-
-                JsonKassiopeiaSimpleSerializer jsonSerializer = new JsonKassiopeiaSimpleSerializer();
-                byte[] json = jsonSerializer.toJson(timestamps.stream(), values.stream());
+                byte[] json = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
 
                 doc.setField(DATA_AS_JSON, new String(json, "UTF-8"));
             }
