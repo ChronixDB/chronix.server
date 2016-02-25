@@ -27,33 +27,28 @@ public final class Max implements ChronixAnalysis {
     /**
      * Calculates the maximum value of the first time series.
      *
-     * @param args
+     * @param args the time series
      * @return the maximum or 0 if the list is empty
      */
     @Override
     public double execute(MetricTimeSeries... args) {
-
         if (args.length < 1) {
             throw new IllegalArgumentException("Max aggregation needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
-
-        double current = 0;
-
+        double max = 0;
         if (timeSeries.size() <= 0) {
-            return current;
+            return max;
         }
 
         for (int i = 0; i < timeSeries.size(); i++) {
-
             double next = timeSeries.get(i);
-
-            if (current < next) {
-                current = next;
+            if (max < next) {
+                max = next;
             }
         }
-        return current;
+        return max;
     }
 
     @Override

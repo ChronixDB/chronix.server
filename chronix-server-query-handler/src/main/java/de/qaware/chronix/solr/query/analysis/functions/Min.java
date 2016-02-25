@@ -32,27 +32,23 @@ public class Min implements ChronixAnalysis {
      */
     @Override
     public double execute(MetricTimeSeries... args) {
-
         if (args.length < 1) {
             throw new IllegalArgumentException("Min aggregation needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
-
-        double current = 0;
-
+        double min = 0;
         if (timeSeries.size() <= 0) {
-            return current;
+            return min;
         }
 
         for (int i = 0; i < timeSeries.size(); i++) {
             double next = timeSeries.get(i);
-
-            if (current > next) {
-                current = next;
+            if (min > next) {
+                min = next;
             }
         }
-        return current;
+        return min;
     }
 
     @Override

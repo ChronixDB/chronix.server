@@ -30,7 +30,6 @@ public final class Avg implements ChronixAnalysis {
      */
     @Override
     public double execute(MetricTimeSeries... args) {
-
         if (args.length < 1) {
             throw new IllegalArgumentException("Max aggregation needs at least one time series");
         }
@@ -38,13 +37,11 @@ public final class Avg implements ChronixAnalysis {
         MetricTimeSeries timeSeries = args[0];
 
         double current = 0;
-        double count = 0;
         for (int i = 0; i < timeSeries.size(); i++) {
             current += timeSeries.get(i);
-            count++;
         }
 
-        return current / count;
+        return current / timeSeries.size();
     }
 
     @Override
