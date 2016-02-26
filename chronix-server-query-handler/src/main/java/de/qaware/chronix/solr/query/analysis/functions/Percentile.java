@@ -54,8 +54,8 @@ public final class Percentile implements ChronixAnalysis {
     }
 
     @Override
-    public Object[] getArguments() {
-        return new Object[]{percentile};
+    public String[] getArguments() {
+        return new String[]{"percentile=" + percentile};
     }
 
     @Override

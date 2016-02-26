@@ -39,6 +39,27 @@ class OutlierTest extends Specification {
         result == 1.0
     }
 
+    def "test execute with a time series that has no outlier"() {
+        given:
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Out");
+        10.times {
+            timeSeries.point(it, 4711)
+        }
+        MetricTimeSeries ts = timeSeries.build()
+
+        when:
+        def result = new Outlier().execute(ts)
+        then:
+        result == -1.0
+    }
+
+    def "test execute with empty time series"() {
+        when:
+        def result = new Outlier().execute(new MetricTimeSeries.Builder("Out").build())
+        then:
+        result == -1.0
+    }
+
     def "test exception behaviour"() {
         when:
         new Outlier().execute(new MetricTimeSeries[0])
@@ -56,4 +77,10 @@ class OutlierTest extends Specification {
         expect:
         new Outlier().getArguments().length == 0
     }
+
+    def "test type"() {
+        expect:
+        new Outlier().getType() == AnalysisType.OUTLIER
+    }
+
 }

@@ -64,39 +64,14 @@ class AnalysisDocumentBuilderTest extends Specification {
         collectedDocs.get("groovy-laptop").size() == 2
     }
 
-
-    def "test aggregate"() {
-        given:
-        def docs = fillDocs()
-        def aggregation = AnalysisQueryEvaluator.buildAnalysis(["ag=max"] as String[])
-
-        when:
-        def document = AnalysisDocumentBuilder.aggregate(aggregation, 0l, Long.MAX_VALUE, "groovy-laptop", docs);
-
-        then:
-        document.getFieldValue("host") as String == "laptop"
-        document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 1495
-        document.getFieldValue("value") as double == 99000.0d
-        document.getFieldValue("analysis") as String == "MAX"
-        document.getFieldValue("analysisParam") as Object[] == new Object[0]
-        document.getFieldValue("joinKey") as String == "groovy-laptop"
-        document.getFieldValue("data") == null
-
-        document.getFieldValue("someInt") as int == 1i
-        document.getFieldValue("someFloat") as float == 1.1f
-        document.getFieldValue("someDouble") as double == 2.0d
-
-    }
-
-    def "test analyze"() {
+    def "test analyze / aggregate"() {
         given:
         def docs = fillDocs()
         def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
 
         when:
-        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, "groovy-laptop", docs);
+        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
+        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
 
         then:
         document.getFieldValue("host") as String == "laptop"
@@ -120,7 +95,9 @@ class AnalysisDocumentBuilderTest extends Specification {
         def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=fastdtw:(metric:*),10,0.5"] as String[])
 
         when:
-        def document = AnalysisDocumentBuilder.analyze(analysis, 0l, Long.MAX_VALUE, "groovy-laptop", docs, docs2);
+        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
+        def ts2 = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs2);
+        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts, ts2);
 
         then:
         document.getFieldValue("host") as String == "laptop"

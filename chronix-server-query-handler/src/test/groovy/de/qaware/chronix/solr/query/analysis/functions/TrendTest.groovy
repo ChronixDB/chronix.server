@@ -56,4 +56,9 @@ class TrendTest extends Specification {
         expect:
         new Trend().getArguments().length == 0
     }
+
+    def "test type"() {
+        expect:
+        new Trend().getType() == AnalysisType.TREND
+    }
 }

@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The frequency detection analysis
+ * The frequency detection analysis.
+ * Checks if the occurrence within a defined window (in minutes) is above a defined threshold.
  *
  * @author f.lautenschlager
  */
@@ -36,7 +37,7 @@ public final class Frequency implements ChronixAnalysis {
     /**
      * Constructs a frequency detection
      *
-     * @param windowSize      the window size
+     * @param windowSize      the window size in minutes
      * @param windowThreshold the threshold per window
      */
     public Frequency(long windowSize, long windowThreshold) {
@@ -82,6 +83,7 @@ public final class Frequency implements ChronixAnalysis {
                 currentWindow.clear();
             }
         }
+        windowCount.add(currentWindow.size());
 
         //check deltas
         for (int i = 1; i < windowCount.size(); i++) {
@@ -91,7 +93,7 @@ public final class Frequency implements ChronixAnalysis {
 
             int result = current - former;
             if (result >= windowThreshold) {
-                //add the time series as anomalous
+                //add the time series as there are more points per window than the threshold
                 return 1;
             }
         }
@@ -99,8 +101,8 @@ public final class Frequency implements ChronixAnalysis {
     }
 
     @Override
-    public Object[] getArguments() {
-        return new Object[]{windowSize, windowThreshold};
+    public String[] getArguments() {
+        return new String[]{"window size=" + windowSize, "window threshold=" + windowThreshold};
     }
 
     @Override

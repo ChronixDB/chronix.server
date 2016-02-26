@@ -35,7 +35,7 @@ public interface ChronixAnalysis {
     /**
      * @return the arguments
      */
-    Object[] getArguments();
+    String[] getArguments();
 
     /**
      * @return the type of the analysis

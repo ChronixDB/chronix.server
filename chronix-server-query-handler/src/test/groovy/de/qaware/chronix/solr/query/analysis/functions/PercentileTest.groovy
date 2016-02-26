@@ -57,4 +57,9 @@ class PercentileTest extends Specification {
         new Percentile(0.5).getArguments().size() == 1
     }
 
+    def "test type"() {
+        expect:
+        new Percentile(0.5).getType() == AnalysisType.P
+    }
+
 }

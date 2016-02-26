@@ -27,7 +27,7 @@ class MinTest extends Specification {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it, it * -10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
@@ -35,6 +35,13 @@ class MinTest extends Specification {
 
         when:
         def result = new Min().execute(ts)
+        then:
+        result == -90.0
+    }
+
+    def "test empty time series"() {
+        when:
+        def result = new Min().execute(new MetricTimeSeries.Builder("Min").build())
         then:
         result == 0.0
     }
@@ -55,5 +62,10 @@ class MinTest extends Specification {
     def "test arguments"() {
         expect:
         new Min().getArguments().length == 0
+    }
+
+    def "test type"() {
+        expect:
+        new Min().getType() == AnalysisType.MIN
     }
 }

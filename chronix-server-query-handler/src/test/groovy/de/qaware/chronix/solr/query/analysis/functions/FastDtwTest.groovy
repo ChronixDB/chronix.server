@@ -27,7 +27,7 @@ class FastDtwTest extends Specification {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it, it + 10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts1 = timeSeries.build()
@@ -38,6 +38,25 @@ class FastDtwTest extends Specification {
         def result = new FastDtw("", 5, 20).execute(ts1, ts2)
         then:
         result == 0
+    }
+
+    def "test execute for with -1 as result"() {
+        given:
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1");
+        MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2");
+        10.times {
+            timeSeries.point(it, it * 10)
+            secondTimeSeries.point(it, it * -10)
+        }
+        def ts1 = timeSeries.build()
+        def ts2 = secondTimeSeries.build()
+
+
+        when:
+        def result = new FastDtw("", 5, 0).execute(ts1, ts2)
+        then:
+        result == -1.0
+
     }
 
     def "test exception behaviour"() {
@@ -57,5 +76,10 @@ class FastDtwTest extends Specification {
     def "test arguments"() {
         expect:
         new Outlier().getArguments().length == 0
+    }
+
+    def "test type"() {
+        expect:
+        new FastDtw("", 5, 20).getType() == AnalysisType.FASTDTW
     }
 }

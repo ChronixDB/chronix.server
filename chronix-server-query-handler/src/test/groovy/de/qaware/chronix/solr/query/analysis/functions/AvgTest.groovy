@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis.functions
 
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
  * Unit test for the average aggregation
  * @author f.lautenschlager
@@ -55,5 +56,10 @@ class AvgTest extends Specification {
     def "test arguments"() {
         expect:
         new Avg().getArguments().length == 0
+    }
+
+    def "test type"() {
+        expect:
+        new Avg().getType() == AnalysisType.AVG
     }
 }

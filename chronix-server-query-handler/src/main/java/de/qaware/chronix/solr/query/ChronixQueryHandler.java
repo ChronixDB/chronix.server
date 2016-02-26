@@ -138,7 +138,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
      */
     private String minRequiredFields(String fl) {
         //As a result Solr will return everything
-        if (fl == null) {
+        if (fl == null || fl.isEmpty()) {
             return null;
         }
         return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);

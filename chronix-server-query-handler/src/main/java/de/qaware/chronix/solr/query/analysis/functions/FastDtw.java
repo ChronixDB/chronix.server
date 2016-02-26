@@ -78,8 +78,10 @@ public final class FastDtw implements ChronixAnalysis {
     }
 
     @Override
-    public Object[] getArguments() {
-        return new Object[]{searchRadius, maxNormalizedWarpingCost, distanceFunction};
+    public String[] getArguments() {
+        return new String[]{"search radius=" + searchRadius,
+                "max warping cost=" + maxNormalizedWarpingCost,
+                "distance function=" + DistanceFunctionEnum.EUCLIDEAN.name()};
     }
 
     @Override

@@ -28,6 +28,7 @@ public class Outlier implements ChronixAnalysis {
 
     /**
      * Detects outliers using the default box plot implementation.
+     * An outlier every value that is above (q3-q1)*1.5*q3 where qN is the nth percentile
      *
      * @param args the time series
      * @return 1 if there are outliers, otherwise -1
@@ -39,6 +40,11 @@ public class Outlier implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
+
+        if (timeSeries.isEmpty()) {
+            return -1;
+        }
+
         DoubleList points = timeSeries.getValues();
 
         double q1 = Percentile.evaluate(points, .25);
@@ -46,7 +52,7 @@ public class Outlier implements ChronixAnalysis {
         double threshold = (q3 - q1) * 1.5 + q3;
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
-            if (point >= threshold) {
+            if (point > threshold) {
                 return 1;
             }
         }
@@ -54,8 +60,8 @@ public class Outlier implements ChronixAnalysis {
     }
 
     @Override
-    public Object[] getArguments() {
-        return new Object[0];
+    public String[] getArguments() {
+        return new String[0];
     }
 
     @Override

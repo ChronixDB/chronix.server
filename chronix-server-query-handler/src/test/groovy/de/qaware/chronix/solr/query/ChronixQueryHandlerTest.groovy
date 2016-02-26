@@ -108,6 +108,8 @@ class ChronixQueryHandlerTest extends Specification {
 
         where:
         modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW"),
+                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", null),
+                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", ""),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", null),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", ""),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric")]
@@ -147,6 +149,20 @@ class ChronixQueryHandlerTest extends Specification {
 
     }
 
+    def "min required fields"() {
+        given:
+        def chronixQueryHandler = new ChronixQueryHandler()
+
+        when:
+        def fields = chronixQueryHandler.minRequiredFields(fl)
+
+        then:
+        fields == expected
+
+        where:
+        fl << [null, "", "myField"]
+        expected << [null, null, "myField" + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, ChronixQueryHandler.REQUIRED_FIELDS)]
+    }
 
     def "test exception cases"() {
         given:
@@ -181,5 +197,6 @@ class ChronixQueryHandlerTest extends Specification {
 
         return request
     }
+
 
 }

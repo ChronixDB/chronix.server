@@ -56,4 +56,10 @@ class StdDevTest extends Specification {
         expect:
         new StdDev().getArguments().length == 0
     }
+
+    def "test type"() {
+        expect:
+        new StdDev().getType() == AnalysisType.DEV
+    }
+
 }

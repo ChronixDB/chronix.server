@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
@@ -93,7 +94,7 @@ public class AnalysisHandler extends SearchHandler {
             //Check if have an aggregation or a high level analysis
             if (AnalysisType.isAggregation(analysis.getType())) {
                 //We have an analysis query
-                resultDocuments = aggregate(collectedDocs, analysis, queryStart, queryEnd);
+                resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
             } else if (AnalysisType.isHighLevel(analysis.getType())) {
                 //Check if the analysis needs a sub query
                 if (analysis.needSubquery()) {
@@ -167,29 +168,6 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     /**
-     * Analyzes the collected documents using the given analysis
-     *
-     * @param collectedDocs the collected solr documents (time series records)
-     * @param analysis      the analysis that should be applied
-     * @param queryStart    the start from the given query
-     * @param queryEnd      the end from the given query
-     * @return a list with analyzed solr documents
-     */
-    private List<SolrDocument> aggregate(Map<String, List<SolrDocument>> collectedDocs, ChronixAnalysis analysis, long queryStart, long queryEnd) {
-        List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-
-
-        collectedDocs.entrySet().parallelStream().forEach(docs -> {
-            SolrDocument doc = AnalysisDocumentBuilder.aggregate(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue());
-            if (doc != null) {
-                solrDocuments.add(doc);
-            }
-        });
-        return solrDocuments;
-    }
-
-
-    /**
      * Analyzes one set of time series
      *
      * @param collectedDocs the collected solr documents (time series records)
@@ -202,7 +180,8 @@ public class AnalysisHandler extends SearchHandler {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
-            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue());
+            MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, docs.getKey(), timeSeries);
             if (doc != null) {
                 solrDocuments.add(doc);
             }
@@ -223,15 +202,19 @@ public class AnalysisHandler extends SearchHandler {
      */
     private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map<String, List<SolrDocument>> subQueryDocuments, ChronixAnalysis analysis, long queryStart, long queryEnd) {
         List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-        collectedDocs.entrySet().forEach(docs -> subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-            //Only if have different time series
-            if (!docs.getKey().equals(subDocs.getKey())) {
-                SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, queryStart, queryEnd, docs.getKey(), docs.getValue(), subDocs.getValue());
-                if (doc != null) {
-                    solrDocuments.add(doc);
+        collectedDocs.entrySet().parallelStream().forEach(docs -> {
+            MetricTimeSeries ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+            subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
+                //Only if have a different time series
+                if (!docs.getKey().equals(subDocs.getKey())) {
+                    MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+                    SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, subDocs.getKey(), ts, subTimeSeries);
+                    if (doc != null) {
+                        solrDocuments.add(doc);
+                    }
                 }
-            }
-        }));
+            });
+        });
         return solrDocuments;
     }
 

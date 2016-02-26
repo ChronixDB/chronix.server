@@ -70,31 +70,13 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Aggregates the given list with time series records
-     *
-     * @param aggregation the aggregation including the arguments
-     * @param queryStart  the user query start
-     * @param queryEnd    the user query end
-     * @param docs        the lucene documents that belong to the requested time series
-     * @return the aggregated solr document
-     */
-    public static SolrDocument aggregate(ChronixAnalysis aggregation, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
-        MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        double value = aggregation.execute(timeSeries);
-        return buildDocument(timeSeries, value, aggregation, joinKey);
-    }
-
-    /**
      * Analyzes the given chunks of time series that match the given join key
      *
      * @param analysis   the analysis including the arguments
-     * @param queryStart the user query start
-     * @param queryEnd   the user query end
-     * @param docs       the lucene documents that belong to the requested time series
+     * @param timeSeries the time series that is analyzed
      * @return the analyzed solr document
      */
-    public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs) {
-        MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
+    public static SolrDocument analyze(ChronixAnalysis analysis, String joinKey, MetricTimeSeries timeSeries) {
         double value = analysis.execute(timeSeries);
         return buildDocument(timeSeries, value, analysis, joinKey);
     }
@@ -102,17 +84,14 @@ public final class AnalysisDocumentBuilder {
     /**
      * Analyzes the given chunk sets of the two time series
      *
-     * @param analysis   the analysis including the arguments
-     * @param queryStart the user query start
-     * @param queryEnd   the user query end
-     * @param docs       the lucene documents that belong to the requested time series
+     * @param analysis      the analysis including the arguments
+     * @param timeSeries    the time series from the first query
+     * @param subTimeSeries one time series from the sub query (represented in the result)
      * @return the analyzed solr document
      */
-    public static SolrDocument analyze(ChronixAnalysis analysis, long queryStart, long queryEnd, String joinKey, List<SolrDocument> docs, List<SolrDocument> subDocs) {
-        MetricTimeSeries timeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, docs);
-        MetricTimeSeries subTimeSeries = collectDocumentToTimeSeries(queryStart, queryEnd, subDocs);
+    public static SolrDocument analyze(ChronixAnalysis analysis, String joinKey, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
         double value = analysis.execute(timeSeries, subTimeSeries);
-        return buildDocument(timeSeries, value, analysis, joinKey);
+        return buildDocument(subTimeSeries, value, analysis, joinKey);
     }
 
     /**
@@ -123,7 +102,7 @@ public final class AnalysisDocumentBuilder {
      * @param documents  - the lucene documents
      * @return a metric time series that holds all the points
      */
-    private static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
+    public static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
         //Collect all document of a time series
 
         LongList timestamps = new LongList();
@@ -225,14 +204,7 @@ public final class AnalysisDocumentBuilder {
         if (withData) {
             new KassiopeiaSimpleConverter().to(timeSeries).getFields().forEach(doc::addField);
         } else {
-            timeSeries.attributes().forEach((key, value) -> {
-
-                if (value instanceof ByteBuffer) {
-                    doc.addField(key, ((ByteBuffer) value).array());
-                } else {
-                    doc.addField(key, value);
-                }
-            });
+            timeSeries.attributes().forEach(doc::addField);
             //add the metric field as it is not stored in the attributes
             doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
             doc.addField(Schema.START, timeSeries.getStart());

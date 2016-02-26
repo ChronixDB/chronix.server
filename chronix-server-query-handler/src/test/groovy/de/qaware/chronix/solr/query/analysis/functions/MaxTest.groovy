@@ -39,6 +39,14 @@ class MaxTest extends Specification {
         result == 9999.0
     }
 
+    def "test empty time series"() {
+        when:
+        def result = new Max().execute(new MetricTimeSeries.Builder("Max").build())
+        then:
+        result == 0.0
+    }
+
+
     def "test exception behaviour"() {
         when:
         new Max().execute(new MetricTimeSeries[0])
@@ -55,5 +63,10 @@ class MaxTest extends Specification {
     def "test arguments"() {
         expect:
         new Max().getArguments().length == 0
+    }
+
+    def "test type"() {
+        expect:
+        new Max().getType() == AnalysisType.MAX
     }
 }

@@ -221,6 +221,25 @@ class ChronixClientTestIT extends Specification {
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*),1,0.8"]
         points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000]
+    }
+
+    @Unroll
+    def "Test analysis fastdtw"() {
+        when:
+        def query = new SolrQuery("metric:*Load*min")
+        query.addFilterQuery("analysis=fastdtw:(metric:*Load*max),5,0.8")
+        query.setFields("metric")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size()
+        selectedTimeSeries.getMetric() == "\\Load\\max"
+        selectedTimeSeries.attribute("analysis") == "FASTDTW"
+        selectedTimeSeries.attribute("joinKey") == "\\Load\\max"
+        selectedTimeSeries.attribute("value") == 0.056865779428449705
+        selectedTimeSeries.attribute("analysisParam") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
     }
 

@@ -52,8 +52,8 @@ public final class Max implements ChronixAnalysis {
     }
 
     @Override
-    public Object[] getArguments() {
-        return new Object[0];
+    public String[] getArguments() {
+        return new String[0];
     }
 
     @Override
