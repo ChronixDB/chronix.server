@@ -124,11 +124,11 @@ But before the Chronix Query Handler delegates a request, it modifies the user q
 This is necessary as Chronix stores records and hence a query asking for a specific time range has to be modified.
 As a result it converts a query:
 ```
-host:prodI4 AND metric:\\HeapMemory\Usage\Used AND start:NOW-1MONTH AND end:NOW-10DAYS
+host:prodI4 AND metric:\\HeapMemory\\Usage\\Used AND start:NOW-1MONTH AND end:NOW-10DAYS
 ```
 in the following query:
 ```
-host:prodI4 AND metric:\\HeapMemory\Usage\Used AND -start:[NOW-10DAYS-1ms TO *] AND -end:[* TO NOW-1MONTH-1ms]
+host:prodI4 AND metric:\\HeapMemory\\Usage\\Used AND -start:[NOW-10DAYS-1ms TO *] AND -end:[* TO NOW-1MONTH-1ms]
 ```
 
 ### Range Query
