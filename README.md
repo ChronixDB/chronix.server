@@ -30,7 +30,7 @@ The architecture of Chronix has the four building blocks shown in Figure.
 It is well-suited to the parallelism of multi-core systems.
 All blocks can work in parallel to each other to increase the throughput.
 ###Semantic Compression
-Semantic Compression is optional and reduces the amount of time series with the goal of storing fewer records.
+Semantic Compression is **optional** and reduces the amount of time series with the goal of storing fewer records.
 It uses techniques that exploit knowledge on the shape and the significance of a time series to remove irrelevant details even if some accuracy is lost, e.g. dimensionality reduction through aggregation.
 
 ###Attributes and Chunks
@@ -75,7 +75,7 @@ The type of an attribute is restricted by the available [fields](https://cwiki.a
 A Java client that is used to store and stream time series from Chronix.
 The following code snippet shows how to setup an connection to Chronix and stream time series.
 The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), Chronix Server Client, 
-[Chronix Kassiopeia](https://github.com/ChronixDB/chronix.kassiopeia) and [SolrJ](http://mvnrepository.com/artifact/org.apache.solr/solr-solrj/5.3.1)
+[Chronix Kassiopeia](https://github.com/ChronixDB/chronix.kassiopeia) and [SolrJ](http://mvnrepository.com/artifact/org.apache.solr/solr-solrj/5.5.0)
 ```Java
 //An connection to Solr
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
@@ -86,7 +86,7 @@ Function<MetricTimeSeries, String> groupBy = ts -> ts.getMetric() + "-" + ts.att
 //Define a reduce function for the grouped time series records
 BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
       MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(ts1.getMetric())
-            .data(concat(ts1.getTimestamps(), ts2.getTimestamps()),
+            .points(concat(ts1.getTimestamps(), ts2.getTimestamps()),
                   concat(ts1.getValues(), ts2.getValues()))
             .attributes(ts1.attributes());
             return reduced.build();
@@ -186,7 +186,7 @@ q=metric:*load* // Get all time series that metric name matches *load*
 + fq=ag=p:0.25 //To get the 25% percentile of the time series data
 + fq=analysis=trend //Returns all time series that have a positive trend
 + fq=analysis=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
-+ fq=analysis=fastdtw(metric:\*load\*),1,0.8 //Uses fast dynamic time warping to search for similar time series
++ fq=analysis=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
 ```
 
 #### Join Time Series Records
