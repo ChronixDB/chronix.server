@@ -37,13 +37,6 @@ public class SolrStreamingHandler extends StreamingResponseCallback {
     private boolean readNextDocument;
 
     /**
-     * And empty initialized handler.
-     */
-    public SolrStreamingHandler() {
-        init(1, 0);
-    }
-
-    /**
      * Initializes the streaming handler.
      * e.g.
      * Total number of docs: 1000
