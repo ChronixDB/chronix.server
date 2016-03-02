@@ -245,7 +245,7 @@ class ChronixClientTestIT extends Specification {
 
     def "test analysis with empty result"() {
         when:
-        def query = new SolrQuery("metric:\\\\Load\\\\avg")
+        def query = new SolrQuery("metric:\\\\Load\\\\min")
         query.addFilterQuery("analysis=frequency:10,2")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
