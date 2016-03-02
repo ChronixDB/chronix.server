@@ -19,6 +19,7 @@ import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.solr.test.converter.DefaultTimeSeriesConverter
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
+import org.apache.solr.client.solrj.StreamingResponseCallback
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrDocumentList
 import org.apache.solr.common.util.NamedList
@@ -67,7 +68,7 @@ class ChronixSolrStorageTest extends Specification {
         response.getResults() >> results
         response.getResponseHeader() >> responseHeader
 
-        connection.query(_ as SolrQuery) >> response
+        connection.queryAndStreamResponse(_ as SolrQuery, _ as StreamingResponseCallback) >> response
 
         when:
         def stream = storage.stream(converter, connection, query)

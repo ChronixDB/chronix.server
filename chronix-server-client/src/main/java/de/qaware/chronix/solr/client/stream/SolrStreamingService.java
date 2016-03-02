@@ -89,6 +89,11 @@ public class SolrStreamingService<T> implements Iterator<T> {
     private long queryEnd;
 
     /**
+     * Mark if need to stream more time series
+     */
+    private boolean needStream;
+
+    /**
      * Constructs a streaming service
      *
      * @param converter              - the converter to convert documents
@@ -108,7 +113,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
     public boolean hasNext() {
         if (nrOfAvailableTimeSeries == -1) {
             //Do only once for each query
-            initStreamingService(query, connection);
+            initialStream(query, connection);
         }
 
         if (nrOfAvailableTimeSeries <= 0) {
@@ -123,19 +128,20 @@ public class SolrStreamingService<T> implements Iterator<T> {
         return currentDocumentCount < nrOfAvailableTimeSeries;
     }
 
-
-    private void initStreamingService(SolrQuery query, SolrClient connection) {
-        SolrQuery solrQuery = query.getCopy();
-        solrQuery.setRows(0);
-        //we do not need any data from the server expect the total number of found documents
-        solrQuery.setFields("");
-
+    private void initialStream(SolrQuery query, SolrClient connection) {
         try {
-            QueryResponse response = connection.query(solrQuery);
+            SolrQuery solrQuery = query.getCopy();
+            solrQuery.setRows(nrOfTimeSeriesPerBatch);
+            solrQuery.setStart(currentDocumentCount);
+
+            solrStreamingHandler.init(nrOfTimeSeriesPerBatch, currentDocumentCount);
+            QueryResponse response = connection.queryAndStreamResponse(solrQuery, solrStreamingHandler);
+
             nrOfAvailableTimeSeries = response.getResults().getNumFound();
             queryStart = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_START_LONG);
             queryEnd = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_END_LONG);
 
+            needStream = false;
         } catch (SolrServerException | IOException e) {
             LOGGER.error("SolrServerException occurred while querying server.", e);
         }
@@ -143,8 +149,11 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
     @Override
     public T next() {
-        if (currentDocumentCount % nrOfTimeSeriesPerBatch == 0) {
-            streamDocumentsFromSolr();
+        if ((currentDocumentCount % nrOfTimeSeriesPerBatch == 0) && needStream) {
+            streamNextDocumentsFromSolr();
+        } else {
+            needStream = true;
+            convertStream();
         }
 
         currentDocumentCount += 1;
@@ -160,7 +169,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
         return timeSeriesHandler.take();
     }
 
-    private void streamDocumentsFromSolr() {
+    private void streamNextDocumentsFromSolr() {
         SolrQuery solrQuery = query.getCopy();
         solrQuery.setRows(nrOfTimeSeriesPerBatch);
         solrQuery.setStart(currentDocumentCount);
@@ -169,18 +178,22 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
         try {
             connection.queryAndStreamResponse(solrQuery, solrStreamingHandler);
-            SolrDocument document;
-            do {
-                document = solrStreamingHandler.pool();
-                if (document != null) {
-                    ListenableFuture future = service.submit(new TimeSeriesConverterCaller<>(document, converter, queryStart, queryEnd));
-                    Futures.addCallback(future, timeSeriesHandler);
-                }
-
-            } while (solrStreamingHandler.canPoll());
+            convertStream();
         } catch (SolrServerException | IOException e) {
             LOGGER.warn("Exception while streaming the data points from Solr", e);
         }
+    }
+
+    private void convertStream() {
+        SolrDocument document;
+        do {
+            document = solrStreamingHandler.pool();
+            if (document != null) {
+                ListenableFuture future = service.submit(new TimeSeriesConverterCaller<>(document, converter, queryStart, queryEnd));
+                Futures.addCallback(future, timeSeriesHandler);
+            }
+
+        } while (solrStreamingHandler.canPoll());
     }
 
 }
