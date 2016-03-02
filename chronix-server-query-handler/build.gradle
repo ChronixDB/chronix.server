@@ -3,6 +3,11 @@ sonarqube {
         property "sonar.projectName", "de.qaware.chronix:chronix-server-query-handler"
     }
 }
+repositories {
+    flatDir {
+        dirs '../extLibs'
+    }
+}
 
 dependencies {
     compile "org.apache.solr:solr-core:5.5.0"
@@ -15,6 +20,8 @@ dependencies {
 
     //Chronix FastDTW for time series similarity
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'
+    //Sax - GPL2
+    compile name: 'jmotif-sax-1.0.7-SNAPSHOT'
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
     testCompile project(':chronix-server-test-extensions')

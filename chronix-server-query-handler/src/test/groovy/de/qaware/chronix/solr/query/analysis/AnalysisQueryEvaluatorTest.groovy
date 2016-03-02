@@ -1,23 +1,18 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis
 import spock.lang.Specification
+
 /**
  * @author f.lautenschlager
  */
@@ -39,12 +34,14 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["analysis=outlier"] as String[],
                 ["analysis=frequency:10,6"] as String[],
                 ["analysis=fastdtw:(metric:load*),5,0.4"] as String[],
+                ["analysis=sax:*af*,7,10,0.01"] as String[]
         ]
 
         expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P,
-                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
+                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW, AnalysisType.SAX]
         expectedValue << [new String[0], new String[0], new String[0], new String[0], ["0.4"] as String[],
-                          new String[0], new String[0], ["10", "6"] as String[], ["(metric:load*)", "5", "0.4"] as String[]]
+                          new String[0], new String[0], ["10", "6"] as String[], ["(metric:load*)", "5", "0.4"] as String[],
+                          ["*af", "7,10,0.01"] as String[]]
     }
 
     def "test ag query strings that produce exceptions"() {

@@ -26,7 +26,7 @@
         <field name="host" type="string" indexed="true" stored="true" required="false"/>
         <field name="source" type="string" indexed="true" stored="true" required="false"/>
         <field name="group" type="string" indexed="true" stored="true" required="false"/>
-
+        <field name="sax" type="string" indexed="true" multiValued="false" stored="true" required="false"/>
 
         <field name="myIntField" type="int" indexed="true" stored="true" required="false"/>
         <field name="myLongField" type="long" indexed="true" stored="true" required="false"/>

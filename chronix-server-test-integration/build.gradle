@@ -3,6 +3,12 @@ sonarqube {
         property "sonar.projectName", "de.qaware.chronix:chronix-server-test-integration"
     }
 }
+repositories {
+    flatDir {
+        dirs '../extLibs'
+    }
+}
+
 
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
@@ -21,6 +27,8 @@ dependencies {
     testCompile project(':chronix-server-query-handler')
     testCompile project(':chronix-server-retention')
     testCompile project(':chronix-server-response-writer')
+    //Sax - GPL2
+    testCompile name: 'jmotif-sax-1.0.7-SNAPSHOT'
 }
 task copyTestResources(type: Copy) {
     from "${projectDir}/src/test/resources"
@@ -176,6 +184,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")
+    include("*jmotif-sax-*.jar")
 }
 
 processTestResources.dependsOn copyIntegrationRuntimeLibs

@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.response
 
@@ -23,6 +17,7 @@ import org.apache.lucene.document.Field
 import org.apache.lucene.document.LongField
 import org.apache.lucene.document.StoredField
 import org.apache.solr.common.SolrDocument
+import org.apache.solr.common.params.SolrParams
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -40,11 +35,13 @@ class ChronixTransformerTest extends Specification {
 
     def "test create"() {
         given:
-
         def transformer = new ChronixTransformer()
-
+        def params = Stub(SolrParams)
+        params.get("paa", _ as String) >> "4"
+        params.get("alpha", _ as String) >> "7"
+        params.get("threshold", _ as String) >> "0.01"
         when:
-        def docTransformer = transformer.create("dataAsJson", null, null)
+        def docTransformer = transformer.create("dataAsJson", params, null)
 
         docTransformer.transform(doc, 0)
 
@@ -60,6 +57,26 @@ class ChronixTransformerTest extends Specification {
                 ",[1.0,2.0,3.0,4.0]]"]
     }
 
+    def "test create as SAX"() {
+        given:
+        def transformer = new ChronixTransformer()
+        def params = Stub(SolrParams)
+        params.get("paa", _ as String) >> "4"
+        params.get("alpha", _ as String) >> "7"
+        params.get("threshold", _ as String) >> "0.01"
+        when:
+        def docTransformer = transformer.create("dataAsSAX", params, null)
+
+        docTransformer.transform(doc, 0)
+
+        then:
+        doc.get(ChronixTransformer.DATA_AS_SAX) == expected
+
+        where:
+        doc << [docWithoutData(), docWitData()]
+        expected << [null, "aceg"]
+    }
+
     def docWithoutData() {
         def doc = new SolrDocument()
         doc.addField(MetricTSSchema.METRIC, "groovy")
@@ -72,10 +89,11 @@ class ChronixTransformerTest extends Specification {
 
         doc.addField(Schema.DATA, compressedProtoBuf())
         doc.addField(Schema.START, new StoredField(Schema.START, start.toEpochMilli()))
-        doc.addField(Schema.END, new LongField(Schema.END, start.plusSeconds(3).toEpochMilli(),Field.Store.YES))
+        doc.addField(Schema.END, new LongField(Schema.END, start.plusSeconds(3).toEpochMilli(), Field.Store.YES))
 
         doc
     }
+
 
     StoredField compressedProtoBuf() {
 

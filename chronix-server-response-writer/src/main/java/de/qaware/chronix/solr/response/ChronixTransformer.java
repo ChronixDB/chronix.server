@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.response;
 
@@ -19,6 +13,9 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import net.seninp.jmotif.sax.SAXException;
+import net.seninp.jmotif.sax.SAXProcessor;
+import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.solr.common.SolrDocument;
@@ -42,12 +39,26 @@ public class ChronixTransformer extends TransformerFactory {
      * The name of the field holding the raw json data
      */
     public static final String DATA_AS_JSON = "dataAsJson";
+    /**
+     * The name of the field holding the sax representation
+     */
+    public static final String DATA_AS_SAX = "dataAsSAX";
+    public static final String SIZE = "size";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformerFactory.class);
 
+    private static final String DEF_PAA_SIZE = "4";
+    private static final String PAA = "paa";
+
+    private static final String DEF_ALPHABET_SIZE = "7";
+    private static final String ALPHABET = "alpha";
+
+    private static final String DEF_THRESHOLD = "0.01";
+    private static final String THRESHOLD = "threshold";
+
     @Override
     public DocTransformer create(String field, SolrParams params, SolrQueryRequest req) {
-        return new DataFieldSerializer(field);
+        return new DataFieldSerializer(field, params);
     }
 
     /**
@@ -55,15 +66,22 @@ public class ChronixTransformer extends TransformerFactory {
      */
     private static class DataFieldSerializer extends DocTransformer {
         private final String name;
+        private final int paa;
+        private final int alpha;
+        private final double threshold;
 
         /**
          * Constructs a solr document transformer for the date field.
          *
          * @param flName the name of the field
+         * @param params the request params
          */
-        public DataFieldSerializer(String flName) {
+        public DataFieldSerializer(String flName, SolrParams params) {
             LOGGER.debug("Constructing Chronix transformer for field {}", flName);
             this.name = flName;
+            this.paa = Integer.valueOf(params.get(PAA, DEF_PAA_SIZE));
+            this.alpha = Integer.valueOf(params.get(ALPHABET, DEF_ALPHABET_SIZE));
+            this.threshold = Double.valueOf(params.get(THRESHOLD, DEF_THRESHOLD));
         }
 
         /**
@@ -88,9 +106,27 @@ public class ChronixTransformer extends TransformerFactory {
                 //we only have to decompress the field
                 MetricTimeSeries timeSeries = getRawPoints(doc);
                 timeSeries.sort();
-                byte[] json = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
 
-                doc.setField(DATA_AS_JSON, new String(json, "UTF-8"));
+                switch (this.name) {
+                    case DATA_AS_JSON:
+                        byte[] json = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
+                        doc.setField(DATA_AS_JSON, new String(json, "UTF-8"));
+                        break;
+                    case DATA_AS_SAX:
+                        SAXProcessor sp = new SAXProcessor();
+                        NormalAlphabet na = new NormalAlphabet();
+                        try {
+                            String sax = String.valueOf(sp.ts2string(timeSeries.getValues().toArray(), paa, na.getCuts(alpha), threshold));
+                            doc.setField(DATA_AS_SAX, sax);
+                            doc.setField(SIZE, timeSeries.size());
+
+                        } catch (SAXException e) {
+                            LOGGER.error("Could not convert time series to sax representation. Returning default", e);
+                        }
+                        break;
+                    default:
+                        LOGGER.debug("Data representation {} unknown", this.name);
+                }
             }
         }
 

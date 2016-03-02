@@ -4,6 +4,13 @@ sonarqube {
     }
 }
 
+repositories {
+    flatDir {
+        dirs '../extLibs'
+    }
+}
+
+
 dependencies {
     compile "org.apache.solr:solr-core:5.5.0"
 
@@ -11,6 +18,9 @@ dependencies {
     compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.4'
     compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.4'
     compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.4'
+
+    //Sax - GPL2
+    compile name: 'jmotif-sax-1.0.7-SNAPSHOT'
 }
 
 

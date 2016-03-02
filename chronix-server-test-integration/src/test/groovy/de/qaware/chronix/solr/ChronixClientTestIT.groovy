@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr
 
@@ -21,6 +15,9 @@ import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import de.qaware.chronix.timeseries.dt.DoubleList
 import de.qaware.chronix.timeseries.dt.LongList
+import net.seninp.jmotif.sax.SAXException
+import net.seninp.jmotif.sax.SAXProcessor
+import net.seninp.jmotif.sax.alphabet.NormalAlphabet
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
@@ -129,7 +126,7 @@ class ChronixClientTestIT extends Specification {
 
         tsDir.listFiles().each { File file ->
             LOGGER.info("Processing file {}", file)
-            def documents = new HashMap<Integer, MetricTimeSeries>()
+            def documents = new HashMap<Integer, MetricTimeSeries.Builder>()
 
             def attributes = file.name.split("_")
             def onlyOnce = true
@@ -156,7 +153,6 @@ class ChronixClientTestIT extends Specification {
                                     .attribute("myIntList", listIntField)
                                     .attribute("myLongList", listLongField)
                                     .attribute("myDoubleList", listDoubleField)
-                                    .build()
                             documents.put(i, ts)
 
                         }
@@ -165,16 +161,32 @@ class ChronixClientTestIT extends Specification {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
                     def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
                     fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
-                        documents.get(i).add(date.getTime(), nf.parse(value).doubleValue())
+                        documents.get(i).point(date.getTime(), nf.parse(value).doubleValue())
                         filePoints = i
-
                     }
                 }
                 onlyOnce = false
             }
-            chronix.add(documents.values(), solr)
+            def buildedTimeSeries = new ArrayList<MetricTimeSeries>()
+            documents.each { doc ->
+                def saxString = sax(doc.value.metricTimeSeries.values.toArray())
+                doc.value.attribute("sax", saxString)
+                buildedTimeSeries.add(doc.value.build())
+            }
+
+            chronix.add(buildedTimeSeries, solr)
             def updateResponse = solr.commit(true, true)
             LOGGER.info("Update Response of Commit is {}", updateResponse)
+        }
+    }
+
+    def sax(double[] values) {
+        def sp = new SAXProcessor();
+        def na = new NormalAlphabet();
+        try {
+            return String.valueOf(sp.ts2string(values, 9, na.getCuts(7), 0.01));
+        } catch (SAXException e) {
+            LOGGER.error("Could not convert time series to sax representation. Returning default", e);
         }
     }
 
@@ -219,11 +231,12 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == listDoubleField
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*),1,0.8"]
-        points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000]
+        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev",
+                          "analysis=trend", "analysis=outlier", "analysis=frequency:10,1",
+                          "analysis=fastdtw:(metric:*Load*),1,0.8", "analysis=sax:*,9,7,0.01"]
+        points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000, 7000]
     }
 
-    @Unroll
     def "Test analysis fastdtw"() {
         when:
         def query = new SolrQuery("metric:*Load*min")
@@ -240,7 +253,24 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("joinKey") == "\\Load\\max"
         selectedTimeSeries.attribute("value") == 0.056865779428449705
         selectedTimeSeries.attribute("analysisParam") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+    }
 
+    def "Test analysis sax"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Tasks\\\\total")
+        query.addFilterQuery("analysis=sax:*df*,9,7,0.01")
+        query.setFields("metric")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size()
+        selectedTimeSeries.getMetric() == "\\Tasks\\total"
+        selectedTimeSeries.attribute("analysis") == "SAX"
+        selectedTimeSeries.attribute("joinKey") == "\\Tasks\\total"
+        selectedTimeSeries.attribute("value") == 1
+        selectedTimeSeries.attribute("analysisParam") == ["pattern = .*df.*", "paaSize = 9", "alphabetSize = 7", "threshold = 0.01"]
     }
 
     def "Test query raw time series"() {
