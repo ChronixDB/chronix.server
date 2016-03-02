@@ -273,6 +273,15 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("analysisParam") == ["pattern = .*df.*", "paaSize = 9", "alphabetSize = 7", "threshold = 0.01"]
     }
 
+    def "test analysis with empty result"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Load\\\\min")
+        query.addFilterQuery("analysis=frequency:10,2")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 0
+    }
+
     def "Test query raw time series"() {
         when:
         def query = new SolrQuery("*:*")
