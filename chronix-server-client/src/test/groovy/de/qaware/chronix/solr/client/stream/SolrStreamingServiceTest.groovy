@@ -21,6 +21,7 @@ import de.qaware.chronix.solr.test.extensions.ReflectionHelper
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrServerException
+import org.apache.solr.client.solrj.StreamingResponseCallback
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
@@ -59,7 +60,7 @@ class SolrStreamingServiceTest extends Specification {
         queryResponse.getResults() >> results
         queryResponse.getResponseHeader() >> responseHeader
 
-        connection.query(_ as SolrParams) >> queryResponse
+        connection.queryAndStreamResponse(_ as SolrParams, _ as StreamingResponseCallback) >> queryResponse
 
         then:
         def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 200)
@@ -95,7 +96,7 @@ class SolrStreamingServiceTest extends Specification {
         results.getNumFound() >> nrOfDocuments
         queryResponse.getResults() >> results
         queryResponse.getResponseHeader() >> responseHeader
-        connection.query(_ as SolrParams) >> queryResponse
+        connection.queryAndStreamResponse(_ as SolrParams, _ as StreamingResponseCallback) >> queryResponse
 
         streamingService.hasNext()
 
@@ -132,7 +133,9 @@ class SolrStreamingServiceTest extends Specification {
         def logger = Mock(Logger.class)
 
         when:
-        connection.query(_ as SolrParams) >> { throw new SolrServerException("Test exception") }
+        connection.queryAndStreamResponse(_ as SolrParams, _ as StreamingResponseCallback) >> {
+            throw new SolrServerException("Test exception")
+        }
         def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 200)
         ReflectionHelper.setValueToFieldOfObject(logger, "LOGGER", streamingService)
 
