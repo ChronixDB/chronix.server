@@ -75,3 +75,7 @@ gradle-app.setting
 !gradle-wrapper.jar
 
 bintrayUpload.bat
+
+### Chronix ###
+#Fixed library
+!extLibs/jmotif-sax-1.0.7-SNAPSHOT.jar
