@@ -73,7 +73,7 @@ public class TimeSeriesHandler<T> implements FutureCallback<T> {
 
     /**
      * Gets the first element in the queue.
-     * If no element is present within five seconds.
+     * If no element is present within one minute.
      * Then it returns null.
      *
      * @return the first element of type <T> in the queue
