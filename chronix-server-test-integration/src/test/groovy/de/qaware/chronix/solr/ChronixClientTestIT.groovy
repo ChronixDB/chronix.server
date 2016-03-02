@@ -233,7 +233,7 @@ class ChronixClientTestIT extends Specification {
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev",
                           "analysis=trend", "analysis=outlier", "analysis=frequency:10,1",
-                          "analysis=fastdtw:(metric:*Load*),1,0.8", "analysis=sax:*,9,7,0.01"]
+                          "analysis=fastdtw:(metric:*Load*max),5,0.8", "analysis=sax:*,9,7,0.01"]
         points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000, 7000]
     }
 
