@@ -146,7 +146,7 @@ public final class AnalysisDocumentBuilder {
             String key = newEntry.getKey();
 
             //we ignore the version in the result
-            if (key.equals("_version_")) {
+            if (key.equals(ChronixQueryParams.SOLR_VERSION_FIELD)) {
                 continue;
             }
 

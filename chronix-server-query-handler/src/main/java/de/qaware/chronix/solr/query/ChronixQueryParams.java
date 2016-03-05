@@ -89,6 +89,12 @@ public final class ChronixQueryParams {
     public static final String JOIN_SEPARATOR = ",";
 
 
+    /**
+     * The solr version field. We remove that field in the function result
+     */
+    public static final String SOLR_VERSION_FIELD = "_version_";
+
+
     private ChronixQueryParams() {
         //avoid instances
     }
