@@ -178,7 +178,7 @@ If a query contains multiple analyses, Chronix prefer an aggregation over a high
 An analysis query does not return the raw time series data.
 It returns all requested time series attributes, the analysis and its result.
 The attributes are merged using a set to avoid duplicates.
-For example a query for a metric that is collected on several host might return the following result:
+For example a query for a metric that is collected on several hosts might return the following result:
 ```
 {
   "responseHeader":{
