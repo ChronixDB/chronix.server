@@ -177,6 +177,25 @@ Only one analysis is allowed per query.
 If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
 An analysis query does not return the raw time series data.
 It returns all requested time series attributes, the analysis and its result.
+The attributes are merged using a set to avoid duplicates.
+For example a query for a metric that is collected on several host might return the following result:
+```
+{
+  "responseHeader":{
+    "query_start_long":0,
+    "query_end_long":9223372036854775807,
+    "status":0,
+    "QTime":3},
+  "response":{"numFound":21,"start":0,"docs":[
+      {
+        "start":1377468017361,
+        "metric":"\\Load\\max",
+        "end":1377554376850,
+        "host:"["host-1","host-2", ...]
+       }...
+   ]
+}
+```
 
 A few example analyses:
 ```
