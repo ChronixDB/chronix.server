@@ -171,7 +171,7 @@ Currently the following analyses are available:
 - A linear trend detection (analysis=trend)
 - Outlier detection (analysis=outlier)
 - Frequency detection (analysis=frequency:10,6)
-- Time series similarity search (analysis=fastdtw(metric:\*Load\*),1,0.8)
+- Time series similarity search (analysis=fastdtw:(metric:\*Load\*),1,0.8)
  
 Only one analysis is allowed per query.
 If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
