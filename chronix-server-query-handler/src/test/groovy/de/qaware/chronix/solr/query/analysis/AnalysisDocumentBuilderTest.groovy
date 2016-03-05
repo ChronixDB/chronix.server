@@ -64,7 +64,47 @@ class AnalysisDocumentBuilderTest extends Specification {
         collectedDocs.get("groovy-laptop").size() == 2
     }
 
-    def "test analyze / aggregate"() {
+    def "test high level analysis returns null"() {
+        given:
+        def docs = fillDocs()
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=frequency:0,999999"] as String[])
+
+        when:
+        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
+        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
+
+        then:
+        document == null
+    }
+
+    def "test aggregate"() {
+        given:
+        def docs = fillDocs()
+        def analysis = AnalysisQueryEvaluator.buildAnalysis(["ag=max"] as String[])
+
+        when:
+        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
+        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
+
+        then:
+        document.getFieldValue("host") as Set == ["laptop"] as Set<String>
+        document.getFieldValue("metric") as String == "groovy"
+        document.getFieldValue("start") as long == 1
+        document.getFieldValue("end") as long == 1495
+        document.getFieldValue("function") as String == "MAX"
+        document.getFieldValue("function_value") as double == 99000.0d
+        document.getFieldValue("function_arguments") as Object[] == new Object[0]
+        document.getFieldValue("join_key") as String == "groovy-laptop"
+        document.getFieldValue("data") == null
+        document.getFieldValue("_version_") == null
+        (document.getFieldValue("userByteBuffer") as Set).size() == 10
+
+        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
+        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
+        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
+    }
+
+    def "test analyze"() {
         given:
         def docs = fillDocs()
         def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
@@ -74,18 +114,21 @@ class AnalysisDocumentBuilderTest extends Specification {
         def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
 
         then:
-        document.getFieldValue("host") as String == "laptop"
+        document.getFieldValue("host") as Set == ["laptop"] as Set<String>
         document.getFieldValue("metric") as String == "groovy"
         document.getFieldValue("start") as long == 1
         document.getFieldValue("end") as long == 1495
-        document.getFieldValue("analysis") as String == "TREND"
-        document.getFieldValue("analysisParam") as Object[] == new Object[0]
-        document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("function") as String == "TREND"
+        document.getFieldValue("function_value") as double == 1
+        document.getFieldValue("function_arguments") as Object[] == new Object[0]
+        document.getFieldValue("join_key") as String == "groovy-laptop"
         document.getFieldValue("data") != null
+        document.getFieldValue("_version_") == null
+        (document.getFieldValue("userByteBuffer") as Set).size() == 10
 
-        document.getFieldValue("someInt") as int == 1i
-        document.getFieldValue("someFloat") as float == 1.1f
-        document.getFieldValue("someDouble") as double == 2.0d
+        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
+        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
+        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
     }
 
     def "test analyze with subquery"() {
@@ -100,18 +143,21 @@ class AnalysisDocumentBuilderTest extends Specification {
         def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts, ts2);
 
         then:
-        document.getFieldValue("host") as String == "laptop"
+        document.getFieldValue("host") as Set<String> == ["laptop"] as Set<String>
         document.getFieldValue("metric") as String == "groovy"
         document.getFieldValue("start") as long == 1
         document.getFieldValue("end") as long == 1495
-        document.getFieldValue("analysis") as String == "FASTDTW"
-        (document.getFieldValue("analysisParam") as Object[]).length == 3
-        document.getFieldValue("joinKey") as String == "groovy-laptop"
+        document.getFieldValue("function") as String == "FASTDTW"
+        (document.getFieldValue("function_arguments") as Object[]).length == 3
+        document.getFieldValue("function_value") as double == 0
+        document.getFieldValue("join_key") as String == "groovy-laptop"
         document.getFieldValue("data") != null
+        document.getFieldValue("_version_") == null
+        (document.getFieldValue("userByteBuffer") as Set).size() == 10
 
-        document.getFieldValue("someInt") as int == 1i
-        document.getFieldValue("someFloat") as float == 1.1f
-        document.getFieldValue("someDouble") as double == 2.0d
+        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
+        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
+        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
     }
 
     List<Document> fillDocs() {
@@ -122,6 +168,10 @@ class AnalysisDocumentBuilderTest extends Specification {
         10.times {
             MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")
                     .attribute("host", "laptop")
+                    .attribute("someInt", 1i + it)
+                    .attribute("someFloat", 1.1f + it)
+                    .attribute("someDouble", [2.0d + it])
+                    .attribute("_version_", "ignored")
                     .points(times(it + 1), values(it + 1))
                     .build();
             def doc = converter.to(ts)
@@ -138,9 +188,12 @@ class AnalysisDocumentBuilderTest extends Specification {
         doc.addField("metric", binaryStorageDocument.get("metric"))
         doc.addField("start", binaryStorageDocument.getStart())
         doc.addField("end", binaryStorageDocument.getEnd())
-        doc.addField("someInt", 1i)
-        doc.addField("someFloat", 1.1f)
-        doc.addField("someDouble", 2.0d)
+        doc.addField("someInt", binaryStorageDocument.get("someInt"))
+        doc.addField("someFloat", binaryStorageDocument.get("someFloat"))
+        doc.addField("someDouble", binaryStorageDocument.get("someDouble"))
+        doc.addField("_version_", binaryStorageDocument.get("_version_"))
+        doc.addField("userByteBuffer", ByteBuffer.wrap("some_user_bytes".bytes))
+
 
         doc
     }

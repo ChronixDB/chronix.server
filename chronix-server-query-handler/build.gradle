@@ -9,9 +9,9 @@ dependencies {
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.4'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.4'
-    compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.4'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.5'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.5'
+    compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.5'
 
     //Chronix FastDTW for time series similarity
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'

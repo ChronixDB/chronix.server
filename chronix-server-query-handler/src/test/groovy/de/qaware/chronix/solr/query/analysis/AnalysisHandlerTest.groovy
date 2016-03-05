@@ -116,7 +116,7 @@ class AnalysisHandlerTest extends Specification {
 
         then:
         result.size() == 1
-        result.get(0).get("value") == 4713
+        result.get(0).get("function_value") == 4713
     }
 
     def "test analyze multiple time series"() {
@@ -138,9 +138,9 @@ class AnalysisHandlerTest extends Specification {
 
         then:
         result.size() == 1
-        result.get(0).get("value") == 0.0
+        result.get(0).get("function_value") == 0.0
         result.get(0).get("metric") == "test"
-        result.get(0).get("joinKey") == "something-other"
+        result.get(0).get("join_key") == "something-other"
     }
 
     List<SolrDocument> solrDocument(Instant start) {

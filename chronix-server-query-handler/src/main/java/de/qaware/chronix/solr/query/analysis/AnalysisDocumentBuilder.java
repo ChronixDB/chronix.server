@@ -19,6 +19,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
+import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -28,10 +29,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -48,8 +46,8 @@ public final class AnalysisDocumentBuilder {
     /**
      * Collects the given document and groups them using the join function result
      *
-     * @param docs         - the found documents that should be grouped by the join function
-     * @param joinFunction - the join function
+     * @param docs         the found documents that should be grouped by the join function
+     * @param joinFunction the join function
      * @return the grouped documents
      */
     public static Map<String, List<SolrDocument>> collect(SolrDocumentList docs, Function<SolrDocument, String> joinFunction) {
@@ -95,11 +93,13 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Collects the documents into a single time series
+     * Collects the documents into a single time series.
+     * Merges the time series attributes using a {@link Set}.
+     * Arrays are added as a single entry in the result attributes.
      *
-     * @param queryStart - the user query start
-     * @param queryEnd   - the user query end
-     * @param documents  - the lucene documents
+     * @param queryStart the user query start
+     * @param queryEnd   the user query end
+     * @param documents  the lucene documents
      * @return a metric time series that holds all the points
      */
     public static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
@@ -116,13 +116,12 @@ public final class AnalysisDocumentBuilder {
             timestamps.addAll(ts.getTimestamps());
             values.addAll(ts.getValues());
 
+            //we use the metric of the first time series.
+            //metric is the default join key.
             if (metric == null) {
                 metric = ts.getMetric();
             }
-
-            if (attributes.isEmpty()) {
-                attributes.putAll(ts.attributes());
-            }
+            merge(attributes, ts.attributes());
         }
 
         return new MetricTimeSeries.Builder(metric)
@@ -132,12 +131,51 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
+     * Merges to sets of time series attributes.
+     * The result is set for each key holding the values.
+     * If the other value is a collection, than all values
+     * of the collection are added instead of the collection object.
+     *
+     * @param merged     the merged attributes
+     * @param attributes the attributes of the other time series
+     */
+    private static void merge(Map<String, Object> merged, Map<String, Object> attributes) {
+
+        for (HashMap.Entry<String, Object> newEntry : attributes.entrySet()) {
+
+            String key = newEntry.getKey();
+
+            //we ignore the version in the result
+            if (key.equals("_version_")) {
+                continue;
+            }
+
+            if (!merged.containsKey(key)) {
+                merged.put(key, new HashSet<>());
+            }
+
+            Set<Object> values = (Set<Object>) merged.get(key);
+            Object value = newEntry.getValue();
+
+            //Check if the value is a collection.
+            //If it is a collection we add all values instead of adding a collection object
+            if (value instanceof Collection && !values.contains(value)) {
+                values.addAll((Collection) value);
+            } else if (!values.contains(value)) {
+                //Otherwise we have a single value or an array.
+                values.add(value);
+            }
+            //otherwise we ignore the value
+        }
+    }
+
+    /**
      * Builds a solr document that is needed for the response from the aggregated time series
      *
-     * @param timeSeries      - the time series
-     * @param value           - the isAggregation value
-     * @param chronixAnalysis - the isAggregation
-     * @param key             - the join key
+     * @param timeSeries      the time series
+     * @param value           the isAggregation value
+     * @param chronixAnalysis the isAggregation
+     * @param key             the join key
      * @return a solr document holding the attributes and the aggregated value
      */
     private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, ChronixAnalysis chronixAnalysis, String key) {
@@ -152,12 +190,12 @@ public final class AnalysisDocumentBuilder {
         SolrDocument doc = convert(timeSeries, highLevelAnalysis);
 
         //Add some information about the analysis
-        doc.put("analysis", chronixAnalysis.getType().name());
-        doc.put("analysisParam", chronixAnalysis.getArguments());
-        doc.put("value", value);
+        doc.put(ChronixQueryParams.FUNCTION, chronixAnalysis.getType().name());
+        doc.put(ChronixQueryParams.FUNCTION_ARGUMENTS, chronixAnalysis.getArguments());
+        doc.put(ChronixQueryParams.FUNCTION_VALUE, value);
 
         //add the join key
-        doc.put("joinKey", key);
+        doc.put(ChronixQueryParams.JOIN_KEY, key);
 
         return doc;
     }

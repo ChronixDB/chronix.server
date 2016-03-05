@@ -209,14 +209,14 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= points
-        selectedTimeSeries.attribute("myIntField") == 5
-        selectedTimeSeries.attribute("myLongField") == 8L
-        selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") == listStringField
-        selectedTimeSeries.attribute("myIntList") == listIntField
-        selectedTimeSeries.attribute("myLongList") == listLongField
-        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
+        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
+        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
+        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
+        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
+        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
+        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
+        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
         analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
@@ -236,10 +236,10 @@ class ChronixClientTestIT extends Specification {
 
         selectedTimeSeries.size()
         selectedTimeSeries.getMetric() == "\\Load\\max"
-        selectedTimeSeries.attribute("analysis") == "FASTDTW"
-        selectedTimeSeries.attribute("joinKey") == "\\Load\\max"
-        selectedTimeSeries.attribute("value") == 0.056865779428449705
-        selectedTimeSeries.attribute("analysisParam") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+        selectedTimeSeries.attribute("function") == "FASTDTW"
+        selectedTimeSeries.attribute("join_key") == "\\Load\\max"
+        selectedTimeSeries.attribute("function_value") == 0.056865779428449705
+        selectedTimeSeries.attribute("function_arguments") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
     }
 

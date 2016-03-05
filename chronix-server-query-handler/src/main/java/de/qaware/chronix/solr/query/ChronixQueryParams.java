@@ -33,9 +33,29 @@ public final class ChronixQueryParams {
     public static final String ANALYSIS_PARAM = "analysis=";
 
     /**
+     * The function: aggregation or analysis
+     */
+    public static final String FUNCTION = "function";
+
+    /**
+     * The aggregation value
+     */
+    public static final String FUNCTION_VALUE = "function_value";
+
+    /**
+     * The aggregation arguments
+     */
+    public static final String FUNCTION_ARGUMENTS = "function_arguments";
+
+    /**
      * Used to join documents into one time series
      */
     public static final String JOIN_PARAM = "join=";
+
+    /**
+     * The resulting join key
+     */
+    public static final String JOIN_KEY = "join_key";
 
     /**
      * The query start as long. Stored in the solr request params
@@ -67,6 +87,7 @@ public final class ChronixQueryParams {
      * The character used to split fields in join filter query
      */
     public static final String JOIN_SEPARATOR = ",";
+
 
     private ChronixQueryParams() {
         //avoid instances
