@@ -24,7 +24,7 @@ import spock.lang.Specification
  * @author f.lautenschlager
  */
 class MinTest extends Specification {
-    def "test execute"() {
+    def "test execute with negative"() {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
         10.times {
@@ -38,6 +38,22 @@ class MinTest extends Specification {
         def result = new Min().execute(ts)
         then:
         result == -90.0
+    }
+
+    def "test execute with positive number"() {
+        given:
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
+        10.times {
+            timeSeries.point(it, it * 10)
+        }
+        timeSeries.point(11, 9999)
+        MetricTimeSeries ts = timeSeries.build()
+
+
+        when:
+        def result = new Min().execute(ts)
+        then:
+        result == 0.0
     }
 
     def "test empty time series"() {

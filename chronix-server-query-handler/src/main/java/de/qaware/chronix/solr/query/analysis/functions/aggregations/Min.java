@@ -45,9 +45,11 @@ public class Min implements ChronixAnalysis {
         }
         int size = timeSeries.size();
 
+        min = timeSeries.getValue(0);
+
         for (int i = 0; i < size; i++) {
             double next = timeSeries.getValue(i);
-            if (min > next) {
+            if (next < min) {
                 min = next;
             }
         }
