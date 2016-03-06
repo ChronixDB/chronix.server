@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions
 
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 

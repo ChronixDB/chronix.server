@@ -17,8 +17,8 @@ package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.solr.query.ChronixQueryParams
-import de.qaware.chronix.solr.query.analysis.functions.FastDtw
-import de.qaware.chronix.solr.query.analysis.functions.Max
+import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.common.SolrDocument

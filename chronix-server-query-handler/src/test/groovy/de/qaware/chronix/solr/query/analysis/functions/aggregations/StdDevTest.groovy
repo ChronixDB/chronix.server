@@ -13,20 +13,19 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
-
 /**
- * Unit test for the average aggregation
+ * Unit test for the standard deviation aggregation
  * @author f.lautenschlager
  */
-class AvgTest extends Specification {
-
+class StdDevTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Avg");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Stddev");
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -35,31 +34,32 @@ class AvgTest extends Specification {
 
 
         when:
-        def result = new Avg().execute(ts)
+        def result = new StdDev().execute(ts)
         then:
-        result == 949.9090909090909
+        result == 3001.381363790528
     }
 
     def "test exception behaviour"() {
         when:
-        new Avg().execute(new MetricTimeSeries[0])
+        new StdDev().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Avg().needSubquery()
-        new Avg().getSubquery() == null
+        !new StdDev().needSubquery()
+        new StdDev().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Avg().getArguments().length == 0
+        new StdDev().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Avg().getType() == AnalysisType.AVG
+        new StdDev().getType() == AnalysisType.DEV
     }
+
 }

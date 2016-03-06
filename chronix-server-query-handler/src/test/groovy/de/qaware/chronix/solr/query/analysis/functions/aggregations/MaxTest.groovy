@@ -13,59 +13,61 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the minimum aggregation
+ * Unit test for the maximum aggregation
  * @author f.lautenschlager
  */
-class MinTest extends Specification {
+class MaxTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Max");
         10.times {
-            timeSeries.point(it, it * -10)
+            timeSeries.point(it, it * 10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
 
         when:
-        def result = new Min().execute(ts)
+        def result = new Max().execute(ts)
         then:
-        result == -90.0
+        result == 9999.0
     }
 
     def "test empty time series"() {
         when:
-        def result = new Min().execute(new MetricTimeSeries.Builder("Min").build())
+        def result = new Max().execute(new MetricTimeSeries.Builder("Max").build())
         then:
         result == 0.0
     }
 
+
     def "test exception behaviour"() {
         when:
-        new Min().execute(new MetricTimeSeries[0])
+        new Max().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Min().needSubquery()
-        new Min().getSubquery() == null
+        !new Max().needSubquery()
+        new Max().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Min().getArguments().length == 0
+        new Max().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Min().getType() == AnalysisType.MIN
+        new Max().getType() == AnalysisType.MAX
     }
 }

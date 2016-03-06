@@ -13,19 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
-
 /**
- * Unit test for the maximum aggregation
+ * Unit test for the average aggregation
  * @author f.lautenschlager
  */
-class MaxTest extends Specification {
+class AvgTest extends Specification {
+
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Max");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Avg");
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -34,39 +35,31 @@ class MaxTest extends Specification {
 
 
         when:
-        def result = new Max().execute(ts)
+        def result = new Avg().execute(ts)
         then:
-        result == 9999.0
+        result == 949.9090909090909
     }
-
-    def "test empty time series"() {
-        when:
-        def result = new Max().execute(new MetricTimeSeries.Builder("Max").build())
-        then:
-        result == 0.0
-    }
-
 
     def "test exception behaviour"() {
         when:
-        new Max().execute(new MetricTimeSeries[0])
+        new Avg().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Max().needSubquery()
-        new Max().getSubquery() == null
+        !new Avg().needSubquery()
+        new Avg().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Max().getArguments().length == 0
+        new Avg().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Max().getType() == AnalysisType.MAX
+        new Avg().getType() == AnalysisType.AVG
     }
 }

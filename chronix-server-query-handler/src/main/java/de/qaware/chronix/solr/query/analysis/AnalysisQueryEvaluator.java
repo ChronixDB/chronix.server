@@ -16,7 +16,13 @@
 package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
-import de.qaware.chronix.solr.query.analysis.functions.*;
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.aggregations.*;
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw;
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.Frequency;
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier;
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend;
 
 import java.lang.reflect.MalformedParametersException;
 

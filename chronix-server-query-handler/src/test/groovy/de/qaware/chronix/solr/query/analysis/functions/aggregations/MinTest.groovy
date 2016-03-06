@@ -13,53 +13,60 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the percentile aggregation
+ * Unit test for the minimum aggregation
  * @author f.lautenschlager
  */
-class PercentileTest extends Specification {
+class MinTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("P");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it, it * -10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
 
         when:
-        def result = new Percentile(0.5).execute(ts)
+        def result = new Min().execute(ts)
         then:
-        result == 50.0
+        result == -90.0
+    }
+
+    def "test empty time series"() {
+        when:
+        def result = new Min().execute(new MetricTimeSeries.Builder("Min").build())
+        then:
+        result == 0.0
     }
 
     def "test exception behaviour"() {
         when:
-        new Percentile(0.5).execute(new MetricTimeSeries[0])
+        new Min().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Percentile(0.5).needSubquery()
-        new Percentile(0.5).getSubquery() == null
+        !new Min().needSubquery()
+        new Min().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Percentile(0.5).getArguments().size() == 1
+        new Min().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Percentile(0.5).getType() == AnalysisType.P
+        new Min().getType() == AnalysisType.MIN
     }
-
 }

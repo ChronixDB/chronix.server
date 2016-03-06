@@ -13,19 +13,19 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
+package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
-
 /**
- * Unit test for the standard deviation aggregation
+ * Unit test for the percentile aggregation
  * @author f.lautenschlager
  */
-class StdDevTest extends Specification {
+class PercentileTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Stddev");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("P");
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -34,32 +34,32 @@ class StdDevTest extends Specification {
 
 
         when:
-        def result = new StdDev().execute(ts)
+        def result = new Percentile(0.5).execute(ts)
         then:
-        result == 3001.381363790528
+        result == 50.0
     }
 
     def "test exception behaviour"() {
         when:
-        new StdDev().execute(new MetricTimeSeries[0])
+        new Percentile(0.5).execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new StdDev().needSubquery()
-        new StdDev().getSubquery() == null
+        !new Percentile(0.5).needSubquery()
+        new Percentile(0.5).getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new StdDev().getArguments().length == 0
+        new Percentile(0.5).getArguments().size() == 1
     }
 
     def "test type"() {
         expect:
-        new StdDev().getType() == AnalysisType.DEV
+        new Percentile(0.5).getType() == AnalysisType.P
     }
 
 }

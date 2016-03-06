@@ -13,18 +13,34 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions;
+package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
- * The standard deviation analysis
+ * Percentile aggregation analysis
  *
  * @author f.lautenschlager
  */
-public final class StdDev implements ChronixAnalysis {
+public final class Percentile implements ChronixAnalysis {
+
+
+    private final double percentile;
+
     /**
-     * Calculates the standard deviation of the first time series.
+     * Constructs a percentile aggregation
+     *
+     * @param percentile the percentile [0.0 ... 1.0]
+     */
+    public Percentile(double percentile) {
+        this.percentile = percentile;
+    }
+
+
+    /**
+     * Calculates the percentile of the first time series.
      *
      * @param args the time series
      * @return the percentile or 0 if the list is empty
@@ -32,21 +48,21 @@ public final class StdDev implements ChronixAnalysis {
     @Override
     public double execute(MetricTimeSeries... args) {
         if (args.length < 1) {
-            throw new IllegalArgumentException("Standard deviation aggregation needs at least one time series");
+            throw new IllegalArgumentException("Percentile aggregation needs at least one time series");
         }
-        MetricTimeSeries timeSeries = args[0];
 
-        return de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues());
+        MetricTimeSeries timeSeries = args[0];
+        return de.qaware.chronix.solr.query.analysis.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile);
     }
 
     @Override
     public String[] getArguments() {
-        return new String[0];
+        return new String[]{"percentile=" + percentile};
     }
 
     @Override
     public AnalysisType getType() {
-        return AnalysisType.DEV;
+        return AnalysisType.P;
     }
 
     @Override
@@ -58,4 +74,6 @@ public final class StdDev implements ChronixAnalysis {
     public String getSubquery() {
         return null;
     }
+
+
 }

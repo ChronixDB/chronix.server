@@ -13,22 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions;
+package de.qaware.chronix.solr.query.analysis.functions.highlevel;
 
-import de.qaware.chronix.solr.query.analysis.functions.math.LinearRegression;
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import de.qaware.chronix.timeseries.dt.DoubleList;
 
 /**
- * The trend analysis
+ * The outlier analysis
  *
  * @author f.lautenschlager
  */
-public final class Trend implements ChronixAnalysis {
+public class Outlier implements ChronixAnalysis {
+
     /**
-     * Detects trends in time series using a linear regression.
+     * Detects outliers using the default box plot implementation.
+     * An outlier every value that is above (q3-q1)*1.5*q3 where qN is the nth percentile
      *
      * @param args the time series
-     * @return 1 if there is a positive trend, otherwise -1
+     * @return 1 if there are outliers, otherwise -1
      */
     @Override
     public double execute(MetricTimeSeries... args) {
@@ -37,11 +42,23 @@ public final class Trend implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
-        timeSeries.sort();
 
-        LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
-        double slope = linearRegression.slope();
-        return slope > 0 ? 1 : -1;
+        if (timeSeries.isEmpty()) {
+            return -1;
+        }
+
+        DoubleList points = timeSeries.getValues();
+
+        double q1 = Percentile.evaluate(points, .25);
+        double q3 = Percentile.evaluate(points, .75);
+        double threshold = (q3 - q1) * 1.5 + q3;
+        for (int i = 0; i < points.size(); i++) {
+            double point = points.get(i);
+            if (point > threshold) {
+                return 1;
+            }
+        }
+        return -1;
     }
 
     @Override
@@ -51,7 +68,7 @@ public final class Trend implements ChronixAnalysis {
 
     @Override
     public AnalysisType getType() {
-        return AnalysisType.TREND;
+        return AnalysisType.OUTLIER;
     }
 
     @Override

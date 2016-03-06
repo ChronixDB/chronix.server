@@ -15,6 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions
 
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
