@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions.highlevel
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
  * Unit test for the fast dtw analysis
  * @author f.lautenschlager
@@ -36,6 +37,23 @@ class FastDtwTest extends Specification {
 
         when:
         def result = new FastDtw("", 5, 20).execute(ts1, ts2)
+        then:
+        result == 0
+    }
+
+    def "test time series with equal timestamps"() {
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1");
+        timeSeries.point(0, 2)
+        3.times {
+            timeSeries.point(1, it)
+        }
+        timeSeries.point(2, 2)
+
+        def ts1 = timeSeries.build()
+
+        when:
+        def result = new FastDtw("", 5, 0).execute(ts1, ts1)
+
         then:
         result == 0
     }

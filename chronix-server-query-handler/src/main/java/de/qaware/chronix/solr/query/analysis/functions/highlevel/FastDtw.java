@@ -65,17 +65,45 @@ public final class FastDtw implements ChronixAnalysis {
     }
 
     /**
-     * Builds a multivariate time series of the given univariate time series
+     * Builds a multivariate time series of the given univariate time series.
+     * If two or more timestamps are the same, the values are aggregated using the average.
      *
      * @param timeSeries the metric time series
      * @return a multivariate time series for the fast dtw analysis
      */
     private MultivariateTimeSeries buildMultiVariateTimeSeries(MetricTimeSeries timeSeries) {
         MultivariateTimeSeries multivariateTimeSeries = new MultivariateTimeSeries(1);
-        timeSeries.sort();
-        timeSeries.points().forEachOrdered(pair -> {
-            multivariateTimeSeries.add(pair.getTimestamp(), new double[]{pair.getValue()});
-        });
+
+        if (timeSeries.size() > 0) {
+            //First sort the values
+            timeSeries.sort();
+
+            long formerTimestamp = timeSeries.getTime(0);
+            double formerValue = timeSeries.getValue(0);
+            int timesSameTimestamp = 0;
+
+            for (int i = 1; i < timeSeries.size(); i++) {
+
+                //We have two timestamps that are the same
+                if (formerTimestamp == timeSeries.getTime(i)) {
+                    formerValue += timeSeries.getValue(i);
+                    timesSameTimestamp++;
+                } else {
+                    //calc the average of the values of the same timestamp
+                    if (timesSameTimestamp > 0) {
+                        formerValue = formerValue / timesSameTimestamp;
+                        timesSameTimestamp = 0;
+                    }
+                    //first add the former timestamp
+                    multivariateTimeSeries.add(formerTimestamp, new double[]{formerValue});
+                    formerTimestamp = timeSeries.getTime(i);
+                    formerValue = timeSeries.getValue(i);
+                }
+            }
+            //add the last point
+            multivariateTimeSeries.add(formerTimestamp, new double[]{formerValue});
+        }
+
         return multivariateTimeSeries;
     }
 
