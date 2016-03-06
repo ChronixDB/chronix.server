@@ -105,7 +105,7 @@ public final class AnalysisQueryEvaluator {
      */
     private static String removeBrackets(String subQuery) {
         //remove the enfolding brackets
-        if (subQuery.indexOf("(") == 0 && subQuery.lastIndexOf(")") == subQuery.length() - 1) {
+        if (subQuery.indexOf('(') == 0 && subQuery.lastIndexOf(')') == subQuery.length() - 1) {
             return subQuery.substring(1, subQuery.length() - 1);
         }
         return subQuery;
