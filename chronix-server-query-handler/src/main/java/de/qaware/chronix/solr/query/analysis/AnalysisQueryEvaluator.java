@@ -87,7 +87,7 @@ public final class AnalysisQueryEvaluator {
                 long windowThreshold = Long.parseLong(arguments[1]);
                 return new Frequency(windowSize, windowThreshold);
             case FASTDTW:
-                String subquery = arguments[0];
+                String subquery = removeBrackets(arguments[0]);
                 int searchRadius = Integer.parseInt(arguments[1]);
                 double maxAvgWarpingCost = Double.parseDouble(arguments[2]);
                 return new FastDtw(subquery, searchRadius, maxAvgWarpingCost);
@@ -95,6 +95,20 @@ public final class AnalysisQueryEvaluator {
             default:
                 throw new EnumConstantNotPresentException(AnalysisType.class, "Type: " + type + " not present.");
         }
+    }
+
+    /**
+     * Removes the first and the last bracket from the sub-query.
+     *
+     * @param subQuery the sub-query for asking another set of time series
+     * @return the sub-query without a leading and closing bracket.
+     */
+    private static String removeBrackets(String subQuery) {
+        //remove the enfolding brackets
+        if (subQuery.indexOf("(") == 0 && subQuery.lastIndexOf(")") == subQuery.length() - 1) {
+            return subQuery.substring(1, subQuery.length() - 1);
+        }
+        return subQuery;
     }
 
     private static String[] extractAggregationParameter(String argumentString) {

@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.date.DateQueryParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 import java.util.function.Function;
 
@@ -44,6 +46,8 @@ public class AnalysisHandler extends SearchHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisHandler.class);
 
     private final DocListProvider docListProvider;
+
+    private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
     /**
      * Constructs an isAggregation handler
@@ -66,8 +70,7 @@ public class AnalysisHandler extends SearchHandler {
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         LOGGER.debug("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0
-        SolrParams params = req.getParams();
-        String rowsParam = params.get(CommonParams.ROWS, null);
+        String rowsParam = req.getParams().get(CommonParams.ROWS, null);
         int rows = -1;
         if (rowsParam != null) {
             rows = Integer.parseInt(rowsParam);
@@ -75,7 +78,6 @@ public class AnalysisHandler extends SearchHandler {
 
         SolrDocumentList results = new SolrDocumentList();
         String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
-
 
         //Do a query and collect them on the join function
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(filterQueries);
@@ -86,36 +88,50 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
-            final long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
             final ChronixAnalysis analysis = AnalysisQueryEvaluator.buildAnalysis(filterQueries);
-            final List<SolrDocument> resultDocuments;
-
-            //Check if have an aggregation or a high level analysis
-            if (AnalysisType.isAggregation(analysis.getType())) {
-                //We have an analysis query
-                resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
-            } else if (AnalysisType.isHighLevel(analysis.getType())) {
-                //Check if the analysis needs a sub query
-                if (analysis.needSubquery()) {
-                    Map<String, List<SolrDocument>> subqueryDocuments = collectDocuments(analysis.getSubquery(), req, key);
-                    resultDocuments = analyze(collectedDocs, subqueryDocuments, analysis, queryStart, queryEnd);
-                } else {
-                    resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
-                }
-            } else {
-                throw new IllegalArgumentException("Analysis type is unknown " + analysis.getType());
-            }
-
+            final List<SolrDocument> resultDocuments = analyze(req, analysis, key, collectedDocs);
             results.addAll(resultDocuments);
             results.setNumFound(resultDocuments.size());
         }
         rsp.add("response", results);
+    }
 
-        //avoid calling the print response method
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Sending response {}", printResponse(rsp, filterQueries));
+    /**
+     * Analyzes the given request using the chronix analysis.
+     *
+     * @param req           the solr request with all information
+     * @param analysis      the chronix analysis that is applied
+     * @param key           the key for joining documents
+     * @param collectedDocs the prior collected documents of the query
+     * @return a list containing the analyzed time series as solr documents
+     * @throws IOException              if bad things happen in querying the documents
+     * @throws IllegalArgumentException if the given analysis is not defined
+     * @throws ParseException           when the start / end within the sub query could not be parsed
+     */
+    private List<SolrDocument> analyze(SolrQueryRequest req, ChronixAnalysis analysis, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs) throws IOException, IllegalStateException, ParseException {
+        final SolrParams params = req.getParams();
+        final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
+        final long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
+        final List<SolrDocument> resultDocuments;
+
+        //Check if have an aggregation or a high level analysis
+        if (AnalysisType.isAggregation(analysis.getType())) {
+            //We have an analysis query
+            resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
+        } else if (AnalysisType.isHighLevel(analysis.getType())) {
+            //Check if the analysis needs a sub query
+            if (analysis.needSubquery()) {
+                //lets parse the sub-query for start and and end terms
+                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
+                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+                resultDocuments = analyze(collectedDocs, subQueryDocuments, analysis, queryStart, queryEnd);
+            } else {
+                resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
+            }
+        } else {
+            throw new IllegalArgumentException("Analysis type is unknown " + analysis.getType());
         }
+        return resultDocuments;
 
     }
 
@@ -216,17 +232,6 @@ public class AnalysisHandler extends SearchHandler {
             });
         });
         return solrDocuments;
-    }
-
-    /**
-     * Converts the response and the filter query in a string representation.
-     *
-     * @param rsp           the solr query response
-     * @param filterQueries the filter queries
-     * @return a string representation
-     */
-    private String printResponse(SolrQueryResponse rsp, String[] filterQueries) {
-        return rsp.getToLogAsString(String.join("-", filterQueries == null ? "" : Arrays.toString(filterQueries))) + "/";
     }
 
     /**

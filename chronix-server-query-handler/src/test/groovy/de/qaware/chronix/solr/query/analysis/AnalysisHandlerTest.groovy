@@ -62,7 +62,7 @@ class AnalysisHandlerTest extends Specification {
                            .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", "myfield,start,end,data,metric")
-                           .add("fq", "analysis=fastdtw:(metric:*),10,0.5").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add("fq", "analysis=fastdtw:(metric:* AND start:NOW),10,0.5").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                            .add("fq", "analysis=trend").add(ChronixQueryParams.QUERY_START_LONG, "0")
@@ -85,22 +85,6 @@ class AnalysisHandlerTest extends Specification {
         where:
         concatedFields << [null, "myField,start,end,data,metric"]
         result << [null, ["myField", "start", "end", "data", "metric"] as Set<String>]
-    }
-
-    def "test print response"() {
-        given:
-        def docListMock = Stub(DocListProvider)
-        def analysisHandler = new AnalysisHandler(docListMock)
-
-        when:
-        def printResult = analysisHandler.printResponse(new SolrQueryResponse(), flQueries)
-
-        then:
-        printResult == expected
-
-        where:
-        flQueries << [null, ["ag=max", "fl=metric"] as String[]]
-        expected << ["/", "[ag=max, fl=metric]/"]
     }
 
     def "test analyze / aggregate single time series"() {

@@ -18,7 +18,9 @@ package de.qaware.chronix.solr.query.analysis
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis
 import spock.lang.Specification
+
 /**
+ * Unit test for the query evaluator class.
  * @author f.lautenschlager
  */
 class AnalysisQueryEvaluatorTest extends Specification {
@@ -28,7 +30,9 @@ class AnalysisQueryEvaluatorTest extends Specification {
         ChronixAnalysis aggregation = AnalysisQueryEvaluator.buildAnalysis(fqs)
         then:
         aggregation.getType() == expectedAggreation
-        //aggregation.getArguments() == expectedValue
+        aggregation.getArguments() == expectedValue
+        aggregation.needSubquery() == needSubQuery
+        aggregation.getSubquery() == subQuery
         where:
         fqs << [["ag=min"] as String[],
                 ["ag=max"] as String[],
@@ -38,13 +42,19 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["analysis=trend"] as String[],
                 ["analysis=outlier"] as String[],
                 ["analysis=frequency:10,6"] as String[],
-                ["analysis=fastdtw:(metric:load*),5,0.4"] as String[],
+                ["analysis=fastdtw:(metric:load* AND group:(A OR B)),5,0.4"] as String[],
+                ["analysis=fastdtw:metric:load* AND group:(A OR B),5,0.4"] as String[]
         ]
 
         expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P,
-                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
-        expectedValue << [new String[0], new String[0], new String[0], new String[0], ["0.4"] as String[],
-                          new String[0], new String[0], ["10", "6"] as String[], ["(metric:load*)", "5", "0.4"] as String[]]
+                               AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW, AnalysisType.FASTDTW]
+        expectedValue << [new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[],
+                          new String[0], new String[0], ["window size=10", "window threshold=6"] as String[],
+                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
+                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
+
+        subQuery << [null, null, null, null, null, null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
+        needSubQuery << [false, false, false, false, false, false, false, false, true, true]
     }
 
     def "test ag query strings that produce exceptions"() {
