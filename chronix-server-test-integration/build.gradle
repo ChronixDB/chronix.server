@@ -10,9 +10,9 @@ dependencies {
     testCompile 'org.apache.solr:solr-solrj:5.5.0'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.6'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.6'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.6'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.7-alpha-02'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.7-alpha-02'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.7-alpha-02'
 
 
     testCompile project(':chronix-server-client')

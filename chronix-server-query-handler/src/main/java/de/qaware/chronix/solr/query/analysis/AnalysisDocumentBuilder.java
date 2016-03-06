@@ -105,23 +105,35 @@ public final class AnalysisDocumentBuilder {
     public static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
         //Collect all document of a time series
 
-        LongList timestamps = new LongList();
-        DoubleList values = new DoubleList();
+        LongList timestamps = null;
+        DoubleList values = null;
         Map<String, Object> attributes = new HashMap<>();
         String metric = null;
 
         for (SolrDocument doc : documents) {
             MetricTimeSeries ts = convert(doc, queryStart, queryEnd);
 
-            timestamps.addAll(ts.getTimestamps());
-            values.addAll(ts.getValues());
+            //Performance optimization. Avoiding fine grained growing.
+            if (timestamps == null) {
+                int size = ts.size();
+                if (size < 1000) {
+                    //well we have a small time series
+                    size = 1000;
+                }
+                int calcAmountOfPoints = documents.size() * size;
+                timestamps = new LongList(calcAmountOfPoints);
+                values = new DoubleList(calcAmountOfPoints);
+            }
+
+            timestamps.addAll(ts.getTimestampsAsArray());
+            values.addAll(ts.getValuesAsArray());
 
             //we use the metric of the first time series.
             //metric is the default join key.
             if (metric == null) {
                 metric = ts.getMetric();
             }
-            merge(attributes, ts.attributes());
+            merge(attributes, ts.getAttributesReference());
         }
 
         return new MetricTimeSeries.Builder(metric)

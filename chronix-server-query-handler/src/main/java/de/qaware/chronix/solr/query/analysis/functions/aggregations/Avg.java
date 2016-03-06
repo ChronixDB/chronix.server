@@ -38,11 +38,10 @@ public final class Avg implements ChronixAnalysis {
 
         MetricTimeSeries timeSeries = args[0];
         int size = timeSeries.size();
-        double[] values = timeSeries.getValues().toArray();
 
         double current = 0;
         for (int i = 0; i < size; i++) {
-            current += values[i];
+            current += timeSeries.getValue(i);
         }
 
         return current / timeSeries.size();
