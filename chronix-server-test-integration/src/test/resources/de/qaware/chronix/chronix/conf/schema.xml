@@ -26,6 +26,7 @@
         <field name="host" type="string" indexed="true" stored="true" required="false"/>
         <field name="source" type="string" indexed="true" stored="true" required="false"/>
         <field name="group" type="string" indexed="true" stored="true" required="false"/>
+        <field name="date" type="string" indexed="true" stored="true" required="false"/>
 
 
         <field name="myIntField" type="int" indexed="true" stored="true" required="false"/>
