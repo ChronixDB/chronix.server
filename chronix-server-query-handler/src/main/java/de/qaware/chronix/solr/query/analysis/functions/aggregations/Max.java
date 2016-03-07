@@ -39,16 +39,16 @@ public final class Max implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
-        double max = 0;
-
         if (timeSeries.size() <= 0) {
-            return max;
+            return Double.NaN;
         }
-        int size = timeSeries.size();
 
-        for (int i = 0; i < size; i++) {
+        int size = timeSeries.size();
+        double max = timeSeries.getValue(0);
+
+        for (int i = 1; i < size; i++) {
             double next = timeSeries.getValue(i);
-            if (max < next) {
+            if (next > max) {
                 max = next;
             }
         }

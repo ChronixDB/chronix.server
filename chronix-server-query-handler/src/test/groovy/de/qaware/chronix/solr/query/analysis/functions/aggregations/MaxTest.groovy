@@ -31,6 +31,7 @@ class MaxTest extends Specification {
             timeSeries.point(it, it * 10)
         }
         timeSeries.point(11, 9999)
+        timeSeries.point(12, -10)
         MetricTimeSeries ts = timeSeries.build()
 
 
@@ -40,11 +41,11 @@ class MaxTest extends Specification {
         result == 9999.0
     }
 
-    def "test empty time series"() {
+    def "test for empty time series"() {
         when:
-        def result = new Max().execute(new MetricTimeSeries.Builder("Max").build())
+        def result = new Max().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == 0.0
+        result == Double.NaN
     }
 
 

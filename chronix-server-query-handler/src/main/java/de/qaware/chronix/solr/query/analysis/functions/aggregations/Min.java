@@ -39,15 +39,14 @@ public class Min implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
-        double min = 0;
         if (timeSeries.size() <= 0) {
-            return min;
+            return Double.NaN;
         }
+
         int size = timeSeries.size();
+        double min = timeSeries.getValue(0);
 
-        min = timeSeries.getValue(0);
-
-        for (int i = 0; i < size; i++) {
+        for (int i = 1; i < size; i++) {
             double next = timeSeries.getValue(i);
             if (next < min) {
                 min = next;

@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions.aggregations
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
  * Unit test for the standard deviation aggregation
  * @author f.lautenschlager
@@ -44,6 +45,13 @@ class StdDevTest extends Specification {
         new StdDev().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
+    }
+
+    def "test for empty time series"() {
+        when:
+        def result = new StdDev().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        then:
+        result == Double.NaN
     }
 
     def "test subquery"() {

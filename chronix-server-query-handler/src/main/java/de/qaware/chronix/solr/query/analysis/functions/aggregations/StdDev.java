@@ -37,6 +37,9 @@ public final class StdDev implements ChronixAnalysis {
             throw new IllegalArgumentException("Standard deviation aggregation needs at least one time series");
         }
         MetricTimeSeries timeSeries = args[0];
+        if (timeSeries.size() <= 0) {
+            return Double.NaN;
+        }
 
         return de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues());
     }

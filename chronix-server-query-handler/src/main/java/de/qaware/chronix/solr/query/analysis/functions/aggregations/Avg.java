@@ -37,8 +37,11 @@ public final class Avg implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
-        int size = timeSeries.size();
+        if (timeSeries.size() <= 0) {
+            return Double.NaN;
+        }
 
+        int size = timeSeries.size();
         double current = 0;
         for (int i = 0; i < size; i++) {
             current += timeSeries.getValue(i);

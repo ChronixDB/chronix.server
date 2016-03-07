@@ -44,9 +44,9 @@ class MinTest extends Specification {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it, it * 10 + 1)
         }
-        timeSeries.point(11, 9999)
+        timeSeries.point(11, 0)
         MetricTimeSeries ts = timeSeries.build()
 
 
@@ -56,11 +56,11 @@ class MinTest extends Specification {
         result == 0.0
     }
 
-    def "test empty time series"() {
+    def "test for empty time series"() {
         when:
-        def result = new Min().execute(new MetricTimeSeries.Builder("Min").build())
+        def result = new Min().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == 0.0
+        result == Double.NaN
     }
 
     def "test exception behaviour"() {

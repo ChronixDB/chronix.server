@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions.aggregations
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
  * Unit test for the average aggregation
  * @author f.lautenschlager
@@ -45,6 +46,13 @@ class AvgTest extends Specification {
         new Avg().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
+    }
+
+    def "test for empty time series"() {
+        when:
+        def result = new Avg().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        then:
+        result == Double.NaN
     }
 
     def "test subquery"() {
