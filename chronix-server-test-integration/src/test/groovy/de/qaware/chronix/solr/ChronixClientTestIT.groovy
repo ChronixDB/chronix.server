@@ -208,7 +208,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= points
+        selectedTimeSeries.size() >= 7000
         selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
         selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
         selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
@@ -219,8 +219,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
-        points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000]
+        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "ag=sum", "ag=count", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
     }
 
     @Unroll
@@ -235,11 +234,10 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size()
-        selectedTimeSeries.getMetric() == "\\Load\\max"
-        selectedTimeSeries.attribute("function") == "FASTDTW"
-        selectedTimeSeries.attribute("join_key") == "\\Load\\max"
-        selectedTimeSeries.attribute("function_value") == 0.056865779428449705
-        selectedTimeSeries.attribute("function_arguments") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+        selectedTimeSeries.getMetric() == "\\Load\\min"
+        selectedTimeSeries.attribute("join_key") == "\\Load\\min"
+        selectedTimeSeries.attribute("function_fastdtw_\\Load\\max") == 0.056865779428449705
+        selectedTimeSeries.attribute("function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
     }
 

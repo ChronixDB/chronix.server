@@ -33,6 +33,7 @@ import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,19 +85,17 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
         String originQuery = modifiableSolrParams.get(CommonParams.Q);
 
-        long[] startAndEnd = dateRangeParser.getNumericQueryTerms(originQuery);
-        long queryStart = or(startAndEnd[0], -1, 0);
-        long queryEnd = or(startAndEnd[1], -1, Long.MAX_VALUE);
+        final long[] startAndEnd = dateRangeParser.getNumericQueryTerms(originQuery);
+        final long queryStart = or(startAndEnd[0], -1L, 0L);
+        final long queryEnd = or(startAndEnd[1], -1L, Long.MAX_VALUE);
 
         modifiableSolrParams.set(ChronixQueryParams.QUERY_START_LONG, String.valueOf(queryStart));
         modifiableSolrParams.set(ChronixQueryParams.QUERY_END_LONG, String.valueOf(queryEnd));
-
         String query = dateRangeParser.replaceRangeQueryTerms(originQuery);
-
         modifiableSolrParams.set(CommonParams.Q, query);
 
         //Set the min required fields if the user define a sub set of fields
-        modifiableSolrParams.set(CommonParams.FL, minRequiredFields(modifiableSolrParams.get(CommonParams.FL)));
+        modifiableSolrParams.set(CommonParams.FL, requestedFields(modifiableSolrParams.get(CommonParams.FL), req.getSchema().getFields().keySet()));
         //Set the updated query
         req.setParams(modifiableSolrParams);
 
@@ -105,7 +104,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
         //if we have an analysis or aggregation request
         if (contains(filterQueries, ChronixQueryParams.AGGREGATION_PARAM) || contains(filterQueries, ChronixQueryParams.ANALYSIS_PARAM)) {
-            LOGGER.debug("Request is an analysis or aggregation request.");
+            LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {
             //let the default search handler do its work
@@ -118,7 +117,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         rsp.getResponseHeader().add(ChronixQueryParams.QUERY_END_LONG, queryEnd);
     }
 
-    private long or(long value, long condition, long or) {
+    private <T> T or(T value, T condition, T or) {
         if (value == condition) {
             return or;
         } else {
@@ -128,20 +127,49 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
     /**
      * Gets the requested fields.
-     * Joins the REQUIRED_FIELDS and the user defined fields.
+     * Joins the REQUIRED_FIELDS_WITH_DATA and the user defined fields.
      * E.g.:
      * user requested fields: userField
      * => data,start,end,metric,userField
      *
-     * @param fl - the solr fl param
+     * @param fl     the solr fl param
+     * @param schema the solr schema
      * @return the user defined fields and the required fields, or null if fl is null
      */
-    private String minRequiredFields(String fl) {
+    private String requestedFields(String fl, Set<String> schema) {
         //As a result Solr will return everything
         if (fl == null || fl.isEmpty()) {
             return null;
         }
-        return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);
+
+        //we do not have to remove fields
+        if (fl.indexOf('-') == -1) {
+            return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);
+        } else {
+            //the requested fields including -fields
+            Set<String> fields = new HashSet<>(Arrays.asList(fl.split(ChronixQueryParams.JOIN_SEPARATOR)));
+            //Check if we have only fields to remove
+            if (onlyToRemove(fields)) {
+                //
+                Set<String> resultingFields = new HashSet<>(schema);
+                //remove fields
+                for (String field : fields) {
+                    //one can remove the data field
+                    resultingFields.remove(field.replace("-", "").trim());
+                }
+                return String.join(ChronixQueryParams.JOIN_SEPARATOR, resultingFields);
+            }
+        }
+        return null;
+    }
+
+    private boolean onlyToRemove(Set<String> fields) {
+        for (String field : fields) {
+            if (!field.startsWith("-")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

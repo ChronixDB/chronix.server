@@ -15,12 +15,12 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
+import com.google.common.base.Strings;
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
@@ -70,26 +70,99 @@ public final class AnalysisDocumentBuilder {
     /**
      * Analyzes the given chunks of time series that match the given join key
      *
-     * @param analysis   the analysis including the arguments
+     * @param analyses   the analysis including the arguments
      * @param timeSeries the time series that is analyzed
      * @return the analyzed solr document
      */
-    public static SolrDocument analyze(ChronixAnalysis analysis, String joinKey, MetricTimeSeries timeSeries) {
-        double value = analysis.execute(timeSeries);
-        return buildDocument(timeSeries, value, analysis, joinKey);
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, String joinKey, MetricTimeSeries timeSeries) {
+
+        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
+
+        //run over the analyses
+        for (ChronixAnalysis analysis : analyses) {
+            //Execute analysis and store the result
+            double value = analysis.execute(timeSeries);
+            analysisAndValues.add(analysis, value, null);
+
+        }
+        return analysisAndValues;
+        // return buildDocument(timeSeries, analysisAndValues, joinKey);
     }
 
     /**
      * Analyzes the given chunk sets of the two time series
      *
-     * @param analysis      the analysis including the arguments
+     * @param analyses      the analyses that are applied on the two time series
      * @param timeSeries    the time series from the first query
      * @param subTimeSeries one time series from the sub query (represented in the result)
      * @return the analyzed solr document
      */
-    public static SolrDocument analyze(ChronixAnalysis analysis, String joinKey, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
-        double value = analysis.execute(timeSeries, subTimeSeries);
-        return buildDocument(subTimeSeries, value, analysis, joinKey);
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, String joinKey, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
+        //run over the analyses
+        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
+
+        for (ChronixAnalysis analysis : analyses) {
+            double value = analysis.execute(timeSeries, subTimeSeries);
+            analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
+        }
+        return analysisAndValues;
+        //return buildDocument(subTimeSeries, analysisAndValues, joinKey);
+    }
+
+    /**
+     * Builds a solr document that is needed for the response from the aggregated time series
+     *
+     * @param timeSeries       the time series
+     * @param analysisValueMap a map with executed analyses and values
+     * @param key              the join key
+     * @return
+     */
+    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, AnalysisValueMap analysisValueMap, String key, boolean dataShouldReturned) {
+
+
+        int analysesCount = analysisValueMap.size();
+        boolean returnDocument = false;
+
+
+        //First check if a document is needed
+        for (int i = 0; i < analysesCount; i++) {
+            double value = analysisValueMap.getValue(i);
+
+            if (!returnDocument && value > 0) {
+                // For aggregations we always return the document
+                returnDocument = true;
+            }
+        }
+
+        if (!returnDocument) {
+            return null;
+        }
+
+        SolrDocument doc = convert(timeSeries, dataShouldReturned);
+        addAnalysesAndResults(analysisValueMap, analysesCount, doc);
+        //add the join key
+        doc.put(ChronixQueryParams.JOIN_KEY, key);
+
+        return doc;
+    }
+
+    private static void addAnalysesAndResults(AnalysisValueMap analysisValueMap, int analysesCount, SolrDocument doc) {
+        for (int i = 0; i < analysesCount; i++) {
+            ChronixAnalysis analysis = analysisValueMap.getAnalysis(i);
+            double value = analysisValueMap.getValue(i);
+            String identifier = analysisValueMap.getIdentifier(i);
+            String nameWithLeadingUnderscore;
+            if (Strings.isNullOrEmpty(identifier)) {
+                nameWithLeadingUnderscore = "_" + analysis.getType().name().toLowerCase();
+
+            } else {
+                nameWithLeadingUnderscore = "_" + analysis.getType().name().toLowerCase() + "_" + identifier;
+            }
+
+            //Add some information about the analysis
+            doc.put(ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
+            doc.put(ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, analysis.getArguments());
+        }
     }
 
     /**
@@ -179,37 +252,6 @@ public final class AnalysisDocumentBuilder {
             }
             //otherwise we ignore the value
         }
-    }
-
-    /**
-     * Builds a solr document that is needed for the response from the aggregated time series
-     *
-     * @param timeSeries      the time series
-     * @param value           the isAggregation value
-     * @param chronixAnalysis the isAggregation
-     * @param key             the join key
-     * @return a solr document holding the attributes and the aggregated value
-     */
-    private static SolrDocument buildDocument(MetricTimeSeries timeSeries, double value, ChronixAnalysis chronixAnalysis, String key) {
-
-        boolean highLevelAnalysis = AnalysisType.isHighLevel(chronixAnalysis.getType());
-
-        //-1 on high level analyses marks that the time series is ok and should not returned
-        if (highLevelAnalysis && value < 0) {
-            return null;
-        }
-
-        SolrDocument doc = convert(timeSeries, highLevelAnalysis);
-
-        //Add some information about the analysis
-        doc.put(ChronixQueryParams.FUNCTION, chronixAnalysis.getType().name());
-        doc.put(ChronixQueryParams.FUNCTION_ARGUMENTS, chronixAnalysis.getArguments());
-        doc.put(ChronixQueryParams.FUNCTION_VALUE, value);
-
-        //add the join key
-        doc.put(ChronixQueryParams.JOIN_KEY, key);
-
-        return doc;
     }
 
 

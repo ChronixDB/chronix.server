@@ -28,6 +28,8 @@ public enum AnalysisType {
     MAX,
     DEV,
     P,
+    SUM,
+    COUNT,
     //Analysis
     TREND,
     OUTLIER,

@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
+import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -49,6 +49,7 @@ public class AnalysisHandler extends SearchHandler {
 
     private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
+    private static final String DATA_WITH_LEADING_AND_TRAILING_COMMA = "," + Schema.DATA + ",";
     /**
      * Constructs an isAggregation handler
      *
@@ -79,6 +80,11 @@ public class AnalysisHandler extends SearchHandler {
         SolrDocumentList results = new SolrDocumentList();
         String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
 
+        //Check if the data field should be returned - default is true
+        String fields = req.getParams().get(CommonParams.FL, Schema.DATA);
+        boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
+
+
         //Do a query and collect them on the join function
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(filterQueries);
         Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, key);
@@ -88,8 +94,8 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final ChronixAnalysis analysis = AnalysisQueryEvaluator.buildAnalysis(filterQueries);
-            final List<SolrDocument> resultDocuments = analyze(req, analysis, key, collectedDocs);
+            final Set<ChronixAnalysis> analyses = AnalysisQueryEvaluator.buildAnalyses(filterQueries);
+            final List<SolrDocument> resultDocuments = analyze(req, analyses, key, collectedDocs, dataShouldReturned);
             results.addAll(resultDocuments);
             results.setNumFound(resultDocuments.size());
         }
@@ -99,40 +105,74 @@ public class AnalysisHandler extends SearchHandler {
     /**
      * Analyzes the given request using the chronix analysis.
      *
-     * @param req           the solr request with all information
-     * @param analysis      the chronix analysis that is applied
-     * @param key           the key for joining documents
-     * @param collectedDocs the prior collected documents of the query
+     * @param req                the solr request with all information
+     * @param analyses           the chronix analysis that is applied
+     * @param key                the key for joining documents
+     * @param collectedDocs      the prior collected documents of the query
+     * @param dataShouldReturned
      * @return a list containing the analyzed time series as solr documents
      * @throws IOException              if bad things happen in querying the documents
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, ChronixAnalysis analysis, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs) throws IOException, IllegalStateException, ParseException {
+    private List<SolrDocument> analyze(SolrQueryRequest req, Set<ChronixAnalysis> analyses, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
+
+        if (analyses.isEmpty()) {
+            LOGGER.info("Analyses are empty. Returning empty result");
+            return new ArrayList<>();
+        }
+
+        //Do all analyses
+
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
         final long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
-        final List<SolrDocument> resultDocuments;
+        final List<SolrDocument> resultDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
-        //Check if have an aggregation or a high level analysis
-        if (AnalysisType.isAggregation(analysis.getType())) {
-            //We have an analysis query
-            resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
-        } else if (AnalysisType.isHighLevel(analysis.getType())) {
-            //Check if the analysis needs a sub query
-            if (analysis.needSubquery()) {
-                //lets parse the sub-query for start and and end terms
-                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
-                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
-                resultDocuments = analyze(collectedDocs, subQueryDocuments, analysis, queryStart, queryEnd);
-            } else {
-                resultDocuments = analyze(collectedDocs, analysis, queryStart, queryEnd);
+        collectedDocs.entrySet().parallelStream().forEach(docs -> {
+            try {
+                MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+                AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
+
+                //run over the analyses
+                for (ChronixAnalysis analysis : analyses) {
+
+                    if (analysis.needSubquery()) {
+                        //lets parse the sub-query for start and and end terms
+                        String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
+                        Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+
+                        //execute the analysis with all sub documents
+                        subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
+                            //Only if have a different time series
+                            if (!docs.getKey().equals(subDocs.getKey())) {
+                                MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+
+                                double value = analysis.execute(timeSeries, subTimeSeries);
+                                analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
+                            }
+
+                        });
+
+                    } else {
+                        //Execute analysis and store the result
+                        double value = analysis.execute(timeSeries);
+                        analysisAndValues.add(analysis, value, null);
+                    }
+                }
+
+                //Here we have to build the document with the results of the analyses
+                SolrDocument doc = AnalysisDocumentBuilder.buildDocument(timeSeries, analysisAndValues, docs.getKey(), dataShouldReturned);
+
+                if (doc != null) {
+                    resultDocuments.add(doc);
+                }
+
+            } catch (ParseException | IOException e) {
+                LOGGER.info("Could not parse query due to an exception", e);
             }
-        } else {
-            throw new IllegalArgumentException("Analysis type is unknown " + analysis.getType());
-        }
+        });
         return resultDocuments;
-
     }
 
     /**
@@ -161,6 +201,10 @@ public class AnalysisHandler extends SearchHandler {
     private Map<String, List<SolrDocument>> collectDocuments(String query, SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
         //query and collect all documents
         Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
+        //we need it every time
+        if (fields != null && !fields.contains(Schema.DATA)) {
+            fields.add(Schema.DATA);
+        }
         DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
         SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
         return AnalysisDocumentBuilder.collect(docs, collectionKey);
@@ -181,57 +225,6 @@ public class AnalysisHandler extends SearchHandler {
         Set<String> returnFields = new HashSet<>();
         Collections.addAll(returnFields, fields);
         return returnFields;
-    }
-
-    /**
-     * Analyzes one set of time series
-     *
-     * @param collectedDocs the collected solr documents (time series records)
-     * @param analysis      the analysis that should be applied
-     * @param queryStart    the start from the given query
-     * @param queryEnd      the end from the given query
-     * @return a list with analyzed solr documents
-     */
-    private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, ChronixAnalysis analysis, long queryStart, long queryEnd) {
-        List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-
-        collectedDocs.entrySet().parallelStream().forEach(docs -> {
-            MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
-            SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, docs.getKey(), timeSeries);
-            if (doc != null) {
-                solrDocuments.add(doc);
-            }
-        });
-
-        return solrDocuments;
-    }
-
-    /**
-     * Analyzes two sets of time series.
-     *
-     * @param collectedDocs     the documents of the outer query
-     * @param subQueryDocuments the document of the inner query
-     * @param analysis          the chronix analysis
-     * @param queryStart        the start of the query
-     * @param queryEnd          the end of the query
-     * @return a list with analyzed solr documents
-     */
-    private List<SolrDocument> analyze(Map<String, List<SolrDocument>> collectedDocs, Map<String, List<SolrDocument>> subQueryDocuments, ChronixAnalysis analysis, long queryStart, long queryEnd) {
-        List<SolrDocument> solrDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
-        collectedDocs.entrySet().parallelStream().forEach(docs -> {
-            MetricTimeSeries ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
-            subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                //Only if have a different time series
-                if (!docs.getKey().equals(subDocs.getKey())) {
-                    MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
-                    SolrDocument doc = AnalysisDocumentBuilder.analyze(analysis, subDocs.getKey(), ts, subTimeSeries);
-                    if (doc != null) {
-                        solrDocuments.add(doc);
-                    }
-                }
-            });
-        });
-        return solrDocuments;
     }
 
     /**

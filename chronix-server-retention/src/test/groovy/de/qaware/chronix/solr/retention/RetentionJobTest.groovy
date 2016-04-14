@@ -21,6 +21,7 @@ import org.apache.http.impl.client.CloseableHttpClient
 import org.quartz.JobDataMap
 import org.quartz.JobExecutionException
 import org.quartz.impl.JobExecutionContextImpl
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -70,6 +71,7 @@ class RetentionJobTest extends Specification {
         thrown JobExecutionException
     }
 
+    @Ignore
     def "test with real integration"() {
         given:
         def retentionJob = new RetentionJob()

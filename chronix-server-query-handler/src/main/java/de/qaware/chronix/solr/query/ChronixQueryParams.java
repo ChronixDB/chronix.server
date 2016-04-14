@@ -15,6 +15,8 @@
  */
 package de.qaware.chronix.solr.query;
 
+import de.qaware.chronix.Schema;
+
 /**
  * The Chronix Query parameter constants
  *
@@ -36,11 +38,6 @@ public final class ChronixQueryParams {
      * The function: aggregation or analysis
      */
     public static final String FUNCTION = "function";
-
-    /**
-     * The aggregation value
-     */
-    public static final String FUNCTION_VALUE = "function_value";
 
     /**
      * The aggregation arguments
@@ -93,6 +90,7 @@ public final class ChronixQueryParams {
      */
     public static final String SOLR_VERSION_FIELD = "_version_";
 
+    public static final String NO_DATA = "-" + Schema.DATA;
 
     private ChronixQueryParams() {
         //avoid instances

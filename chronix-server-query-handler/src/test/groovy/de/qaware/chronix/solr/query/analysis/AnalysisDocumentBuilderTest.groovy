@@ -18,6 +18,8 @@ package de.qaware.chronix.solr.query.analysis
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
+import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import de.qaware.chronix.timeseries.dt.DoubleList
 import de.qaware.chronix.timeseries.dt.LongList
@@ -64,100 +66,51 @@ class AnalysisDocumentBuilderTest extends Specification {
         collectedDocs.get("groovy-laptop").size() == 2
     }
 
-    def "test high level analysis returns null"() {
-        given:
-        def docs = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=frequency:0,999999"] as String[])
-
-        when:
-        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
-
-        then:
-        document == null
-    }
 
     def "test aggregate"() {
         given:
         def docs = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["ag=max"] as String[])
+        def analyses = AnalysisQueryEvaluator.buildAnalyses(["ag=max"] as String[])
 
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analyses, "groovy-laptop", ts);
 
         then:
-        document.getFieldValue("host") as Set == ["laptop"] as Set<String>
-        document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 1495
-        document.getFieldValue("function") as String == "MAX"
-        document.getFieldValue("function_value") as double == 99000.0d
-        document.getFieldValue("function_arguments") as Object[] == new Object[0]
-        document.getFieldValue("join_key") as String == "groovy-laptop"
-        document.getFieldValue("data") == null
-        document.getFieldValue("_version_") == null
-        (document.getFieldValue("userByteBuffer") as Set).size() == 10
-
-        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
-        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
-        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
+        analysesAndValues.getAnalysis(0).type == AnalysisType.MAX
     }
 
     def "test analyze"() {
         given:
         def docs = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=trend"] as String[])
+        def analysis = AnalysisQueryEvaluator.buildAnalyses(["analysis=trend"] as String[])
 
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
 
         then:
-        document.getFieldValue("host") as Set == ["laptop"] as Set<String>
-        document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 1495
-        document.getFieldValue("function") as String == "TREND"
-        document.getFieldValue("function_value") as double == 1
-        document.getFieldValue("function_arguments") as Object[] == new Object[0]
-        document.getFieldValue("join_key") as String == "groovy-laptop"
-        document.getFieldValue("data") != null
-        document.getFieldValue("_version_") == null
-        (document.getFieldValue("userByteBuffer") as Set).size() == 10
+        analysesAndValues.getAnalysis(0).type == AnalysisType.TREND
 
-        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
-        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
-        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
     }
 
     def "test analyze with subquery"() {
         given:
         def docs = fillDocs()
         def docs2 = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalysis(["analysis=fastdtw:(metric:*),10,0.5"] as String[])
+        def analysis = AnalysisQueryEvaluator.buildAnalyses(["analysis=fastdtw:(metric:*),10,0.5"] as String[])
 
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
         def ts2 = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs2);
-        def document = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts, ts2);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts, ts2);
 
         then:
-        document.getFieldValue("host") as Set<String> == ["laptop"] as Set<String>
-        document.getFieldValue("metric") as String == "groovy"
-        document.getFieldValue("start") as long == 1
-        document.getFieldValue("end") as long == 1495
-        document.getFieldValue("function") as String == "FASTDTW"
-        (document.getFieldValue("function_arguments") as Object[]).length == 3
-        document.getFieldValue("function_value") as double == 0
-        document.getFieldValue("join_key") as String == "groovy-laptop"
-        document.getFieldValue("data") != null
-        document.getFieldValue("_version_") == null
-        (document.getFieldValue("userByteBuffer") as Set).size() == 10
+        FastDtw result = analysesAndValues.getAnalysis(0)
+        result.type == AnalysisType.FASTDTW
+        result.searchRadius == 10
+        result.subquery == "metric:*"
 
-        document.getFieldValue("someInt") as Set == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as Set<Integer>
-        document.getFieldValue("someFloat") as Set == [9.100000023841858, 5.100000023841858, 8.100000023841858, 3.100000023841858, 4.100000023841858, 10.100000023841858, 1.100000023841858, 7.100000023841858, 2.100000023841858, 6.100000023841858] as Set<Float>
-        document.getFieldValue("someDouble") as Set == [2.0, 4.0, 8.0, 9.0, 5.0, 10.0, 11.0, 3.0, 6.0, 7.0] as Set<Double>
     }
 
     List<Document> fillDocs() {

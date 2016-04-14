@@ -25,6 +25,8 @@ import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend;
 
 import java.lang.reflect.MalformedParametersException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author f.lautenschlager
@@ -34,10 +36,45 @@ public final class AnalysisQueryEvaluator {
     private static final String AGGREGATION_DELIMITER = "=";
     private static final String AGGREGATION_ARGUMENT_DELIMITER = ":";
     private static final String AGGREGATION_ARGUMENT_SPLITTER = ",";
+    private static final String FUNCTION_ARGUMENT_SPLITTER = ";";
 
 
     private AnalysisQueryEvaluator() {
         //avoid instances
+    }
+
+    public static Set<ChronixAnalysis> buildAnalyses(String[] filterQueries) {
+
+        if (filterQueries == null || filterQueries.length == 0) {
+            throw new MalformedParametersException("Analyses must not be null.");
+        }
+        Set<ChronixAnalysis> result = new HashSet<>();
+        String[] arguments = new String[0];
+
+        for (String unmodifiedAnalysis : filterQueries) {
+            String function = extractFunction(unmodifiedAnalysis);
+
+            String[] functions;
+            //check if we have one or more functions / aggregations
+            if (function.contains(FUNCTION_ARGUMENT_SPLITTER)) {
+                functions = function.split(FUNCTION_ARGUMENT_SPLITTER);
+            } else {
+                functions = new String[]{function};
+            }
+
+            //run over the functions
+            for (String subFunction : functions) {
+                //function has an argument
+                if (subFunction.contains(AGGREGATION_ARGUMENT_DELIMITER)) {
+                    arguments = extractAggregationParameter(subFunction);
+                    subFunction = subFunction.substring(0, subFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
+                }
+                result.add(getImplementation(AnalysisType.valueOf(subFunction.toUpperCase()), arguments));
+
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -50,11 +87,12 @@ public final class AnalysisQueryEvaluator {
      * @param filterQueries - the filter queries of the user query
      * @return an entry containing the isAggregation and an isAggregation argument
      */
+    @Deprecated
     public static ChronixAnalysis buildAnalysis(String[] filterQueries) {
 
         String unmodifiedAnalysis = getAnalysis(filterQueries);
 
-        String aggregation = extractAggregation(unmodifiedAnalysis);
+        String aggregation = extractFunction(unmodifiedAnalysis);
         String[] arguments = new String[0];
         //Aggregation has an argument
         if (aggregation.contains(AGGREGATION_ARGUMENT_DELIMITER)) {
@@ -73,6 +111,10 @@ public final class AnalysisQueryEvaluator {
                 return new Min();
             case MAX:
                 return new Max();
+            case SUM:
+                return new Sum();
+            case COUNT:
+                return new Count();
             case DEV:
                 return new StdDev();
             case P:
@@ -121,7 +163,7 @@ public final class AnalysisQueryEvaluator {
     }
 
 
-    private static String extractAggregation(String unmodifiedAggregation) {
+    private static String extractFunction(String unmodifiedAggregation) {
         return extract(unmodifiedAggregation, AGGREGATION_DELIMITER);
     }
 
@@ -132,7 +174,7 @@ public final class AnalysisQueryEvaluator {
 
     private static String getAnalysis(String[] fqs) {
         if (fqs == null) {
-            throw new MalformedParametersException("Aggregation must not null.");
+            throw new MalformedParametersException("Aggregation must not be null.");
         }
 
         for (String filterQuery : fqs) {

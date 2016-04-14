@@ -168,6 +168,16 @@ Currently the following analyses are available:
 - Average (ag=avg)
 - Standard Deviation (ag=dev)
 - Percentiles (ag=p:[0.1,...,1.0])
+- Count (ag=count) (*Relase 0.2*)
+- Sum (ag=sum) (*Relase 0.2*)
+- Spread (ag=spread) (*Relase 0.2*)
+- First/Last (ag=first/last) (*Relase 0.2*)
+- Bottom/Top (analysis=bottom/top:10) (*Relase 0.2*)
+- Derivative (analysis=derivative) (*Relase 0.2*)
+- Non Negative Derivative (analysis=NonNegDerivative) (*Relase 0.2*)
+- Difference (analysis=diff:) (*Relase 0.2*)
+- Scale (analysis=scale:0.5) (*Relase 0.2*)
+- Moving Average (analysis=movAvg:10m) (*Relase 0.2*)
 - A linear trend detection (analysis=trend)
 - Outlier detection (analysis=outlier)
 - Frequency detection (analysis=frequency:10,6)
@@ -285,10 +295,10 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-retention:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.2'
+   compile 'de.qaware.chronix:chronix-server-client:0.1.3'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.3'
+   compile 'de.qaware.chronix:chronix-server-retention:0.1.3'
+   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.3'
 }
 ```
 
