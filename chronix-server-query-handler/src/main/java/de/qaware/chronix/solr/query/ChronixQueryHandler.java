@@ -118,7 +118,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     }
 
     private <T> T or(T value, T condition, T or) {
-        if (value == condition) {
+        if (value.equals(condition)) {
             return or;
         } else {
             return value;

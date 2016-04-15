@@ -43,6 +43,12 @@ public final class AnalysisQueryEvaluator {
         //avoid instances
     }
 
+    /**
+     * Analyzes the filter queries and parses them for chronix analyses
+     *
+     * @param filterQueries the filter queries (solr api)
+     * @return a set of chronix analyses asked in the filter queries
+     */
     public static Set<ChronixAnalysis> buildAnalyses(String[] filterQueries) {
 
         if (filterQueries == null || filterQueries.length == 0) {
