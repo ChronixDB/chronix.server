@@ -45,6 +45,7 @@ public final class Avg implements ChronixAnalysis {
             return Double.NaN;
         }
 
+        //Else calculate the analysis value
         int size = timeSeries.size();
         double current = 0;
         for (int i = 0; i < size; i++) {

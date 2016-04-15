@@ -50,6 +50,7 @@ public class AnalysisHandler extends SearchHandler {
     private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
     private static final String DATA_WITH_LEADING_AND_TRAILING_COMMA = "," + Schema.DATA + ",";
+
     /**
      * Constructs an isAggregation handler
      *
@@ -84,12 +85,11 @@ public class AnalysisHandler extends SearchHandler {
         String fields = req.getParams().get(CommonParams.FL, Schema.DATA);
         boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
 
-
         //Do a query and collect them on the join function
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(filterQueries);
         Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, key);
 
-        //If now rows should returned, we only return the num found
+        //If no rows should returned, we only return the num found
         if (rows == 0) {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
@@ -97,8 +97,11 @@ public class AnalysisHandler extends SearchHandler {
             final Set<ChronixAnalysis> analyses = AnalysisQueryEvaluator.buildAnalyses(filterQueries);
             final List<SolrDocument> resultDocuments = analyze(req, analyses, key, collectedDocs, dataShouldReturned);
             results.addAll(resultDocuments);
+            //As we have to analyze all docs in the query at once,
+            // the number of documents is also the number of documents found
             results.setNumFound(resultDocuments.size());
         }
+        //Add the results to the response
         rsp.add("response", results);
     }
 
@@ -109,7 +112,7 @@ public class AnalysisHandler extends SearchHandler {
      * @param analyses           the chronix analysis that is applied
      * @param key                the key for joining documents
      * @param collectedDocs      the prior collected documents of the query
-     * @param dataShouldReturned
+     * @param dataShouldReturned flag to indicate if the data should be returned
      * @return a list containing the analyzed time series as solr documents
      * @throws IOException              if bad things happen in querying the documents
      * @throws IllegalArgumentException if the given analysis is not defined

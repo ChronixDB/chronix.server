@@ -46,7 +46,7 @@ public final class Max implements ChronixAnalysis {
         if (timeSeries.size() <= 0) {
             return Double.NaN;
         }
-
+        //Else calculate the analysis value
         int size = timeSeries.size();
         double max = timeSeries.getValue(0);
 

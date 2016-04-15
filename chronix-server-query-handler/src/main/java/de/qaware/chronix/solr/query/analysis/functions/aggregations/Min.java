@@ -47,6 +47,7 @@ public class Min implements ChronixAnalysis {
             return Double.NaN;
         }
 
+        //Else calculate the analysis value
         int size = timeSeries.size();
         double min = timeSeries.getValue(0);
 

@@ -38,6 +38,7 @@ public class Sum implements ChronixAnalysis {
             return Double.NaN;
         }
 
+        //Else calculate the analysis value
         int size = timeSeries.size();
         double sum = 0;
 

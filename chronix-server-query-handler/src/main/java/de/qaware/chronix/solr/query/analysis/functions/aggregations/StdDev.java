@@ -44,6 +44,7 @@ public final class StdDev implements ChronixAnalysis {
             return Double.NaN;
         }
 
+        //Else calculate the analysis value
         return de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues());
     }
 
