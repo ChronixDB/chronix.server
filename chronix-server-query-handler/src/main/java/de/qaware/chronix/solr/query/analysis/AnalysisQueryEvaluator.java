@@ -92,6 +92,7 @@ public final class AnalysisQueryEvaluator {
      *
      * @param filterQueries - the filter queries of the user query
      * @return an entry containing the isAggregation and an isAggregation argument
+     * @deprecated Since 0.2 as then Chronix supports multiple queries
      */
     @Deprecated
     public static ChronixAnalysis buildAnalysis(String[] filterQueries) {
