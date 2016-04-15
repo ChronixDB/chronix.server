@@ -51,13 +51,16 @@ public final class FastDtw implements ChronixAnalysis {
 
     @Override
     public double execute(MetricTimeSeries... args) {
+        //We need two time series
         if (args.length < 2) {
             throw new IllegalArgumentException("Fast DTW needs at least two time series");
         }
-
+        //We have to build a multivariate time series
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(args[0]);
         MultivariateTimeSeries other = buildMultiVariateTimeSeries(args[1]);
+        //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
+        //Check the result. If it lower equals the threshold, we can return the other time series
         if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
             return result.getNormalizedDistance();
         }
