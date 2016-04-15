@@ -27,15 +27,13 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 public class Count implements ChronixAnalysis {
     @Override
     public double execute(MetricTimeSeries... args) {
+
+        //Sum needs at least one time series
         if (args.length < 1) {
             throw new IllegalArgumentException("Max aggregation needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
-        if (timeSeries.size() <= 0) {
-            return Double.NaN;
-        }
-
         return timeSeries.size();
     }
 
