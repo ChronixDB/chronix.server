@@ -34,6 +34,7 @@ public class Count implements ChronixAnalysis {
         }
 
         MetricTimeSeries timeSeries = args[0];
+        //return the size of the time series
         return timeSeries.size();
     }
 

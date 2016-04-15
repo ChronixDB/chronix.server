@@ -58,6 +58,7 @@ public final class Percentile implements ChronixAnalysis {
             return Double.NaN;
         }
 
+        //Else calculate the analysis value
         return de.qaware.chronix.solr.query.analysis.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile);
     }
 

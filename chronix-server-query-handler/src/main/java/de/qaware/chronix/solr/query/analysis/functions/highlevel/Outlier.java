@@ -48,10 +48,12 @@ public class Outlier implements ChronixAnalysis {
         }
 
         DoubleList points = timeSeries.getValues();
-
+        //Calculate the percentiles
         double q1 = Percentile.evaluate(points, .25);
         double q3 = Percentile.evaluate(points, .75);
+        //Calculate the threshold
         double threshold = (q3 - q1) * 1.5 + q3;
+        //filter the values, if one outlier is found, we can return
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
             if (point > threshold) {
