@@ -74,7 +74,7 @@ class AnalysisDocumentBuilderTest extends Specification {
 
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analyses, "groovy-laptop", ts);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analyses, ts);
 
         then:
         analysesAndValues.getAnalysis(0).type == AnalysisType.MAX
@@ -87,7 +87,7 @@ class AnalysisDocumentBuilderTest extends Specification {
 
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, ts);
 
         then:
         analysesAndValues.getAnalysis(0).type == AnalysisType.TREND
@@ -103,7 +103,7 @@ class AnalysisDocumentBuilderTest extends Specification {
         when:
         def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
         def ts2 = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs2);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, "groovy-laptop", ts, ts2);
+        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, ts, ts2);
 
         then:
         FastDtw result = analysesAndValues.getAnalysis(0)

@@ -74,7 +74,7 @@ public final class AnalysisDocumentBuilder {
      * @param timeSeries the time series that is analyzed
      * @return the analyzed solr document
      */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, String joinKey, MetricTimeSeries timeSeries) {
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries) {
 
         AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
 
@@ -86,7 +86,6 @@ public final class AnalysisDocumentBuilder {
 
         }
         return analysisAndValues;
-        // return buildDocument(timeSeries, analysisAndValues, joinKey);
     }
 
     /**
@@ -97,7 +96,7 @@ public final class AnalysisDocumentBuilder {
      * @param subTimeSeries one time series from the sub query (represented in the result)
      * @return the analyzed solr document
      */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, String joinKey, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
         //run over the analyses
         AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
 
@@ -106,7 +105,6 @@ public final class AnalysisDocumentBuilder {
             analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
         }
         return analysisAndValues;
-        //return buildDocument(subTimeSeries, analysisAndValues, joinKey);
     }
 
     /**
@@ -115,7 +113,7 @@ public final class AnalysisDocumentBuilder {
      * @param timeSeries       the time series
      * @param analysisValueMap a map with executed analyses and values
      * @param key              the join key
-     * @return
+     * @return the resulting solr document
      */
     public static SolrDocument buildDocument(MetricTimeSeries timeSeries, AnalysisValueMap analysisValueMap, String key, boolean dataShouldReturned) {
 

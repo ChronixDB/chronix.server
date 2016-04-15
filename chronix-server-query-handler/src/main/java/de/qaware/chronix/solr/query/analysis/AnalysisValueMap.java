@@ -29,6 +29,11 @@ public class AnalysisValueMap {
     private final String[] identifiers;
     private int size = 0;
 
+    /**
+     * A container for analyses and its results
+     *
+     * @param size the number of analyses
+     */
     public AnalysisValueMap(int size) {
         this.analyses = new ChronixAnalysis[size];
         this.values = new double[size];
