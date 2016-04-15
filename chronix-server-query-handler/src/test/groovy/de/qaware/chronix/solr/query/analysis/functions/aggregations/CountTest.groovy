@@ -52,7 +52,7 @@ class CountTest extends Specification {
         when:
         def result = new Count().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == Double.NaN
+        result == 0.0d
     }
 
     def "test subquery"() {

@@ -33,10 +33,13 @@ public final class StdDev implements ChronixAnalysis {
      */
     @Override
     public double execute(MetricTimeSeries... args) {
+        //Sum needs at least one time series
         if (args.length < 1) {
             throw new IllegalArgumentException("Standard deviation aggregation needs at least one time series");
         }
         MetricTimeSeries timeSeries = args[0];
+
+        //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
             return Double.NaN;
         }
