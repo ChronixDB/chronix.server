@@ -196,6 +196,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
         do {
             document = solrStreamingHandler.pool();
             if (document != null) {
+                //Make a job to convert the solr document to a time series record
                 ListenableFuture future = service.submit(new TimeSeriesConverterCaller<>(document, converter, queryStart, queryEnd));
                 Futures.addCallback(future, timeSeriesHandler);
             }
