@@ -130,17 +130,20 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
     private void initialStream(SolrQuery query, SolrClient connection) {
         try {
+            //Make a copy of the query
             SolrQuery solrQuery = query.getCopy();
+            //We override the number of rows
             solrQuery.setRows(nrOfTimeSeriesPerBatch);
+            //And the start
             solrQuery.setStart(currentDocumentCount);
-
+            //init the streaming handler with
             solrStreamingHandler.init(nrOfTimeSeriesPerBatch, currentDocumentCount);
             QueryResponse response = connection.queryAndStreamResponse(solrQuery, solrStreamingHandler);
-
+            //Set the global values
             nrOfAvailableTimeSeries = response.getResults().getNumFound();
             queryStart = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_START_LONG);
             queryEnd = (long) response.getResponseHeader().get(ChronixSolrStorageConstants.QUERY_END_LONG);
-
+            //Data is filled. We need not stream until it is read out
             needStream = false;
         } catch (SolrServerException | IOException e) {
             LOGGER.error("SolrServerException occurred while querying server.", e);
@@ -149,19 +152,21 @@ public class SolrStreamingService<T> implements Iterator<T> {
 
     @Override
     public T next() {
+        //Check if we have to stream documents to our buffer
         if ((currentDocumentCount % nrOfTimeSeriesPerBatch == 0) && needStream) {
             streamNextDocumentsFromSolr();
         } else {
             needStream = true;
             convertStream();
         }
-
+        //Increment the document count
         currentDocumentCount += 1;
+        //We are done
         if (currentDocumentCount == nrOfAvailableTimeSeries) {
             LOGGER.debug("Shutting down the thread pool while all points are converted.");
             service.shutdown();
         }
-
+        //Someone calls next without calling hasNext()
         if (currentDocumentCount > nrOfAvailableTimeSeries) {
             throw new NoSuchElementException("Index " + currentDocumentCount + " greater than available time series " + nrOfAvailableTimeSeries);
         }
@@ -177,7 +182,9 @@ public class SolrStreamingService<T> implements Iterator<T> {
         solrStreamingHandler.init(nrOfTimeSeriesPerBatch, currentDocumentCount);
 
         try {
+            //Steam from solr
             connection.queryAndStreamResponse(solrQuery, solrStreamingHandler);
+            //Convert the returning solr documents using the converter
             convertStream();
         } catch (SolrServerException | IOException e) {
             LOGGER.warn("Exception while streaming the data points from Solr", e);
