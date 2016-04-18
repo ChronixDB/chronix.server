@@ -37,12 +37,14 @@ public final class Trend implements ChronixAnalysis {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Trend detection needs at least one time series");
         }
-
+        //Took the first time series
         MetricTimeSeries timeSeries = args[0];
+        //We need to sort the time series for this analysis
         timeSeries.sort();
-
+        //Calculate the linear regression
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
+        //If we have a positive slope, we return 1 otherwise -1
         return slope > 0 ? 1 : -1;
     }
 
