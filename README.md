@@ -187,8 +187,9 @@ Currently the following analyses are available:
  
 Only one analysis is allowed per query.
 If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
-An analysis query does not return the raw time series data.
+An analysis query does not return the raw time series data by default.
 It returns all requested time series attributes, the analysis and its result.
+With the enabled option ```fl=data``` Chronix will return the data for the analyses.
 The attributes are merged using a set to avoid duplicates.
 For example a query for a metric that is collected on several hosts might return the following result:
 ```
@@ -228,6 +229,33 @@ For example we want to join all records that have the same attribute values for 
 fq=join=host,process,metric
 ```
 If no join function is defined Chronix applies a default join function that uses the metric name.
+
+### Modify Chronix' response
+Per default Chronix returns (as Solr does) all defined fields in the *schema.xml*.
+One has three ways to modify the response using the *fl* parameter:
+
+#### One specific user defined field
+If only a specific user defined field is needed, e.g. the host field, one can set:
+```
+fl=host
+```
+Then Chronix will return the *host* field and the required fields (start,end,data,id).
+
+#### Exclude a specific field
+If one do not need a specific field, such as the data field, one can pass *-data* in the *fl* parameter.
+```
+fl=-data
+``` 
+In that case all fields, expect the data field, are returned.
+Even when the excluded field is a required field.
+
+#### Explicit return of a field
+This is useful in combination with an analysis. 
+Analyses per default do not return the raw data for performance reasons.
+But if the raw data is needed, one can pass
+```
+fl=+data
+```
 
 ### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-response-writer))
 This allows one to query raw (uncompressed) data from Chronix in JSON format. 

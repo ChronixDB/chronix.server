@@ -19,8 +19,7 @@ import de.qaware.chronix.Schema
 import de.qaware.chronix.converter.common.MetricTSSchema
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import org.apache.lucene.document.Field
-import org.apache.lucene.document.LongField
+import org.apache.lucene.document.LongPoint
 import org.apache.lucene.document.StoredField
 import org.apache.solr.common.SolrDocument
 import spock.lang.Shared
@@ -46,7 +45,7 @@ class ChronixTransformerTest extends Specification {
         when:
         def docTransformer = transformer.create("dataAsJson", null, null)
 
-        docTransformer.transform(doc, 0)
+        docTransformer.transform(doc, 0, 0.0f)
 
         then:
         doc.get(ChronixTransformer.DATA_AS_JSON) == expected
@@ -72,7 +71,7 @@ class ChronixTransformerTest extends Specification {
 
         doc.addField(Schema.DATA, compressedProtoBuf())
         doc.addField(Schema.START, new StoredField(Schema.START, start.toEpochMilli()))
-        doc.addField(Schema.END, new LongField(Schema.END, start.plusSeconds(3).toEpochMilli(),Field.Store.YES))
+        doc.addField(Schema.END, new LongPoint(Schema.END, start.plusSeconds(3).toEpochMilli()))
 
         doc
     }

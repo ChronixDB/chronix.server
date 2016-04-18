@@ -26,7 +26,6 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -200,8 +199,7 @@ class ChronixClientTestIT extends Specification {
     }
 
     @Unroll
-    @Ignore
-    def "Test analysis query #analysisQuery"() {
+    def "Test aggregation query #analysisQuery"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\avg")
         query.addFilterQuery(analysisQuery)
@@ -221,17 +219,42 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "ag=sum", "ag=count", "analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
-        points << [0, 0, 0, 0, 0, 0, 0, 7000, 7000, 7000, 7000]
+        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "ag=sum",
+                          "ag=count", "ag=diff", "ag=sdiff", "ag=first", "ag=last", "ag=range"]
+        points << [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
 
-    @Ignore
     @Unroll
+    def "Test analysis query #analysisQuery"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Load\\\\avg")
+        query.addFilterQuery(analysisQuery)
+        query.setFields("+data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= points
+        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
+        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
+        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
+        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
+        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
+        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
+        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
+        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
+
+        where:
+        analysisQuery << ["analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
+        points << [7000, 7000, 7000, 7000]
+    }
+
     def "Test analysis fastdtw"() {
         when:
         def query = new SolrQuery("metric:*Load*min")
         query.addFilterQuery("analysis=fastdtw:(metric:*Load*max),5,0.8")
-        query.setFields("metric")
+        query.setFields("metric", "data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
