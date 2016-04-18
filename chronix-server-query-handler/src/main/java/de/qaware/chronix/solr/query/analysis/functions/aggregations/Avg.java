@@ -35,7 +35,7 @@ public final class Avg implements ChronixAnalysis {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("Max aggregation needs at least one time series");
+            throw new IllegalArgumentException("Avg aggregation needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];

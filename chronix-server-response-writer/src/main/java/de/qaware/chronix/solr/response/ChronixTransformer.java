@@ -19,7 +19,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.SolrParams;
@@ -29,6 +29,7 @@ import org.apache.solr.response.transform.TransformerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -78,11 +79,12 @@ public class ChronixTransformer extends TransformerFactory {
          * Overrides the data field with the raw json data
          *
          * @param doc   the document
-         * @param docID the doc id (not used)
+         * @param docid the doc id (not used)
+         * @param score the score (not used)
          * @throws UnsupportedEncodingException when the decompressed data could be correctly encoded
          */
-        public void transform(SolrDocument doc, int docID) throws UnsupportedEncodingException {
-
+        @Override
+        public void transform(SolrDocument doc, int docid, float score) throws IOException {
             if (doc.containsKey(Schema.DATA)) {
                 LOGGER.debug("Transforming data field to json. Document {}", doc);
                 //we only have to decompress the field
@@ -119,8 +121,8 @@ public class ChronixTransformer extends TransformerFactory {
          * @return -1 if the field value has no numeric value, otherwise the numeric value as long
          */
         private long getLong(Object field) {
-            if (field instanceof LongField) {
-                return ((LongField) field).numericValue().longValue();
+            if (field instanceof LongPoint) {
+                return ((LongPoint) field).numericValue().longValue();
             } else if (field instanceof StoredField) {
                 return ((StoredField) field).numericValue().longValue();
 

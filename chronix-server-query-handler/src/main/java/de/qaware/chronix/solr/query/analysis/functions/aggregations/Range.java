@@ -20,22 +20,54 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
- * Count aggregation for time series
+ * The range analysis returns the difference between the maximum and minimum of a time series
  *
  * @author f.lautenschlager
  */
-public class Count implements ChronixAnalysis {
+public final class Range implements ChronixAnalysis {
+
+    /**
+     * Gets difference between the maximum and the minimum value.
+     * It is always a positive value.
+     *
+     * @param args the time series
+     * @return the average or 0 if the list is empty
+     */
     @Override
     public double execute(MetricTimeSeries... args) {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("Count aggregation needs at least one time series");
+            throw new IllegalArgumentException("Range function needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
-        //return the size of the time series
-        return timeSeries.size();
+
+        //If it is empty, we return NaN
+        if (timeSeries.size() <= 0) {
+            return Double.NaN;
+        }
+
+        //the values to iterate
+        double[] values = timeSeries.getValuesAsArray();
+        //Initialize the values with the first element
+        double min = values[0];
+        double max = values[0];
+
+        for (int i = 1; i < values.length; i++) {
+            double current = values[i];
+
+            //check for min
+            if (current < min) {
+                min = current;
+            }
+            //check of max
+            if (current > max) {
+                max = current;
+            }
+        }
+        //return the absolute difference
+        return Math.abs(max - min);
     }
 
     @Override
@@ -45,7 +77,7 @@ public class Count implements ChronixAnalysis {
 
     @Override
     public AnalysisType getType() {
-        return AnalysisType.COUNT;
+        return AnalysisType.RANGE;
     }
 
     @Override
@@ -57,4 +89,5 @@ public class Count implements ChronixAnalysis {
     public String getSubquery() {
         return null;
     }
+
 }

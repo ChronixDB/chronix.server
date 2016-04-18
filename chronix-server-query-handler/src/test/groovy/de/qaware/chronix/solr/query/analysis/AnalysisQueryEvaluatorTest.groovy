@@ -52,6 +52,11 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["ag=dev"] as String[],
                 ["ag=sum"] as String[],
                 ["ag=count"] as String[],
+                ["ag=first"] as String[],
+                ["ag=last"] as String[],
+                ["ag=range"] as String[],
+                ["ag=diff"] as String[],
+                ["ag=sdiff"] as String[],
                 ["ag=p:0.4"] as String[],
                 ["analysis=trend"] as String[],
                 ["analysis=outlier"] as String[],
@@ -60,15 +65,17 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["analysis=fastdtw:metric:load* AND group:(A OR B),5,0.4"] as String[]
         ]
 
-        expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.SUM, AnalysisType.COUNT, AnalysisType.P,
+        expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.SUM, AnalysisType.COUNT, AnalysisType.FIRST,
+                               AnalysisType.LAST, AnalysisType.RANGE, AnalysisType.DIFF, AnalysisType.SDIFF, AnalysisType.P,
                                AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW, AnalysisType.FASTDTW]
-        expectedValue << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[],
-                          new String[0], new String[0], ["window size=10", "window threshold=6"] as String[],
+        expectedValue << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
+                          new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[], new String[0], new String[0],
+                          ["window size=10", "window threshold=6"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
 
-        subQuery << [null, null, null, null, null, null, null, null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
-        needSubQuery << [false, false, false, false, false, false, false, false, false, false, true, true]
+        subQuery << [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
+        needSubQuery << [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true]
     }
 
     def "test ag query strings that produce exceptions"() {

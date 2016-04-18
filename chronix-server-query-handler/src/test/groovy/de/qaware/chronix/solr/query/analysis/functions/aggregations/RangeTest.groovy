@@ -20,54 +20,57 @@ import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the count aggregation
+ * Range analysis unit test
  * @author f.lautenschlager
  */
-class CountTest extends Specification {
+class RangeTest extends Specification {
 
-    def "test execute"() {
-        given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Count");
+    def "test range analysis"() {
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Range");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it, it)
         }
-        timeSeries.point(11, 9999)
+        timeSeries.point(11, -5)
+
         MetricTimeSeries ts = timeSeries.build()
 
 
         when:
-        def result = new Count().execute(ts)
+        def result = new Range().execute(ts)
         then:
-        result == 11d
-    }
+        result == 14.0d
 
-    def "test exception behaviour"() {
-        when:
-        new Count().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
     }
 
     def "test for empty time series"() {
         when:
-        def result = new Count().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        def result = new Range().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == 0.0d
+        result == Double.NaN
+    }
+
+
+    def "test exception behaviour"() {
+        when:
+        new Range().execute(new MetricTimeSeries[0])
+        then:
+        thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Count().needSubquery()
-        new Count().getSubquery() == null
+        !new Range().needSubquery()
+        new Range().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Count().getArguments().length == 0
+        new Range().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Count().getType() == AnalysisType.COUNT
+        new Range().getType() == AnalysisType.RANGE
     }
+
 }

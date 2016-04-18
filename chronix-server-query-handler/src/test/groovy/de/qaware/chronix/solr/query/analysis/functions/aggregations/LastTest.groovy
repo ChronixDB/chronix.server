@@ -20,54 +20,55 @@ import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the count aggregation
+ * Unit test for the last function
  * @author f.lautenschlager
  */
-class CountTest extends Specification {
+class LastTest extends Specification {
 
-    def "test execute"() {
+    def "test get last value"() {
+
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Count");
+        def timeSeries = new MetricTimeSeries.Builder("Last-Time-Series")
+
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(10 - it, it)
         }
-        timeSeries.point(11, 9999)
-        MetricTimeSeries ts = timeSeries.build()
-
 
         when:
-        def result = new Count().execute(ts)
-        then:
-        result == 11d
-    }
+        def result = new Last().execute(timeSeries.build())
 
-    def "test exception behaviour"() {
-        when:
-        new Count().execute(new MetricTimeSeries[0])
         then:
-        thrown IllegalArgumentException.class
+        result == 0d
     }
 
     def "test for empty time series"() {
         when:
-        def result = new Count().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        def result = new Last().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == 0.0d
+        result == Double.NaN
+    }
+
+
+    def "test exception behaviour"() {
+        when:
+        new Last().execute(new MetricTimeSeries[0])
+        then:
+        thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Count().needSubquery()
-        new Count().getSubquery() == null
+        !new Last().needSubquery()
+        new Last().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Count().getArguments().length == 0
+        new Last().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Count().getType() == AnalysisType.COUNT
+        new Last().getType() == AnalysisType.LAST
     }
 }

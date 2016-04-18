@@ -142,34 +142,28 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
             return null;
         }
 
-        //we do not have to remove fields
-        if (fl.indexOf('-') == -1) {
+        //the user wants a single additional field
+        if (fl.indexOf('-') == -1 && fl.indexOf('+') == -1) {
+            //hence we return the required fields and the requested fields
             return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);
         } else {
-            //the requested fields including -fields
+            //the user removes or adds a field to all fields
             Set<String> fields = new HashSet<>(Arrays.asList(fl.split(ChronixQueryParams.JOIN_SEPARATOR)));
-            //Check if we have only fields to remove
-            if (onlyToRemove(fields)) {
-                //
-                Set<String> resultingFields = new HashSet<>(schema);
-                //remove fields
-                for (String field : fields) {
-                    //one can remove the data field
-                    resultingFields.remove(field.replace("-", "").trim());
-                }
-                return String.join(ChronixQueryParams.JOIN_SEPARATOR, resultingFields);
-            }
-        }
-        return null;
-    }
 
-    private boolean onlyToRemove(Set<String> fields) {
-        for (String field : fields) {
-            if (!field.startsWith("-")) {
-                return false;
+            //Check if we have only fields to remove
+            Set<String> resultingFields = new HashSet<>(schema);
+            //remove fields
+            for (String field : fields) {
+                //we only remove the fields. We have already added all fields
+                if (field.indexOf('-') > -1) {
+                    //one can remove the data field
+                    resultingFields.remove(field.substring(1));
+                }
+
             }
+            return String.join(ChronixQueryParams.JOIN_SEPARATOR, resultingFields);
+
         }
-        return true;
     }
 
     /**
