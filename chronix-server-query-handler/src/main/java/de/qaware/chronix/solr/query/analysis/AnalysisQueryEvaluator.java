@@ -132,6 +132,8 @@ public final class AnalysisQueryEvaluator {
                 return new Range();
             case DIFF:
                 return new Difference();
+            case SDIFF:
+                return new SignedDifference();
             case P:
                 double p = Double.parseDouble(arguments[0]);
                 return new Percentile(p);

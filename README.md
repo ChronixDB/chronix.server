@@ -177,6 +177,7 @@ Currently the following analyses are available:
 - Derivative (analysis=derivative) (*Relase 0.2*)
 - Non Negative Derivative (analysis=NonNegDerivative) (*Relase 0.2*)
 - Difference (analysis=diff) (*Relase 0.2*)
+- Signed Difference (analysis=sdiff) (*Relase 0.2*)
 - Scale (analysis=scale:0.5) (*Relase 0.2*)
 - Moving Average (analysis=movAvg:10m) (*Relase 0.2*)
 - A linear trend detection (analysis=trend)
