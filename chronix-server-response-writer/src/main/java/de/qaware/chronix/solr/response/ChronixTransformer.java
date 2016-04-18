@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 /**
  * Data field transformer to decompress data.
@@ -81,7 +80,7 @@ public class ChronixTransformer extends TransformerFactory {
          * @param doc   the document
          * @param docid the doc id (not used)
          * @param score the score (not used)
-         * @throws UnsupportedEncodingException when the decompressed data could be correctly encoded
+         * @throws IOException when the decompressed data could be correctly encoded
          */
         @Override
         public void transform(SolrDocument doc, int docid, float score) throws IOException {
