@@ -41,11 +41,12 @@ public class Sum implements ChronixAnalysis {
         //Else calculate the analysis value
         int size = timeSeries.size();
         double sum = 0;
-
+        //Sum up the single values
         for (int i = 1; i < size; i++) {
             sum += timeSeries.getValue(i);
 
         }
+        //return it
         return sum;
     }
 
