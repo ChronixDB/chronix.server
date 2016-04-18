@@ -59,7 +59,7 @@ public final class Frequency implements ChronixAnalysis {
     @Override
     public double execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
-            throw new IllegalArgumentException("Fast DTW needs at least one time series");
+            throw new IllegalArgumentException("Frequency needs at least one time series");
         }
         MetricTimeSeries timeSeries = args[0];
         LongList timestamps = timeSeries.getTimestamps();
@@ -67,27 +67,25 @@ public final class Frequency implements ChronixAnalysis {
         final List<Long> currentWindow = new ArrayList<>();
         final List<Integer> windowCount = new ArrayList<>();
 
-        long windowStart = -1;
-        long windowEnd = -1;
+        //start and end of the window
+        long windowStart = timestamps.get(0);
+        //calculate the end
+        long windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
 
-        for (int i = 0; i < timeSeries.size(); i++) {
-
+        for (int i = 1; i < timeSeries.size(); i++) {
             long current = timestamps.get(i);
-
-            if (windowStart == -1) {
-                windowStart = current;
-                windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
-            }
-
+            //Add the occurrence of the current window.
             if (current > windowStart - 1 && current < (windowEnd)) {
                 currentWindow.add(current);
             } else {
+                //We reached the end. Lets add it to the window count
                 windowCount.add(currentWindow.size());
                 windowStart = current;
                 windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
                 currentWindow.clear();
             }
         }
+        //we are done, add the last window
         windowCount.add(currentWindow.size());
 
         //check deltas
@@ -96,12 +94,14 @@ public final class Frequency implements ChronixAnalysis {
             int former = windowCount.get(i - 1);
             int current = windowCount.get(i);
 
+            //The threshold
             int result = current - former;
             if (result >= windowThreshold) {
                 //add the time series as there are more points per window than the threshold
                 return 1;
             }
         }
+        //Nothing bad found
         return -1;
     }
 
@@ -124,7 +124,6 @@ public final class Frequency implements ChronixAnalysis {
     public String getSubquery() {
         return null;
     }
-
 
 
     @Override
