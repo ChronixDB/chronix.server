@@ -68,19 +68,12 @@ public final class Frequency implements ChronixAnalysis {
         final List<Integer> windowCount = new ArrayList<>();
 
         //start and end of the window
-        long windowStart = -1;
-        long windowEnd = -1;
+        long windowStart = timestamps.get(0);
+        //calculate the end
+        long windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
 
-        for (int i = 0; i < timeSeries.size(); i++) {
-
+        for (int i = 1; i < timeSeries.size(); i++) {
             long current = timestamps.get(i);
-
-            //The start is marked with -1
-            if (windowStart == -1) {
-                //Set it to the start
-                windowStart = current;
-                windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
-            }
             //Add the occurrence of the current window.
             if (current > windowStart - 1 && current < (windowEnd)) {
                 currentWindow.add(current);
