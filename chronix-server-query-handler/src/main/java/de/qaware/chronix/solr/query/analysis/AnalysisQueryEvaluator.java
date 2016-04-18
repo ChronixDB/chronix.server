@@ -54,10 +54,13 @@ public final class AnalysisQueryEvaluator {
         if (filterQueries == null || filterQueries.length == 0) {
             throw new MalformedParametersException("Analyses must not be null.");
         }
+        //The result that contains the asked analyses
         Set<ChronixAnalysis> result = new HashSet<>();
         String[] arguments = new String[0];
 
+        //Iterate over all filter queries
         for (String unmodifiedAnalysis : filterQueries) {
+            //Get the plain function without 'ag='
             String function = extractFunction(unmodifiedAnalysis);
 
             String[] functions;
@@ -75,6 +78,7 @@ public final class AnalysisQueryEvaluator {
                     arguments = extractAggregationParameter(subFunction);
                     subFunction = subFunction.substring(0, subFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                 }
+                //add the implementation of the asked analyses
                 result.add(getImplementation(AnalysisType.valueOf(subFunction.toUpperCase()), arguments));
 
             }
@@ -193,7 +197,7 @@ public final class AnalysisQueryEvaluator {
         if (fqs == null) {
             throw new MalformedParametersException("Aggregation must not be null.");
         }
-
+        //Check all filter queries for aggregations and analyses
         for (String filterQuery : fqs) {
             if (filterQuery.startsWith(ChronixQueryParams.AGGREGATION_PARAM)) {
                 return filterQuery;
