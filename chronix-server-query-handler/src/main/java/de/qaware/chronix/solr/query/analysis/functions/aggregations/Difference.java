@@ -37,7 +37,7 @@ public class Difference implements ChronixAnalysis {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("First function needs at least one time series");
+            throw new IllegalArgumentException("Difference function needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
@@ -50,11 +50,11 @@ public class Difference implements ChronixAnalysis {
         //we need to sort the time series
         timeSeries.sort();
         //get the first and the last value
-        double first = timeSeries.getValue(0);
-        double last = timeSeries.getValue(timeSeries.size() - 1);
+        double firstValue = timeSeries.getValue(0);
+        double lastValue = timeSeries.getValue(timeSeries.size() - 1);
 
         //return the difference
-        return Math.abs(first - last);
+        return Math.abs(firstValue - lastValue);
     }
 
     @Override
