@@ -128,6 +128,8 @@ public final class AnalysisQueryEvaluator {
                 return new Last();
             case FIRST:
                 return new First();
+            case RANGE:
+                return new Range();
             case P:
                 double p = Double.parseDouble(arguments[0]);
                 return new Percentile(p);

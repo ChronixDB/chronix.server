@@ -20,13 +20,15 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
+ * The range analysis returns the difference between the maximum and minimum of a time series
+ *
  * @author f.lautenschlager
  */
-public final class Last implements ChronixAnalysis {
+public final class Range implements ChronixAnalysis {
 
     /**
-     * Gets the last value in the time series.
-     * It first orders the time series.
+     * Gets difference between the maximum and the minimum value.
+     * It is always a positive value.
      *
      * @param args the time series
      * @return the average or 0 if the list is empty
@@ -36,7 +38,7 @@ public final class Last implements ChronixAnalysis {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("Last function needs at least one time series");
+            throw new IllegalArgumentException("Range function needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
@@ -46,9 +48,26 @@ public final class Last implements ChronixAnalysis {
             return Double.NaN;
         }
 
-        //We need to sort the time series
-        timeSeries.sort();
-        return timeSeries.getValue(timeSeries.size() - 1);
+        //the values to iterate
+        double[] values = timeSeries.getValuesAsArray();
+        //Initialize the values with the first element
+        double min = values[0];
+        double max = values[0];
+
+        for (int i = 1; i < values.length; i++) {
+            double current = values[i];
+
+            //check for min
+            if (current < min) {
+                min = current;
+            }
+            //check of max
+            if (current > max) {
+                max = current;
+            }
+        }
+        //return the absolute difference
+        return Math.abs(max - min);
     }
 
     @Override
@@ -58,7 +77,7 @@ public final class Last implements ChronixAnalysis {
 
     @Override
     public AnalysisType getType() {
-        return AnalysisType.LAST;
+        return AnalysisType.RANGE;
     }
 
     @Override

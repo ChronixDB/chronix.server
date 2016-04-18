@@ -30,11 +30,14 @@ public enum AnalysisType {
     P,
     SUM,
     COUNT,
+    FIRST,
+    LAST,
+    RANGE,
     //Analysis
     TREND,
     OUTLIER,
     FREQUENCY,
-    FASTDTW, FIRST, LAST;
+    FASTDTW;
 
     /**
      * Checks if the given type is a high level analysis
@@ -55,6 +58,5 @@ public enum AnalysisType {
     public static boolean isAggregation(AnalysisType type) {
         return !isHighLevel(type);
     }
-
 
 }

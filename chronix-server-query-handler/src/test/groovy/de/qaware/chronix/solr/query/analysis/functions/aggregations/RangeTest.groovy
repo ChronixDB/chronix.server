@@ -20,30 +20,31 @@ import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the last function
+ * Range analysis unit test
  * @author f.lautenschlager
  */
-class LastTest extends Specification {
+class RangeTest extends Specification {
 
-    def "test get last value"() {
-
-        given:
-        def timeSeries = new MetricTimeSeries.Builder("Last-Time-Series")
-
+    def "test range analysis"() {
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Range");
         10.times {
-            timeSeries.point(10 - it, it)
+            timeSeries.point(it, it)
         }
+        timeSeries.point(11, -5)
+
+        MetricTimeSeries ts = timeSeries.build()
+
 
         when:
-        def result = new Last().execute(timeSeries.build())
-
+        def result = new Range().execute(ts)
         then:
-        result == 0d
+        result == 14.0d
+
     }
 
     def "test for empty time series"() {
         when:
-        def result = new Last().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        def result = new Range().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
         result == Double.NaN
     }
@@ -51,24 +52,25 @@ class LastTest extends Specification {
 
     def "test exception behaviour"() {
         when:
-        new Last().execute(new MetricTimeSeries[0])
+        new Range().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {
         expect:
-        !new Last().needSubquery()
-        new Last().getSubquery() == null
+        !new Range().needSubquery()
+        new Range().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Last().getArguments().length == 0
+        new Range().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Last().getType() == AnalysisType.LAST
+        new Range().getType() == AnalysisType.RANGE
     }
+
 }
