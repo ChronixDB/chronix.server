@@ -55,6 +55,7 @@ class AnalysisQueryEvaluatorTest extends Specification {
                 ["ag=first"] as String[],
                 ["ag=last"] as String[],
                 ["ag=range"] as String[],
+                ["ag=diff"] as String[],
                 ["ag=p:0.4"] as String[],
                 ["analysis=trend"] as String[],
                 ["analysis=outlier"] as String[],
@@ -64,15 +65,16 @@ class AnalysisQueryEvaluatorTest extends Specification {
         ]
 
         expectedAggreation << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.SUM, AnalysisType.COUNT, AnalysisType.FIRST,
-                               AnalysisType.LAST, AnalysisType.RANGE, AnalysisType.P,
+                               AnalysisType.LAST, AnalysisType.RANGE, AnalysisType.DIFF, AnalysisType.P,
                                AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW, AnalysisType.FASTDTW]
-        expectedValue << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[],
-                          new String[0], new String[0], ["window size=10", "window threshold=6"] as String[],
+        expectedValue << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
+                          ["percentile=0.4"] as String[], new String[0], new String[0],
+                          ["window size=10", "window threshold=6"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
 
-        subQuery << [null, null, null, null, null, null, null, null, null, null, null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
-        needSubQuery << [false, false, false, false, false, false, false, false, false, false, false, false, false, true, true]
+        subQuery << [null, null, null, null, null, null, null, null, null, null, null, null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
+        needSubQuery << [false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true]
     }
 
     def "test ag query strings that produce exceptions"() {

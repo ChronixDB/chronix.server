@@ -20,54 +20,69 @@ import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 /**
- * Unit test for the count aggregation
+ * Unit test for the difference aggregation
  * @author f.lautenschlager
  */
-class CountTest extends Specification {
-
+class DifferenceTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Count");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Difference");
         10.times {
-            timeSeries.point(it, it * 10)
+            timeSeries.point(it + 1, it * 10)
         }
-        timeSeries.point(11, 9999)
+        timeSeries.point(0, -1)
         MetricTimeSeries ts = timeSeries.build()
 
 
         when:
-        def result = new Count().execute(ts)
+        def result = new Difference().execute(ts)
         then:
-        result == 11d
+        result == 91d
     }
+
+    def "test execute with negative values"() {
+        given:
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Difference");
+        10.times {
+            timeSeries.point(it + 1, (it + 1) * -10)
+        }
+        MetricTimeSeries ts = timeSeries.build()
+
+
+        when:
+        def result = new Difference().execute(ts)
+        then:
+        result == 90d
+    }
+
 
     def "test exception behaviour"() {
         when:
-        new Count().execute(new MetricTimeSeries[0])
+        new Difference().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test for empty time series"() {
         when:
-        def result = new Count().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        def result = new Difference().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
         then:
-        result == 0.0d
+        result == Double.NaN
     }
 
     def "test subquery"() {
         expect:
-        !new Count().needSubquery()
-        new Count().getSubquery() == null
+        !new Difference().needSubquery()
+        new Difference().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Count().getArguments().length == 0
+        new Difference().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Count().getType() == AnalysisType.COUNT
+        new Difference().getType() == AnalysisType.DIFF
     }
 }

@@ -130,6 +130,8 @@ public final class AnalysisQueryEvaluator {
                 return new First();
             case RANGE:
                 return new Range();
+            case DIFF:
+                return new Difference();
             case P:
                 double p = Double.parseDouble(arguments[0]);
                 return new Percentile(p);
