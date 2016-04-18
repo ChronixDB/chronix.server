@@ -124,6 +124,10 @@ public final class AnalysisQueryEvaluator {
                 return new Count();
             case DEV:
                 return new StdDev();
+            case LAST:
+                return new Last();
+            case FIRST:
+                return new First();
             case P:
                 double p = Double.parseDouble(arguments[0]);
                 return new Percentile(p);

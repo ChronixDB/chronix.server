@@ -20,22 +20,35 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
- * Count aggregation for time series
- *
  * @author f.lautenschlager
  */
-public class Count implements ChronixAnalysis {
+public final class First implements ChronixAnalysis {
+
+    /**
+     * Gets the first value in the time series.
+     * It first orders the time series.
+     *
+     * @param args the time series
+     * @return the average or 0 if the list is empty
+     */
     @Override
     public double execute(MetricTimeSeries... args) {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("Count aggregation needs at least one time series");
+            throw new IllegalArgumentException("First function needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];
-        //return the size of the time series
-        return timeSeries.size();
+
+        //If it is empty, we return NaN
+        if (timeSeries.size() <= 0) {
+            return Double.NaN;
+        }
+
+        //we need to sort the time series
+        timeSeries.sort();
+        return timeSeries.getValue(0);
     }
 
     @Override
@@ -45,7 +58,7 @@ public class Count implements ChronixAnalysis {
 
     @Override
     public AnalysisType getType() {
-        return AnalysisType.COUNT;
+        return AnalysisType.FIRST;
     }
 
     @Override
@@ -57,4 +70,5 @@ public class Count implements ChronixAnalysis {
     public String getSubquery() {
         return null;
     }
+
 }

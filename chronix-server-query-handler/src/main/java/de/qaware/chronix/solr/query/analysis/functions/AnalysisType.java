@@ -34,7 +34,7 @@ public enum AnalysisType {
     TREND,
     OUTLIER,
     FREQUENCY,
-    FASTDTW;
+    FASTDTW, FIRST, LAST;
 
     /**
      * Checks if the given type is a high level analysis
