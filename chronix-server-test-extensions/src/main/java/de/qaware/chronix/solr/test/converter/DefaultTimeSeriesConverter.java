@@ -28,12 +28,14 @@ public class DefaultTimeSeriesConverter implements TimeSeriesConverter<BinaryTim
 
 
     @Override
-    public BinaryTimeSeries from(BinaryTimeSeries binaryStorageDocument, long queryStart, long queryEnd) {
-        return binaryStorageDocument;
+    public BinaryTimeSeries from(BinaryTimeSeries binaryTimeSeries, long queryStart, long queryEnd) {
+        //Just return the binary time series
+        return binaryTimeSeries;
     }
 
     @Override
     public BinaryTimeSeries to(BinaryTimeSeries timeSeries) {
+        //Just return the binary time series
         return timeSeries;
     }
 }
