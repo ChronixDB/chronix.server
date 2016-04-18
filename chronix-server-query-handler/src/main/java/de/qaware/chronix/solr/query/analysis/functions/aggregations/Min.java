@@ -39,7 +39,7 @@ public class Min implements ChronixAnalysis {
         if (args.length < 1) {
             throw new IllegalArgumentException("Min aggregation needs at least one time series");
         }
-
+        //Took the first time series
         MetricTimeSeries timeSeries = args[0];
 
         //If it is empty, we return NaN
