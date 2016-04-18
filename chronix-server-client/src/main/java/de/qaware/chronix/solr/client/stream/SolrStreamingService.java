@@ -194,6 +194,7 @@ public class SolrStreamingService<T> implements Iterator<T> {
     private void convertStream() {
         SolrDocument document;
         do {
+            //What for a document.
             document = solrStreamingHandler.pool();
             if (document != null) {
                 //Make a job to convert the solr document to a time series record
