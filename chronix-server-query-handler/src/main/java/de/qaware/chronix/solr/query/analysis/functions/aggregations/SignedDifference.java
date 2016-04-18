@@ -38,7 +38,7 @@ public class SignedDifference implements ChronixAnalysis {
 
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("First function needs at least one time series");
+            throw new IllegalArgumentException("Signed difference function needs at least one time series");
         }
 
         MetricTimeSeries timeSeries = args[0];

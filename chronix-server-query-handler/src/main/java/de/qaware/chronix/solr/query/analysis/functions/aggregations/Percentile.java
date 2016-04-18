@@ -18,6 +18,9 @@ package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Percentile aggregation analysis
@@ -83,4 +86,35 @@ public final class Percentile implements ChronixAnalysis {
     }
 
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Percentile rhs = (Percentile) obj;
+        return new EqualsBuilder()
+                .append(this.percentile, rhs.percentile)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(percentile)
+                .toHashCode();
+    }
+
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("percentile", percentile)
+                .toString();
+    }
 }

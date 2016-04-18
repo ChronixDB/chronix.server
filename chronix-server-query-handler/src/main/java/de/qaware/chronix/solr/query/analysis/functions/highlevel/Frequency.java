@@ -19,6 +19,9 @@ import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.LongList;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -120,5 +123,41 @@ public final class Frequency implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return null;
+    }
+
+
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("windowSize", windowSize)
+                .append("windowThreshold", windowThreshold)
+                .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Frequency rhs = (Frequency) obj;
+        return new EqualsBuilder()
+                .append(this.windowSize, rhs.windowSize)
+                .append(this.windowThreshold, rhs.windowThreshold)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(windowSize)
+                .append(windowThreshold)
+                .toHashCode();
     }
 }
