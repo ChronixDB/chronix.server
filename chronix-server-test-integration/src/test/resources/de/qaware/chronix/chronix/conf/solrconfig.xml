@@ -614,6 +614,7 @@
 
     <transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer"/>
 
+    <!-- Uncomment to activate the rentetion handler.
     <requestHandler name="/retention"
                     class="de.qaware.chronix.solr.retention.ChronixRetentionHandler">
         <lst name="invariants">
@@ -625,6 +626,7 @@
             <str name="softCommit">false</str>
         </lst>
     </requestHandler>
+    -->
 
     <!-- Legacy config for the admin interface -->
     <admin>
