@@ -32,7 +32,7 @@ public class Count implements ChronixAnalysis {
         if (args.length < 1) {
             throw new IllegalArgumentException("Count aggregation needs at least one time series");
         }
-
+        //Took the first time series
         MetricTimeSeries timeSeries = args[0];
         //return the size of the time series
         return timeSeries.size();

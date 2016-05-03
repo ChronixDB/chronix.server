@@ -24,6 +24,8 @@ import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The analysis implementation of the Fast DTW analysis
@@ -62,8 +64,10 @@ public final class FastDtw implements ChronixAnalysis {
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
         if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
+            //Return the normalized distance as result
             return result.getNormalizedDistance();
         }
+        //The time series are not similar
         return -1;
     }
 
@@ -130,5 +134,46 @@ public final class FastDtw implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return subquery;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        FastDtw rhs = (FastDtw) obj;
+        return new EqualsBuilder()
+                .append(this.distanceFunction, rhs.distanceFunction)
+                .append(this.searchRadius, rhs.searchRadius)
+                .append(this.maxNormalizedWarpingCost, rhs.maxNormalizedWarpingCost)
+                .append(this.subquery, rhs.subquery)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(distanceFunction)
+                .append(searchRadius)
+                .append(maxNormalizedWarpingCost)
+                .append(subquery)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "FastDtw{" +
+                "distanceFunction=" + distanceFunction +
+                ", searchRadius=" + searchRadius +
+                ", maxNormalizedWarpingCost=" + maxNormalizedWarpingCost +
+                ", subquery='" + subquery + '\'' +
+                '}';
     }
 }

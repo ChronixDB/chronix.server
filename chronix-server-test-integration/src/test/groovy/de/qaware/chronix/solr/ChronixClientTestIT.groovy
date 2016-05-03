@@ -263,8 +263,8 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.size()
         selectedTimeSeries.getMetric() == "\\Load\\min"
         selectedTimeSeries.attribute("join_key") == "\\Load\\min"
-        selectedTimeSeries.attribute("function_fastdtw_\\Load\\max") == 0.056865779428449705
-        selectedTimeSeries.attribute("function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+        selectedTimeSeries.attribute("0_function_fastdtw_\\Load\\max") == 0.056865779428449705
+        selectedTimeSeries.attribute("0_function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
     }
 

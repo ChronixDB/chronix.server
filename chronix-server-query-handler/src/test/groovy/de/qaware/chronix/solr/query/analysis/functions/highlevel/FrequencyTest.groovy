@@ -87,4 +87,32 @@ class FrequencyTest extends Specification {
         expect:
         new Frequency(5, 20).getType() == AnalysisType.FREQUENCY
     }
+
+    def "test equals and hash code"() {
+        when:
+        def equals = freq1.equals(freq2)
+        def dtw1Hash = freq1.hashCode()
+        def dtw2Hash = freq2.hashCode()
+
+        then:
+        freq1.equals(freq1)
+        !freq1.equals(new Object())
+        !freq1.equals(null)
+        equals == result
+        dtw1Hash == dtw2Hash == result
+
+        where:
+        freq1 << [new Frequency(5, 20),new Frequency(5, 20), new Frequency(5, 20)]
+        freq2 << [new Frequency(5, 20), new Frequency(6, 20), new Frequency(5, 21)]
+
+        result << [true, false, false]
+    }
+
+    def "test to string"() {
+        when:
+        def stringRepresentation = new Frequency(5, 20).toString()
+        then:
+        stringRepresentation.contains("5")
+        stringRepresentation.contains("20")
+    }
 }

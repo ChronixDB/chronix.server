@@ -100,4 +100,33 @@ class FastDtwTest extends Specification {
         expect:
         new FastDtw("", 5, 20).getType() == AnalysisType.FASTDTW
     }
+
+    def "test equals and hash code"() {
+        when:
+        def equals = dtw1.equals(dtw2)
+        def dtw1Hash = dtw1.hashCode()
+        def dtw2Hash = dtw2.hashCode()
+
+        then:
+        dtw1.equals(dtw1)
+        !dtw1.equals(new Object())
+        !dtw1.equals(null)
+        equals == result
+        dtw1Hash == dtw2Hash == result
+
+        where:
+        dtw1 << [new FastDtw("", 5, 20), new FastDtw("metric:a", 5, 20), new FastDtw("metric:a", 5, 20), new FastDtw("metric:a", 5, 20)]
+        dtw2 << [new FastDtw("", 5, 20), new FastDtw("metric:b", 5, 20), new FastDtw("metric:a", 6, 20), new FastDtw("metric:a", 5, 21)]
+
+        result << [true, false, false, false]
+    }
+
+    def "test to string"() {
+        when:
+        def stringRepresentation = new FastDtw("metric:a", 5, 20).toString()
+        then:
+        stringRepresentation.contains("metric:a")
+        stringRepresentation.contains("5")
+        stringRepresentation.contains("20")
+    }
 }

@@ -29,9 +29,10 @@ public class Sum implements ChronixAnalysis {
     public double execute(MetricTimeSeries... args) {
         //Sum needs at least one time series
         if (args.length < 1) {
-            throw new IllegalArgumentException("Max aggregation needs at least one time series");
+            throw new IllegalArgumentException("Sum aggregation needs at least one time series");
         }
 
+        //Took the first time series
         MetricTimeSeries timeSeries = args[0];
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
@@ -41,11 +42,12 @@ public class Sum implements ChronixAnalysis {
         //Else calculate the analysis value
         int size = timeSeries.size();
         double sum = 0;
-
+        //Sum up the single values
         for (int i = 1; i < size; i++) {
             sum += timeSeries.getValue(i);
 
         }
+        //return it
         return sum;
     }
 

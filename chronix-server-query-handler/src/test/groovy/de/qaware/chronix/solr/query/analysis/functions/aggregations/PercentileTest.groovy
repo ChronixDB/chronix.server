@@ -37,7 +37,7 @@ class PercentileTest extends Specification {
         when:
         def result = new Percentile(0.5).execute(ts)
         then:
-        result == 50.0
+        result == 50.0d
     }
 
     def "test exception behaviour"() {
@@ -68,6 +68,33 @@ class PercentileTest extends Specification {
     def "test type"() {
         expect:
         new Percentile(0.5).getType() == AnalysisType.P
+    }
+
+    def "test equals and hash code"() {
+        when:
+        def equals = p1.equals(p2)
+        def p1Hash = p1.hashCode()
+        def p2Hash = p2.hashCode()
+
+        then:
+        p1.equals(p1)
+        !p1.equals(new Object())
+        !p1.equals(null)
+        equals == result
+        p1Hash == p2Hash == result
+
+        where:
+        p1 << [new Percentile(0.1), new Percentile(0.2)]
+        p2 << [new Percentile(0.1), new Percentile(0.1)]
+
+        result << [true, false]
+    }
+
+    def "test to string"() {
+        when:
+        def stringRepresentation = new Percentile(0.2).toString()
+        then:
+        stringRepresentation.contains("0.2")
     }
 
 }
