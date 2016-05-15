@@ -24,7 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public class Count implements ChronixAnalysis {
+public class Count implements ChronixAnalysis<MetricTimeSeries> {
     @Override
     public double execute(MetricTimeSeries... args) {
 

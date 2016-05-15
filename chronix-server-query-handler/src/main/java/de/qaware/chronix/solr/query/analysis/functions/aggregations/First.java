@@ -22,7 +22,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 /**
  * @author f.lautenschlager
  */
-public final class First implements ChronixAnalysis {
+public final class First implements ChronixAnalysis<MetricTimeSeries>{
 
     /**
      * Gets the first value in the time series.

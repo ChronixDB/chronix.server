@@ -24,7 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public class Difference implements ChronixAnalysis {
+public class Difference implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Calculate the difference between the first and the last value of a given time series

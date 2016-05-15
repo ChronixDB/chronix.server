@@ -26,7 +26,7 @@ import de.qaware.chronix.timeseries.dt.DoubleList;
  *
  * @author f.lautenschlager
  */
-public class Outlier implements ChronixAnalysis {
+public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Detects outliers using the default box plot implementation.

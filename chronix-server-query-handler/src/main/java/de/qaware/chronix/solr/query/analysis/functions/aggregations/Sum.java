@@ -24,7 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public class Sum implements ChronixAnalysis {
+public class Sum implements ChronixAnalysis<MetricTimeSeries> {
     @Override
     public double execute(MetricTimeSeries... args) {
         //Sum needs at least one time series

@@ -22,7 +22,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 /**
  * @author f.lautenschlager
  */
-public final class Last implements ChronixAnalysis {
+public final class Last implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Gets the last value in the time series.

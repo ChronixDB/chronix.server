@@ -74,12 +74,12 @@ public final class AnalysisDocumentBuilder {
      * @param timeSeries the time series that is analyzed
      * @return the analyzed solr document
      */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries) {
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis<MetricTimeSeries>> analyses, MetricTimeSeries timeSeries) {
 
         AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
 
         //run over the analyses
-        for (ChronixAnalysis analysis : analyses) {
+        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
             //Execute analysis and store the result
             double value = analysis.execute(timeSeries);
             analysisAndValues.add(analysis, value, null);
@@ -96,11 +96,11 @@ public final class AnalysisDocumentBuilder {
      * @param subTimeSeries one time series from the sub query (represented in the result)
      * @return the analyzed solr document
      */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
+    public static AnalysisValueMap analyze(Set<ChronixAnalysis<MetricTimeSeries>> analyses, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
         //run over the analyses
         AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
 
-        for (ChronixAnalysis analysis : analyses) {
+        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
             double value = analysis.execute(timeSeries, subTimeSeries);
             analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
         }

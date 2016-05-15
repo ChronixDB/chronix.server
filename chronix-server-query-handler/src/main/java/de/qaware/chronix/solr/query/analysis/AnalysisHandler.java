@@ -94,7 +94,7 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final Set<ChronixAnalysis> analyses = AnalysisQueryEvaluator.buildAnalyses(filterQueries);
+            final Set<ChronixAnalysis<MetricTimeSeries>> analyses = AnalysisQueryEvaluator.buildAnalyses(filterQueries);
             final List<SolrDocument> resultDocuments = analyze(req, analyses, key, collectedDocs, dataShouldReturned);
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
@@ -118,7 +118,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, Set<ChronixAnalysis> analyses, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
+    private List<SolrDocument> analyze(SolrQueryRequest req, Set<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
 
         if (analyses.isEmpty()) {
             LOGGER.info("Analyses are empty. Returning empty result");
@@ -138,7 +138,7 @@ public class AnalysisHandler extends SearchHandler {
                 AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
 
                 //run over the analyses
-                for (ChronixAnalysis analysis : analyses) {
+                for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
 
                     if (analysis.needSubquery()) {
                         //lets parse the sub-query for start and and end terms

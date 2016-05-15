@@ -22,7 +22,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 /**
  * @author f.lautenschlager
  */
-public final class Avg implements ChronixAnalysis {
+public final class Avg implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Calculates the average value of the first time series.

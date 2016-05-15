@@ -25,7 +25,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public final class Trend implements ChronixAnalysis {
+public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     /**
      * Detects trends in time series using a linear regression.
      *

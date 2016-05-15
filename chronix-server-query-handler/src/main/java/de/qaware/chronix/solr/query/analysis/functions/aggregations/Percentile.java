@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public final class Percentile implements ChronixAnalysis {
+public final class Percentile implements ChronixAnalysis<MetricTimeSeries> {
 
     private final double percentile;
 

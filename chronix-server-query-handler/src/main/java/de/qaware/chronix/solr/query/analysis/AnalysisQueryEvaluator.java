@@ -23,6 +23,7 @@ import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Frequency;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend;
+import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 import java.lang.reflect.MalformedParametersException;
 import java.util.HashSet;
@@ -49,13 +50,13 @@ public final class AnalysisQueryEvaluator {
      * @param filterQueries the filter queries (solr api)
      * @return a set of chronix analyses asked in the filter queries
      */
-    public static Set<ChronixAnalysis> buildAnalyses(String[] filterQueries) {
+    public static Set<ChronixAnalysis<MetricTimeSeries>> buildAnalyses(String[] filterQueries) {
 
         if (filterQueries == null || filterQueries.length == 0) {
             throw new MalformedParametersException("Analyses must not be null.");
         }
         //The result that contains the asked analyses
-        Set<ChronixAnalysis> result = new HashSet<>();
+        Set<ChronixAnalysis<MetricTimeSeries>> result = new HashSet<>();
         String[] arguments = new String[0];
 
         //Iterate over all filter queries
@@ -113,7 +114,7 @@ public final class AnalysisQueryEvaluator {
         return getImplementation(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
     }
 
-    private static ChronixAnalysis getImplementation(AnalysisType type, String[] arguments) {
+    private static ChronixAnalysis<MetricTimeSeries> getImplementation(AnalysisType type, String[] arguments) {
 
         switch (type) {
             case AVG:

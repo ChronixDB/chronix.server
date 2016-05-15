@@ -24,7 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public final class Max implements ChronixAnalysis {
+public final class Max implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Calculates the maximum value of the first time series.

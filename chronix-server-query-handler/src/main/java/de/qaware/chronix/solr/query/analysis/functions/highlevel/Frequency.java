@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public final class Frequency implements ChronixAnalysis {
+public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
 
     private final long windowSize;
     private final long windowThreshold;

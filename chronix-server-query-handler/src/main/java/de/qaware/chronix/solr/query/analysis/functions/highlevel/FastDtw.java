@@ -32,7 +32,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixAnalysis {
+public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
 
     private final DistanceFunction distanceFunction;
     private final int searchRadius;

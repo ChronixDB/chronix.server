@@ -24,7 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  *
  * @author f.lautenschlager
  */
-public class Min implements ChronixAnalysis {
+public class Min implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Calculates the minimum value of the first time series.

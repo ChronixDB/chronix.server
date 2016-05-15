@@ -15,14 +15,12 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions;
 
-import de.qaware.chronix.timeseries.MetricTimeSeries;
-
 /***
  * A class holding the parsed analysis with its arguments
  *
  * @author f.lautenschlager
  */
-public interface ChronixAnalysis {
+public interface ChronixAnalysis<T> {
 
     /**
      * Executes the analysis
@@ -30,7 +28,7 @@ public interface ChronixAnalysis {
      * @param args the time series
      * @return the value of the analysis
      */
-    double execute(MetricTimeSeries... args);
+    double execute(T... args);
 
     /**
      * @return the arguments
