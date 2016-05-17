@@ -154,10 +154,12 @@ public final class AnalysisDocumentBuilder {
             }
 
             //Add some information about the analysis
-            doc.put(counter++ + "_" + ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
+            doc.put(counter + "_" + ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
+
             if (chronixAnalysis.getArguments().length != 0) {
-                doc.put(counter++ + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, chronixAnalysis.getArguments());
+                doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, chronixAnalysis.getArguments());
             }
+            counter++;
         }
     }
 
