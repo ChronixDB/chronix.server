@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.distance.DistanceFunction;
 import de.qaware.chronix.distance.DistanceFunctionEnum;
@@ -52,7 +52,7 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         //We need two time series
         if (args.length < 2) {
             throw new IllegalArgumentException("Fast DTW needs at least two time series");
@@ -65,10 +65,10 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
         //Check the result. If it lower equals the threshold, we can return the other time series
         if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
             //Return the normalized distance as result
-            return result.getNormalizedDistance();
+            return true;
         }
         //The time series are not similar
-        return -1;
+        return false;
     }
 
     /**

@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -24,7 +24,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 /**
  * @author f.lautenschlager
  */
-public final class Last implements ChronixAnalysis<MetricTimeSeries> {
+public final class Last implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Gets the last value in the time series.
@@ -85,7 +85,6 @@ public final class Last implements ChronixAnalysis<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Last rhs = (Last) obj;
         return new EqualsBuilder()
                 .isEquals();
     }

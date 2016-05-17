@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -26,7 +26,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class Sum implements ChronixAnalysis<MetricTimeSeries> {
+public class Sum implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public double execute(MetricTimeSeries... args) {
         //Sum needs at least one time series
@@ -85,7 +85,6 @@ public class Sum implements ChronixAnalysis<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Sum rhs = (Sum) obj;
         return new EqualsBuilder()
                 .isEquals();
     }

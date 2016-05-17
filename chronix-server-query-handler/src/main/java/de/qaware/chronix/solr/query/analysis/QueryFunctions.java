@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 
@@ -33,7 +34,7 @@ import java.util.List;
 class QueryFunctions<T> {
 
     private List<ChronixAnalysis<T>> analyses;
-    private List<ChronixAnalysis<T>> aggregations;
+    private List<ChronixAggregation<T>> aggregations;
     private List<ChronixTransformation<T>> transformations;
 
     QueryFunctions() {
@@ -52,7 +53,7 @@ class QueryFunctions<T> {
     /**
      * @return the aggregations in the query
      */
-    public List<ChronixAnalysis<T>> getAggregations() {
+    public List<ChronixAggregation<T>> getAggregations() {
         return aggregations;
     }
 
@@ -77,7 +78,7 @@ class QueryFunctions<T> {
      *
      * @param aggregation the aggregation
      */
-    public void addAggregation(ChronixAnalysis<T> aggregation) {
+    public void addAggregation(ChronixAggregation<T> aggregation) {
         this.aggregations.add(aggregation);
     }
 

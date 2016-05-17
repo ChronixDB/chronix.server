@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel
+package de.qaware.chronix.solr.query.analysis.functions.analyses
 
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -36,7 +36,7 @@ class TrendTest extends Specification {
         when:
         def result = new Trend().execute(ts)
         then:
-        result == 1.0
+        result
     }
 
     def "test exception behaviour"() {

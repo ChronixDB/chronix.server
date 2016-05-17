@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
 import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification

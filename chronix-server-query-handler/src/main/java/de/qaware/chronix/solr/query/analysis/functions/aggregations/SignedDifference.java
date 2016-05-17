@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class SignedDifference implements ChronixAnalysis<MetricTimeSeries> {
+public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Calculate the difference between the first and the last value of a given time series
@@ -107,7 +107,6 @@ public class SignedDifference implements ChronixAnalysis<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        SignedDifference rhs = (SignedDifference) obj;
         return new EqualsBuilder()
                 .isEquals();
     }

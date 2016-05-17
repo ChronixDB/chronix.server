@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
@@ -35,7 +35,7 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Trend detection needs at least one time series");
         }
@@ -47,7 +47,7 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
         //If we have a positive slope, we return 1 otherwise -1
-        return slope > 0 ? 1 : -1;
+        return slope > 0;
     }
 
     @Override
@@ -82,7 +82,6 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Trend rhs = (Trend) obj;
         return new EqualsBuilder()
                 .isEquals();
     }

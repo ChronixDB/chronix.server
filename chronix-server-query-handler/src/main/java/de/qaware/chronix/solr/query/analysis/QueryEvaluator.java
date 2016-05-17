@@ -17,10 +17,10 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.*;
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw;
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.Frequency;
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier;
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
 import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 

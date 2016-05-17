@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -134,11 +135,11 @@ public class AnalysisHandler extends SearchHandler {
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
                 MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
-                AnalysisValueMap analysisAndValues = new AnalysisValueMap(functions.sizeOfAggregations() + functions.sizeOfAnalyses());
+                FunctionValueMap analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
 
                 //first we do the transformations
                 if (functions.containsTransformations()) {
-                    timeSeries = applyTransformations(functions.getTransformations(), timeSeries);
+                    timeSeries = applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
                 }
 
                 //then we apply aggregations
@@ -168,6 +169,8 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     /**
+     * Applies the analyses on the given time series
+     *
      * @param req               the request
      * @param analyses          the analyses
      * @param key               the key to joins time series records
@@ -179,7 +182,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws ParseException if bad things happen
      * @throws IOException    if bad things happen
      */
-    private void applyAnalyses(SolrQueryRequest req, List<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, AnalysisValueMap analysisAndValues) throws ParseException, IOException {
+    private void applyAnalyses(SolrQueryRequest req, List<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
         //That is the time series we operate on
         final MetricTimeSeries transformedTimeSeries = timeSeries;
 
@@ -197,7 +200,7 @@ public class AnalysisHandler extends SearchHandler {
                     if (!docs.getKey().equals(subDocs.getKey())) {
                         MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
 
-                        double value = analysis.execute(transformedTimeSeries, subTimeSeries);
+                        boolean value = analysis.execute(transformedTimeSeries, subTimeSeries);
                         analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
                     }
 
@@ -205,35 +208,39 @@ public class AnalysisHandler extends SearchHandler {
 
             } else {
                 //Execute analysis and store the result
-                double value = analysis.execute(timeSeries);
+                boolean value = analysis.execute(timeSeries);
                 analysisAndValues.add(analysis, value, null);
             }
         }
     }
 
     /**
+     * Applies the list of aggregations on the given time series
+     *
      * @param aggregations      the aggregations
      * @param timeSeries        the time series to aggregate
      * @param analysisAndValues the result for the aggregations
      */
-    private void applyAggregations(List<ChronixAnalysis<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, AnalysisValueMap analysisAndValues) {
+    private void applyAggregations(List<ChronixAggregation<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         //run over the aggregations
-        for (ChronixAnalysis<MetricTimeSeries> aggregation : aggregations) {
+        for (ChronixAggregation<MetricTimeSeries> aggregation : aggregations) {
             //Execute analysis and store the result
             double value = aggregation.execute(timeSeries);
-            analysisAndValues.add(aggregation, value, null);
+            analysisAndValues.add(aggregation, value);
         }
     }
 
     /**
-     * @param transformations the transformations
-     * @param timeSeries      the time series that is transformed
+     * @param transformations   the transformations
+     * @param timeSeries        the time series that is transformed
+     * @param analysisAndValues the result to add the transformations
      * @return the transformed time series
      */
-    private MetricTimeSeries applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries) {
+    private MetricTimeSeries applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         for (ChronixTransformation<MetricTimeSeries> transformation : transformations) {
             //transform the time series
             timeSeries = transformation.transform(timeSeries);
+            analysisAndValues.add(transformation);
         }
         return timeSeries;
     }

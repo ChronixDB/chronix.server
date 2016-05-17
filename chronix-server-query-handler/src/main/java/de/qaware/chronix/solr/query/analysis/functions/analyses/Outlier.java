@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
@@ -38,7 +38,7 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
      * @return 1 if there are outliers, otherwise -1
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Trend detection needs at least one time series");
         }
@@ -46,7 +46,7 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         MetricTimeSeries timeSeries = args[0];
 
         if (timeSeries.isEmpty()) {
-            return -1;
+            return false;
         }
 
         DoubleList points = timeSeries.getValues();
@@ -59,10 +59,10 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
             if (point > threshold) {
-                return 1;
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 
     @Override
@@ -96,7 +96,6 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Outlier rhs = (Outlier) obj;
         return new EqualsBuilder()
                 .isEquals();
     }

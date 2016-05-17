@@ -22,23 +22,22 @@ import spock.lang.Specification
  * Unit test for the analysis value map
  * @author f.lautenschlager
  */
-class AnalysisValueMapTest extends Specification {
+class FunctionValueMapTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def analysisValueMap = new AnalysisValueMap(size)
+        def analysisValueMap = new FunctionValueMap(3, 0, 0)
 
         when:
         size.times {
-            analysisValueMap.add(new Max(), it, "Info:" + it)
+            analysisValueMap.add(new Max(), it)
         }
 
         then:
         analysisValueMap.size() == size
         size.times {
-            analysisValueMap.getAnalysis(it) == new Max()
-            analysisValueMap.getValue(it) == it
-            analysisValueMap.getIdentifier(it) == "Info:" + it
+            analysisValueMap.getAggregation(it) == new Max()
+            analysisValueMap.getAggregationValue(it) == it
         }
 
         where:

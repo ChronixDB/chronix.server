@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel
+package de.qaware.chronix.solr.query.analysis.functions.analyses
 
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -37,7 +37,7 @@ class OutlierTest extends Specification {
         when:
         def result = new Outlier().execute(ts)
         then:
-        result == 1.0
+        result
     }
 
     def "test execute with a time series that has no outlier"() {
@@ -51,14 +51,14 @@ class OutlierTest extends Specification {
         when:
         def result = new Outlier().execute(ts)
         then:
-        result == -1.0
+        !result
     }
 
     def "test execute with empty time series"() {
         when:
         def result = new Outlier().execute(new MetricTimeSeries.Builder("Out").build())
         then:
-        result == -1.0
+        !result
     }
 
     def "test exception behaviour"() {
