@@ -20,8 +20,8 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -122,8 +122,8 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.FASTDTW;
+    public FunctionType getType() {
+        return FunctionType.FASTDTW;
     }
 
     @Override

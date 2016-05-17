@@ -20,7 +20,7 @@ package de.qaware.chronix.solr.query.analysis.functions;
  *
  * @author f.lautenschlager
  */
-public enum AnalysisType {
+public enum FunctionType {
 
     //Aggregations
     AVG,
@@ -37,7 +37,11 @@ public enum AnalysisType {
     TREND,
     OUTLIER,
     FREQUENCY,
-    FASTDTW, DIFF, SDIFF;
+    FASTDTW,
+    DIFF,
+    SDIFF,
+    //Transformations
+    VECTOR;
 
     /**
      * Checks if the given type is a high level analysis
@@ -45,7 +49,7 @@ public enum AnalysisType {
      * @param type - the analysis type
      * @return true if the analysis type is a high level analysis, otherwise false
      */
-    public static boolean isHighLevel(AnalysisType type) {
+    public static boolean isHighLevel(FunctionType type) {
         return TREND == type || OUTLIER == type || FREQUENCY == type || FASTDTW == type;
     }
 
@@ -55,7 +59,7 @@ public enum AnalysisType {
      * @param type - the analysis type
      * @return true if an isAggregation, otherwise false
      */
-    public static boolean isAggregation(AnalysisType type) {
+    public static boolean isAggregation(FunctionType type) {
         return !isHighLevel(type);
     }
 

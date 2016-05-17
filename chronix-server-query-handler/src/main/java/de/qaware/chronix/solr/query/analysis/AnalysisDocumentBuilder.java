@@ -68,46 +68,6 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Analyzes the given chunks of time series that match the given join key
-     *
-     * @param analyses   the analysis including the arguments
-     * @param timeSeries the time series that is analyzed
-     * @return the analyzed solr document
-     */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis<MetricTimeSeries>> analyses, MetricTimeSeries timeSeries) {
-
-        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
-
-        //run over the analyses
-        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
-            //Execute analysis and store the result
-            double value = analysis.execute(timeSeries);
-            analysisAndValues.add(analysis, value, null);
-
-        }
-        return analysisAndValues;
-    }
-
-    /**
-     * Analyzes the given chunk sets of the two time series
-     *
-     * @param analyses      the analyses that are applied on the two time series
-     * @param timeSeries    the time series from the first query
-     * @param subTimeSeries one time series from the sub query (represented in the result)
-     * @return the analyzed solr document
-     */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis<MetricTimeSeries>> analyses, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
-        //run over the analyses
-        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
-
-        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
-            double value = analysis.execute(timeSeries, subTimeSeries);
-            analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
-        }
-        return analysisAndValues;
-    }
-
-    /**
      * Builds a solr document that is needed for the response from the aggregated time series
      *
      * @param timeSeries       the time series

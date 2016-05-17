@@ -17,7 +17,6 @@ package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.solr.query.ChronixQueryParams
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
@@ -99,9 +98,10 @@ class AnalysisHandlerTest extends Specification {
 
         def request = Mock(SolrQueryRequest)
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                .add("fq", "function=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
-        def analyses = [new Max()] as HashSet<ChronixAnalysis>
+        def analyses = new QueryFunctions<>()
+        analyses.addAggregation(new Max())
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
 
 
@@ -131,7 +131,8 @@ class AnalysisHandlerTest extends Specification {
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                 .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
-        def analyses = [new FastDtw("ignored", 1, 0.8)] as HashSet<ChronixAnalysis>
+        def analyses = new QueryFunctions<>()
+        analyses.addAnalysis(new FastDtw("ignored", 1, 0.8))
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
 
         when:

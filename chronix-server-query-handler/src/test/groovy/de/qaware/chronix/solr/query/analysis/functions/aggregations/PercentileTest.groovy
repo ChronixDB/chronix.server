@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -67,7 +67,7 @@ class PercentileTest extends Specification {
 
     def "test type"() {
         expect:
-        new Percentile(0.5).getType() == AnalysisType.P
+        new Percentile(0.5).getType() == FunctionType.P
     }
 
     def "test equals and hash code"() {

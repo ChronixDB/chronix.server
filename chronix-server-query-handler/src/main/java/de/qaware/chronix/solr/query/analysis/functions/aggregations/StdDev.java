@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
@@ -55,8 +55,8 @@ public final class StdDev implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.DEV;
+    public FunctionType getType() {
+        return FunctionType.DEV;
     }
 
     @Override

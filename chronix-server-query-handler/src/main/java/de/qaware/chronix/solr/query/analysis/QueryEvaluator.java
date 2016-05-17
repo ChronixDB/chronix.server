@@ -15,24 +15,21 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import de.qaware.chronix.solr.query.ChronixQueryParams;
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.*;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Frequency;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.highlevel.Trend;
+import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 import java.lang.reflect.MalformedParametersException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author f.lautenschlager
  */
-public final class AnalysisQueryEvaluator {
+public final class QueryEvaluator {
 
     private static final String AGGREGATION_DELIMITER = "=";
     private static final String AGGREGATION_ARGUMENT_DELIMITER = ":";
@@ -40,28 +37,28 @@ public final class AnalysisQueryEvaluator {
     private static final String FUNCTION_ARGUMENT_SPLITTER = ";";
 
 
-    private AnalysisQueryEvaluator() {
+    private QueryEvaluator() {
         //avoid instances
     }
 
     /**
-     * Analyzes the filter queries and parses them for chronix analyses
+     * Analyzes the filter queries and parses them for chronix fucntions
      *
      * @param filterQueries the filter queries (solr api)
      * @return a set of chronix analyses asked in the filter queries
      */
-    public static Set<ChronixAnalysis<MetricTimeSeries>> buildAnalyses(String[] filterQueries) {
+    public static QueryFunctions<MetricTimeSeries> extractFunctions(String[] filterQueries) {
 
         if (filterQueries == null || filterQueries.length == 0) {
-            throw new MalformedParametersException("Analyses must not be null.");
+            throw new MalformedParametersException("Functions must not be null.");
         }
         //The result that contains the asked analyses
-        Set<ChronixAnalysis<MetricTimeSeries>> result = new HashSet<>();
+        QueryFunctions<MetricTimeSeries> result = new QueryFunctions<>();
         String[] arguments = new String[0];
 
         //Iterate over all filter queries
         for (String unmodifiedAnalysis : filterQueries) {
-            //Get the plain function without 'ag='
+            //Get the plain function without '*='
             String function = extractFunction(unmodifiedAnalysis);
 
             String[] functions;
@@ -79,8 +76,8 @@ public final class AnalysisQueryEvaluator {
                     arguments = extractAggregationParameter(subFunction);
                     subFunction = subFunction.substring(0, subFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                 }
-                //add the implementation of the asked analyses
-                result.add(getImplementation(AnalysisType.valueOf(subFunction.toUpperCase()), arguments));
+                //add the implementation of the asked functions
+                addFunction(result, FunctionType.valueOf(subFunction.toUpperCase()), arguments);
 
             }
         }
@@ -88,76 +85,71 @@ public final class AnalysisQueryEvaluator {
         return result;
     }
 
-    /**
-     * Get the analysis and its argument.
-     * An analysis is marked with one of the following strings
-     * - ag=max    // maximum isAggregation
-     * - ag=p:0.25 // 25% percentile
-     * - analysis=trend // trend analysis. positive trend
-     *
-     * @param filterQueries - the filter queries of the user query
-     * @return an entry containing the isAggregation and an isAggregation argument
-     * @deprecated Since 0.2 as then Chronix supports multiple queries
-     */
-    @Deprecated
-    public static ChronixAnalysis buildAnalysis(String[] filterQueries) {
-
-        String unmodifiedAnalysis = getAnalysis(filterQueries);
-
-        String aggregation = extractFunction(unmodifiedAnalysis);
-        String[] arguments = new String[0];
-        //Aggregation has an argument
-        if (aggregation.contains(AGGREGATION_ARGUMENT_DELIMITER)) {
-            arguments = extractAggregationParameter(aggregation);
-            aggregation = aggregation.substring(0, aggregation.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
-        }
-        return getImplementation(AnalysisType.valueOf(aggregation.toUpperCase()), arguments);
-    }
-
-    private static ChronixAnalysis<MetricTimeSeries> getImplementation(AnalysisType type, String[] arguments) {
+    private static void addFunction(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
 
         switch (type) {
+            //Aggregations
             case AVG:
-                return new Avg();
+                result.addAggregation(new Avg());
+                break;
             case MIN:
-                return new Min();
+                result.addAggregation(new Min());
+                break;
             case MAX:
-                return new Max();
+                result.addAggregation(new Max());
+                break;
             case SUM:
-                return new Sum();
+                result.addAggregation(new Sum());
+                break;
             case COUNT:
-                return new Count();
+                result.addAggregation(new Count());
+                break;
             case DEV:
-                return new StdDev();
+                result.addAggregation(new StdDev());
+                break;
             case LAST:
-                return new Last();
+                result.addAggregation(new Last());
+                break;
             case FIRST:
-                return new First();
+                result.addAggregation(new First());
+                break;
             case RANGE:
-                return new Range();
+                result.addAggregation(new Range());
+                break;
             case DIFF:
-                return new Difference();
+                result.addAggregation(new Difference());
+                break;
             case SDIFF:
-                return new SignedDifference();
+                result.addAggregation(new SignedDifference());
+                break;
             case P:
                 double p = Double.parseDouble(arguments[0]);
-                return new Percentile(p);
+                result.addAggregation(new Percentile(p));
+                break;
+            //Analyses
             case TREND:
-                return new Trend();
+                result.addAnalysis(new Trend());
+                break;
             case OUTLIER:
-                return new Outlier();
+                result.addAnalysis(new Outlier());
+                break;
             case FREQUENCY:
                 long windowSize = Long.parseLong(arguments[0]);
                 long windowThreshold = Long.parseLong(arguments[1]);
-                return new Frequency(windowSize, windowThreshold);
+                result.addAnalysis(new Frequency(windowSize, windowThreshold));
+                break;
             case FASTDTW:
                 String subquery = removeBrackets(arguments[0]);
                 int searchRadius = Integer.parseInt(arguments[1]);
                 double maxAvgWarpingCost = Double.parseDouble(arguments[2]);
-                return new FastDtw(subquery, searchRadius, maxAvgWarpingCost);
-
+                result.addAnalysis(new FastDtw(subquery, searchRadius, maxAvgWarpingCost));
+                break;
+            //Transformations
+            case VECTOR:
+                result.addTransformation(new Vectorization());
+                break;
             default:
-                throw new EnumConstantNotPresentException(AnalysisType.class, "Type: " + type + " not present.");
+                throw new EnumConstantNotPresentException(FunctionType.class, "Type: " + type + " not present.");
         }
     }
 
@@ -191,23 +183,9 @@ public final class AnalysisQueryEvaluator {
 
     private static String extract(String argumentString, String aggregationArgumentDelimiter) {
         int index = argumentString.indexOf(aggregationArgumentDelimiter);
+        if (index == -1) {
+            throw new IllegalStateException("Invalid query syntax. No delimiter '" + aggregationArgumentDelimiter + "' found");
+        }
         return argumentString.substring(index + 1);
-    }
-
-    private static String getAnalysis(String[] fqs) {
-        if (fqs == null) {
-            throw new MalformedParametersException("Aggregation must not be null.");
-        }
-        //Check all filter queries for aggregations and analyses
-        for (String filterQuery : fqs) {
-            if (filterQuery.startsWith(ChronixQueryParams.AGGREGATION_PARAM)) {
-                return filterQuery;
-            }
-            if (filterQuery.startsWith(ChronixQueryParams.ANALYSIS_PARAM)) {
-                return filterQuery;
-            }
-        }
-        throw new MalformedParametersException("Aggregation must not empty.");
-
     }
 }

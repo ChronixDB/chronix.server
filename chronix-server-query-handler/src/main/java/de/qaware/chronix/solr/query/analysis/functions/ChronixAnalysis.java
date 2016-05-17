@@ -38,7 +38,7 @@ public interface ChronixAnalysis<T> {
     /**
      * @return the type of the analysis
      */
-    AnalysisType getType();
+    FunctionType getType();
 
     /**
      * @return if the analysis needs a getSubquery

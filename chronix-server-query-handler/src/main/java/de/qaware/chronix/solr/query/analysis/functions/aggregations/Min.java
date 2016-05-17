@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
@@ -66,8 +66,8 @@ public class Min implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.MIN;
+    public FunctionType getType() {
+        return FunctionType.MIN;
     }
 
     @Override

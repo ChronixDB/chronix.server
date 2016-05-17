@@ -219,8 +219,8 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev", "ag=sum",
-                          "ag=count", "ag=diff", "ag=sdiff", "ag=first", "ag=last", "ag=range"]
+        analysisQuery << ["function=max", "function=min", "function=avg", "function=p:0.25", "function=dev", "function=sum",
+                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range"]
         points << [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
 
@@ -246,14 +246,14 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
-        analysisQuery << ["analysis=trend", "analysis=outlier", "analysis=frequency:10,1", "analysis=fastdtw:(metric:*Load*max),5,0.8"]
+        analysisQuery << ["function=trend", "function=outlier", "function=frequency:10,1", "function=fastdtw:(metric:*Load*max),5,0.8"]
         points << [7000, 7000, 7000, 7000]
     }
 
     def "Test analysis fastdtw"() {
         when:
         def query = new SolrQuery("metric:*Load*min")
-        query.addFilterQuery("analysis=fastdtw:(metric:*Load*max),5,0.8")
+        query.addFilterQuery("function=fastdtw:(metric:*Load*max),5,0.8")
         query.setFields("metric", "data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -271,7 +271,7 @@ class ChronixClientTestIT extends Specification {
     def "test analysis with empty result"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\min")
-        query.addFilterQuery("analysis=frequency:10,9")
+        query.addFilterQuery("function=frequency:10,9")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 0

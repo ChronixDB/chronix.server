@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.highlevel
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -98,7 +98,7 @@ class FastDtwTest extends Specification {
 
     def "test type"() {
         expect:
-        new FastDtw("", 5, 20).getType() == AnalysisType.FASTDTW
+        new FastDtw("", 5, 20).getType() == FunctionType.FASTDTW
     }
 
     def "test equals and hash code"() {

@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.highlevel;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
@@ -69,8 +69,8 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.OUTLIER;
+    public FunctionType getType() {
+        return FunctionType.OUTLIER;
     }
 
     @Override

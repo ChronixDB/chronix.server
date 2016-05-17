@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.highlevel;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -111,8 +111,8 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.FREQUENCY;
+    public FunctionType getType() {
+        return FunctionType.FREQUENCY;
     }
 
     @Override

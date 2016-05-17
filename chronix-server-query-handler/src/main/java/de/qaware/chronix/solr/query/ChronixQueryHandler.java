@@ -103,7 +103,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
 
         //if we have an analysis or aggregation request
-        if (contains(filterQueries, ChronixQueryParams.AGGREGATION_PARAM) || contains(filterQueries, ChronixQueryParams.ANALYSIS_PARAM)) {
+        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {
@@ -169,8 +169,8 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     /**
      * Checks if the given string array (filter queries) contains the given identifier.
      *
-     * @param filterQueries - the filter queries
-     * @param identifier    - an identifier
+     * @param filterQueries the filter queries
+     * @param identifier    the identifier
      * @return true if the filter queries contains the identifier, otherwise false.
      */
     private boolean contains(String[] filterQueries, String identifier) {

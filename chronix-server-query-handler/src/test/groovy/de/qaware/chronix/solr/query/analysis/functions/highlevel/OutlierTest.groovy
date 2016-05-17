@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.highlevel
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -81,7 +81,7 @@ class OutlierTest extends Specification {
 
     def "test type"() {
         expect:
-        new Outlier().getType() == AnalysisType.OUTLIER
+        new Outlier().getType() == FunctionType.OUTLIER
     }
 
 }

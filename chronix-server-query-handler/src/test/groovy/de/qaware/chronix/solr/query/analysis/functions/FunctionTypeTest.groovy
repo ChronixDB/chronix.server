@@ -21,17 +21,17 @@ import spock.lang.Specification
  * Unit test for the analysis type enum
  * @author f.lautenschlager
  */
-class AnalysisTypeTest extends Specification {
+class FunctionTypeTest extends Specification {
 
     def "test analyses types"() {
         when:
-        def result = AnalysisType.isAggregation(type)
+        def result = FunctionType.isAggregation(type)
 
         then:
         result == expected
 
         where:
-        type << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P, AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
+        type << [FunctionType.MIN, FunctionType.MAX, FunctionType.AVG, FunctionType.DEV, FunctionType.P, FunctionType.TREND, FunctionType.OUTLIER, FunctionType.FREQUENCY, FunctionType.FASTDTW]
         expected << [true, true, true, true, true, false, false, false, false]
     }
 }

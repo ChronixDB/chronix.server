@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.highlevel
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -85,7 +85,7 @@ class FrequencyTest extends Specification {
 
     def "test type"() {
         expect:
-        new Frequency(5, 20).getType() == AnalysisType.FREQUENCY
+        new Frequency(5, 20).getType() == FunctionType.FREQUENCY
     }
 
     def "test equals and hash code"() {
