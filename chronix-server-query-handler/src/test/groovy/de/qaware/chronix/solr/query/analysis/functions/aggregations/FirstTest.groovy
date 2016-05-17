@@ -71,4 +71,14 @@ class FirstTest extends Specification {
         expect:
         new First().getType() == FunctionType.FIRST
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def first = new First();
+        !first.equals(null)
+        !first.equals(new Object())
+        first.equals(first)
+        first.equals(new First())
+        new First().hashCode() == new First().hashCode()
+    }
 }

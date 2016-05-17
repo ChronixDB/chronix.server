@@ -70,4 +70,14 @@ class AvgTest extends Specification {
         expect:
         new Avg().getType() == FunctionType.AVG
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def avg = new Avg();
+        !avg.equals(null)
+        !avg.equals(new Object())
+        avg.equals(avg)
+        avg.equals(new Avg())
+        new Avg().hashCode() == new Avg().hashCode()
+    }
 }

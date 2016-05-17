@@ -85,4 +85,14 @@ class MinTest extends Specification {
         expect:
         new Min().getType() == FunctionType.MIN
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def min = new Min();
+        !min.equals(null)
+        !min.equals(new Object())
+        min.equals(min)
+        min.equals(new Min())
+        new Min().hashCode() == new Min().hashCode()
+    }
 }

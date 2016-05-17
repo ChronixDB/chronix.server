@@ -110,4 +110,14 @@ class SignedDifferenceTest extends Specification {
         expect:
         new SignedDifference().getType() == FunctionType.SDIFF
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def sdiff = new SignedDifference();
+        !sdiff.equals(null)
+        !sdiff.equals(new Object())
+        sdiff.equals(sdiff)
+        sdiff.equals(new SignedDifference())
+        new SignedDifference().hashCode() == new SignedDifference().hashCode()
+    }
 }

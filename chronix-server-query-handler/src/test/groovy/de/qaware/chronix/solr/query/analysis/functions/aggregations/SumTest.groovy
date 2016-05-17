@@ -71,4 +71,14 @@ class SumTest extends Specification {
         expect:
         new Sum().getType() == FunctionType.SUM
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def sum = new Sum();
+        !sum.equals(null)
+        !sum.equals(new Object())
+        sum.equals(sum)
+        sum.equals(new Sum())
+        new Sum().hashCode() == new Sum().hashCode()
+    }
 }

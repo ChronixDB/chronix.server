@@ -71,4 +71,14 @@ class LastTest extends Specification {
         expect:
         new Last().getType() == FunctionType.LAST
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def last = new Last();
+        !last.equals(null)
+        !last.equals(new Object())
+        last.equals(last)
+        last.equals(new Last())
+        new Last().hashCode() == new Last().hashCode()
+    }
 }

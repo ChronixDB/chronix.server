@@ -71,4 +71,14 @@ class MaxTest extends Specification {
         expect:
         new Max().getType() == FunctionType.MAX
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def max = new Max();
+        !max.equals(null)
+        !max.equals(new Object())
+        max.equals(max)
+        max.equals(new Max())
+        new Max().hashCode() == new Max().hashCode()
+    }
 }

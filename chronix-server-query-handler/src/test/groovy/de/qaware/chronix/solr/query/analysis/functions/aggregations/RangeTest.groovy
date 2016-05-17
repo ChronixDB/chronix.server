@@ -73,4 +73,14 @@ class RangeTest extends Specification {
         new Range().getType() == FunctionType.RANGE
     }
 
+    def "test equals and hash code"() {
+        expect:
+        def range = new Range();
+        !range.equals(null)
+        !range.equals(new Object())
+        range.equals(range)
+        range.equals(new Range())
+        new Range().hashCode() == new Range().hashCode()
+    }
+
 }

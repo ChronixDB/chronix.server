@@ -70,4 +70,14 @@ class StdDevTest extends Specification {
         new StdDev().getType() == FunctionType.DEV
     }
 
+    def "test equals and hash code"() {
+        expect:
+        def stdDev = new StdDev();
+        !stdDev.equals(null)
+        !stdDev.equals(new Object())
+        stdDev.equals(stdDev)
+        stdDev.equals(new StdDev())
+        new StdDev().hashCode() == new StdDev().hashCode()
+    }
+
 }

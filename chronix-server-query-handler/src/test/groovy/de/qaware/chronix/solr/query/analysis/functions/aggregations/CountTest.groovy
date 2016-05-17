@@ -70,4 +70,14 @@ class CountTest extends Specification {
         expect:
         new Count().getType() == FunctionType.COUNT
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def count = new Count();
+        !count.equals(null)
+        !count.equals(new Object())
+        count.equals(count)
+        count.equals(new Count())
+        new Count().hashCode() == new Count().hashCode()
+    }
 }

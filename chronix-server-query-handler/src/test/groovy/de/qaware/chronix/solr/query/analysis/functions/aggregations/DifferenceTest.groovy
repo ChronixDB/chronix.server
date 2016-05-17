@@ -85,4 +85,14 @@ class DifferenceTest extends Specification {
         expect:
         new Difference().getType() == FunctionType.DIFF
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def diff = new Difference();
+        !diff.equals(null)
+        !diff.equals(new Object())
+        diff.equals(diff)
+        diff.equals(new Difference())
+        new Difference().hashCode() == new Difference().hashCode()
+    }
 }
