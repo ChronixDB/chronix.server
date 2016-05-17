@@ -18,8 +18,8 @@ package de.qaware.chronix.solr.query.analysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class that holds the query functions
@@ -32,34 +32,34 @@ import java.util.Set;
  */
 class QueryFunctions<T> {
 
-    private Set<ChronixAnalysis<T>> analyses;
-    private Set<ChronixAnalysis<T>> aggregations;
-    private Set<ChronixTransformation<T>> transformations;
+    private List<ChronixAnalysis<T>> analyses;
+    private List<ChronixAnalysis<T>> aggregations;
+    private List<ChronixTransformation<T>> transformations;
 
     QueryFunctions() {
-        analyses = new HashSet<>();
-        aggregations = new HashSet<>();
-        transformations = new HashSet<>();
+        analyses = new ArrayList<>();
+        aggregations = new ArrayList<>();
+        transformations = new ArrayList<>();
     }
 
     /**
      * @return the analyses in the query
      */
-    public Set<ChronixAnalysis<T>> getAnalyses() {
+    public List<ChronixAnalysis<T>> getAnalyses() {
         return analyses;
     }
 
     /**
      * @return the aggregations in the query
      */
-    public Set<ChronixAnalysis<T>> getAggregations() {
+    public List<ChronixAnalysis<T>> getAggregations() {
         return aggregations;
     }
 
     /**
      * @return the transformations in the query
      */
-    public Set<ChronixTransformation<T>> getTransformations() {
+    public List<ChronixTransformation<T>> getTransformations() {
         return transformations;
     }
 

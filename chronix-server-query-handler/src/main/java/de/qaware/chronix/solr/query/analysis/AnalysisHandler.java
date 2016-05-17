@@ -138,52 +138,19 @@ public class AnalysisHandler extends SearchHandler {
 
                 //first we do the transformations
                 if (functions.containsTransformations()) {
-                    for (ChronixTransformation<MetricTimeSeries> transformation : functions.getTransformations()) {
-                        //transform the time series
-                        timeSeries = transformation.transform(timeSeries);
-                    }
+                    timeSeries = applyTransformations(functions.getTransformations(), timeSeries);
                 }
 
+                //then we apply aggregations
                 if (functions.containsAggregations()) {
-                    //run over the aggregations
-                    for (ChronixAnalysis<MetricTimeSeries> aggregation : functions.getAggregations()) {
-                        //Execute analysis and store the result
-                        double value = aggregation.execute(timeSeries);
-                        analysisAndValues.add(aggregation, value, null);
-                    }
+                    applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+
                 }
 
-                //then we apply aggregations and analyses
+                //finally the analyses
                 if (functions.containsAnalyses()) {
-                    //That is the time series we operate on
-                    final MetricTimeSeries transformedTimeSeries = timeSeries;
+                    applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
 
-                    //run over the analyses
-                    for (ChronixAnalysis<MetricTimeSeries> analysis : functions.getAnalyses()) {
-
-                        if (analysis.needSubquery()) {
-                            //lets parse the sub-query for start and and end terms
-                            String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
-                            Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
-
-                            //execute the analysis with all sub documents
-                            subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                                //Only if have a different time series
-                                if (!docs.getKey().equals(subDocs.getKey())) {
-                                    MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
-
-                                    double value = analysis.execute(transformedTimeSeries, subTimeSeries);
-                                    analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
-                                }
-
-                            });
-
-                        } else {
-                            //Execute analysis and store the result
-                            double value = analysis.execute(timeSeries);
-                            analysisAndValues.add(analysis, value, null);
-                        }
-                    }
                 }
 
                 //Here we have to build the document with the results of the analyses
@@ -198,6 +165,77 @@ public class AnalysisHandler extends SearchHandler {
             }
         });
         return resultDocuments;
+    }
+
+    /**
+     * @param req               the request
+     * @param analyses          the analyses
+     * @param key               the key to joins time series records
+     * @param queryStart        the start of the query
+     * @param queryEnd          the end of the query
+     * @param docs              the documents (time series records)
+     * @param timeSeries        the time series to analyze
+     * @param analysisAndValues the result for the analyses
+     * @throws ParseException if bad things happen
+     * @throws IOException    if bad things happen
+     */
+    private void applyAnalyses(SolrQueryRequest req, List<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, AnalysisValueMap analysisAndValues) throws ParseException, IOException {
+        //That is the time series we operate on
+        final MetricTimeSeries transformedTimeSeries = timeSeries;
+
+        //run over the analyses
+        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
+
+            if (analysis.needSubquery()) {
+                //lets parse the sub-query for start and and end terms
+                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
+                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+
+                //execute the analysis with all sub documents
+                subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
+                    //Only if have a different time series
+                    if (!docs.getKey().equals(subDocs.getKey())) {
+                        MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+
+                        double value = analysis.execute(transformedTimeSeries, subTimeSeries);
+                        analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
+                    }
+
+                });
+
+            } else {
+                //Execute analysis and store the result
+                double value = analysis.execute(timeSeries);
+                analysisAndValues.add(analysis, value, null);
+            }
+        }
+    }
+
+    /**
+     * @param aggregations      the aggregations
+     * @param timeSeries        the time series to aggregate
+     * @param analysisAndValues the result for the aggregations
+     */
+    private void applyAggregations(List<ChronixAnalysis<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, AnalysisValueMap analysisAndValues) {
+        //run over the aggregations
+        for (ChronixAnalysis<MetricTimeSeries> aggregation : aggregations) {
+            //Execute analysis and store the result
+            double value = aggregation.execute(timeSeries);
+            analysisAndValues.add(aggregation, value, null);
+        }
+    }
+
+    /**
+     * @param transformations the transformations
+     * @param timeSeries      the time series that is transformed
+     * @return the transformed time series
+     */
+    private MetricTimeSeries applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries) {
+        for (ChronixTransformation<MetricTimeSeries> transformation : transformations) {
+            //transform the time series
+            timeSeries = transformation.transform(timeSeries);
+        }
+        return timeSeries;
     }
 
     /**
