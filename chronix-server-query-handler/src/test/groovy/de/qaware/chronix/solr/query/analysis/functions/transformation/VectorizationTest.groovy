@@ -37,7 +37,7 @@ class VectorizationTest extends Specification {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
-        def vectorization = new Vectorization();
+        def vectorization = new Vectorization(0.01f);
 
         when:
         def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
@@ -48,7 +48,7 @@ class VectorizationTest extends Specification {
 
     def "test type"() {
         when:
-        def vectorization = new Vectorization();
+        def vectorization = new Vectorization(0.01f);
         then:
         vectorization.getType() == FunctionType.VECTOR
     }

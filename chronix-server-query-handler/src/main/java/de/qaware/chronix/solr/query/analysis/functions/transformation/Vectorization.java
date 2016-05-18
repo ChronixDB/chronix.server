@@ -38,7 +38,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * <p>
      * A typical tolerance value is 0.01f
      *
-     * @param tolerance the value that is used to decide if a values
+     * @param tolerance the value that is used to decide if the distance of values is almost equals.
      */
     public Vectorization(float tolerance) {
         this.TOLERANCE = tolerance;
