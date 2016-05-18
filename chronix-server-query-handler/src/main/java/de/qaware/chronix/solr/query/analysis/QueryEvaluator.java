@@ -146,7 +146,8 @@ public final class QueryEvaluator {
                 break;
             //Transformations
             case VECTOR:
-                result.addTransformation(new Vectorization());
+                float tolerance = Float.parseFloat(arguments[0]);
+                result.addTransformation(new Vectorization(tolerance));
                 break;
             default:
                 throw new EnumConstantNotPresentException(FunctionType.class, "Type: " + type + " not present.");
