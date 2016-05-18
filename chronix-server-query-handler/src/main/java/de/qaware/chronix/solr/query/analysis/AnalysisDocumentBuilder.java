@@ -144,7 +144,7 @@ public final class AnalysisDocumentBuilder {
         for (int analysis = 0; analysis < functionValueMap.sizeOfAnalyses(); analysis++) {
             ChronixAnalysis chronixAnalysis = functionValueMap.getAnalysis(analysis);
             boolean value = functionValueMap.getAnalysisValue(analysis);
-            String identifier = functionValueMap.getIdentifier(analysis);
+            String identifier = functionValueMap.getAnalysisIdentifier(analysis);
             String nameWithLeadingUnderscore;
             if (Strings.isNullOrEmpty(identifier)) {
                 nameWithLeadingUnderscore = "_" + chronixAnalysis.getType().name().toLowerCase();

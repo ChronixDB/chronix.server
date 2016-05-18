@@ -87,7 +87,7 @@ public class FunctionValueMap {
             aggregationValues[aggregationSize] = value;
             aggregationSize++;
         } else {
-            throw new IndexOutOfBoundsException("Try to put aggregation to map with max size " + analyses.length + " but index " + aggregationSize + " is out of range.");
+            throw new IndexOutOfBoundsException("Try to put aggregation to map with max size " + aggregations.length + " but index " + aggregationSize + " is out of range.");
         }
     }
 
@@ -101,12 +101,24 @@ public class FunctionValueMap {
             transformations[transformationSize] = transformation;
             transformationSize++;
         } else {
-            throw new IndexOutOfBoundsException("Try to put analysis to map with max size " + analyses.length + " but index " + transformationSize + " is out of range.");
+            throw new IndexOutOfBoundsException("Try to put transformation to map with max size " + transformations.length + " but index " + transformationSize + " is out of range.");
         }
 
     }
 
     /**
+     * Gets the transformation
+     *
+     * @param i the index
+     * @return the transformation at index i
+     */
+    public ChronixTransformation getTransformation(int i) {
+        return transformations[i];
+    }
+
+    /**
+     * Gets the analysis at the index position
+     *
      * @param i the index
      * @return the analysis at index i
      */
@@ -115,6 +127,18 @@ public class FunctionValueMap {
     }
 
     /**
+     * Gets the analysis value at the index position
+     *
+     * @param i the index
+     * @return the value at index i
+     */
+    public boolean getAnalysisValue(int i) {
+        return analysisValues[i];
+    }
+
+    /**
+     * Gets the aggregation at the index position
+     *
      * @param i the index
      * @return the aggregation at index i
      */
@@ -123,22 +147,22 @@ public class FunctionValueMap {
     }
 
     /**
+     * Gets the aggregation value at the index position
+     *
      * @param i the index
      * @return the value at index i
      */
-    public boolean getAnalysisValue(int i) {
-        return analysisValues[i];
-    }
-
     public double getAggregationValue(int i) {
         return aggregationValues[i];
     }
 
     /**
+     * Gets the identifier used in analyses that need sub queries
+     *
      * @param i the index
      * @return the additional identifier
      */
-    public String getIdentifier(int i) {
+    public String getAnalysisIdentifier(int i) {
         return identifiers[i];
     }
 
@@ -163,12 +187,10 @@ public class FunctionValueMap {
         return analysisSize + transformationSize + aggregationSize;
     }
 
-
+    /**
+     * @return the size of the aggregations
+     */
     public int sizeOfAggregations() {
         return aggregationSize;
-    }
-
-    public ChronixTransformation getTransformation(int i) {
-        return transformations[i];
     }
 }
