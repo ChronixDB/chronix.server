@@ -139,7 +139,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Vectorization rhs = (Vectorization) obj;
         return new EqualsBuilder()
                 .isEquals();
     }
