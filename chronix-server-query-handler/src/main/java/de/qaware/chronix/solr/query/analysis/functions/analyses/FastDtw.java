@@ -63,12 +63,7 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
-            //Return the normalized distance as result
-            return true;
-        }
-        //The time series are not similar
-        return false;
+        return result.getNormalizedDistance() <= maxNormalizedWarpingCost;
     }
 
     /**
