@@ -34,7 +34,7 @@ class QueryFunctionsTest extends Specification {
         when:
         queryFunctions.addAggregation(new Max())
         queryFunctions.addAnalysis(new Trend())
-        queryFunctions.addTransformation(new Vectorization())
+        queryFunctions.addTransformation(new Vectorization(0.01f))
 
         then:
         !queryFunctions.isEmpty()
@@ -45,7 +45,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 1
 
         queryFunctions.getAggregations().contains(new Max())
-        queryFunctions.getTransformations().contains(new Vectorization())
+        queryFunctions.getTransformations().contains(new Vectorization(0.01f))
         queryFunctions.getAnalyses().contains(new Trend())
 
         queryFunctions.containsAggregations()
@@ -66,7 +66,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 0
 
         !queryFunctions.getAggregations().contains(new Max())
-        !queryFunctions.getTransformations().contains(new Vectorization())
+        !queryFunctions.getTransformations().contains(new Vectorization(0.01f))
         !queryFunctions.getAnalyses().contains(new Trend())
 
         !queryFunctions.containsAggregations()
