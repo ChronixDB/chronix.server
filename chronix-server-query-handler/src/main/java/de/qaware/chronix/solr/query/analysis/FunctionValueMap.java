@@ -35,9 +35,9 @@ public class FunctionValueMap {
 
     private final String[] identifiers;
 
-    private int analysisSize = 0;
-    private int aggregationSize = 0;
-    private int transformationSize = 0;
+    private int analysisSize;
+    private int aggregationSize;
+    private int transformationSize;
 
 
     /**
@@ -90,6 +90,7 @@ public class FunctionValueMap {
             throw new IndexOutOfBoundsException("Try to put aggregation to map with max size " + analyses.length + " but index " + aggregationSize + " is out of range.");
         }
     }
+
     /**
      * Appends the transformation to the result
      *
@@ -161,8 +162,6 @@ public class FunctionValueMap {
     public int size() {
         return analysisSize + transformationSize + aggregationSize;
     }
-
-
 
 
     public int sizeOfAggregations() {
