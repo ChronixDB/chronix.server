@@ -31,7 +31,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
 
-    private final float TOLERANCE;
+    private final float tolerance;
 
     /**
      * Constructs the vectorization transformation.
@@ -41,7 +41,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * @param tolerance the value that is used to decide if the distance of values is almost equals.
      */
     public Vectorization(float tolerance) {
-        this.TOLERANCE = tolerance;
+        this.tolerance = tolerance;
     }
 
     /**
@@ -59,10 +59,13 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         int size = timeSeries.size();
         byte[] usePoint = new byte[size];
 
+        //We need to sort the time series
+        timeSeries.sort();
+
         long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
         double[] rawValues = timeSeries.getValuesAsArray();
 
-        compute(rawTimeStamps, rawValues, usePoint, TOLERANCE);
+        compute(rawTimeStamps, rawValues, usePoint, tolerance);
 
         LongList vectorizedTimeStamps = new LongList();
         DoubleList vectorizedValues = new DoubleList();
@@ -137,6 +140,11 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public FunctionType getType() {
         return FunctionType.VECTOR;
+    }
+
+    @Override
+    public String[] getArguments() {
+        return new String[]{"tolerance=" + tolerance};
     }
 
 

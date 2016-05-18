@@ -23,34 +23,43 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
- * Unit test for the vector transformation
+ * Unit test for the factor transformation
  * @author f.lautenschlager
  */
-class VectorizationTest extends Specification {
+class ScaleTest extends Specification {
 
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Scale")
         def now = Instant.now()
 
         100.times {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
-        def vectorization = new Vectorization(0.01f);
+        def scale = new Scale(2);
 
         when:
-        vectorization.getArguments() == ["tolerance=0.01"] as String[]
-        def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
+        scale.getArguments()[0] == "factor=2.0"
+        def scaledTimeSeries = scale.transform(timeSeriesBuilder.build())
 
         then:
-        vectorizedTimeSeries.size() == 2
+        100.times {
+            scaledTimeSeries.getValue(it) == (it + 1) * 2
+        }
     }
 
-    def "test type"() {
+    def "test getType"() {
         when:
-        def vectorization = new Vectorization(0.01f);
+        def scale = new Scale(2);
         then:
-        vectorization.getType() == FunctionType.VECTOR
+        scale.getType() == FunctionType.SCALE
+    }
+
+    def "test getArguments"() {
+        when:
+        def scale = new Scale(2);
+        then:
+        scale.getArguments()[0] == "scale=2.0"
     }
 }

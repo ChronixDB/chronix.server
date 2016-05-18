@@ -41,7 +41,14 @@ public enum FunctionType {
     DIFF,
     SDIFF,
     //Transformations
-    VECTOR;
+    VECTOR,
+    DIVIDE,
+    SCALE,
+    BOTTOM,
+    TOP,
+    MOVAVG,
+    DERIVATIVE,
+    NNDERIVATIVE;
 
     /**
      * Checks if the given type is a high level analysis

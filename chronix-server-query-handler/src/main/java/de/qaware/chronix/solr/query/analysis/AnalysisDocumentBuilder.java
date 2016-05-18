@@ -126,7 +126,14 @@ public final class AnalysisDocumentBuilder {
         //add the transformation information
         for (int transformation = 0; transformation < functionValueMap.sizeOfTransformations(); transformation++) {
             ChronixTransformation chronixTransformation = functionValueMap.getTransformation(transformation);
-            doc.put(counter++ + "_" + ChronixQueryParams.FUNCTION, chronixTransformation.getType().name().toLowerCase());
+
+            if (chronixTransformation.getArguments().length != 0) {
+                doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixTransformation.getType().name().toLowerCase(), chronixTransformation.getArguments());
+            } else {
+                doc.put(counter + "_" + ChronixQueryParams.FUNCTION, chronixTransformation.getType().name().toLowerCase());
+            }
+            counter++;
+
         }
 
         //add the aggregation information

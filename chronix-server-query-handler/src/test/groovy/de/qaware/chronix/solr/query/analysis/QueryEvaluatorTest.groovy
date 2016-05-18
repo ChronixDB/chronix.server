@@ -101,11 +101,13 @@ class QueryEvaluatorTest extends Specification {
         then:
         def transformation = functions.getTransformations().getAt(0)
         transformation.getType() == expectedType
+        transformation.getArguments() == expectedArgs
 
         where:
-        fqs << [["function=vector"] as String[]]
+        fqs << [["function=vector:0.01"] as String[]]
 
         expectedType << [FunctionType.VECTOR]
+        expectedArgs << [["tolerance=0.01"] as String[]]
     }
 
     def "test ag query strings that produce exceptions"() {

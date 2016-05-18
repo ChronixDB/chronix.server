@@ -23,34 +23,43 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 /**
- * Unit test for the vector transformation
+ * Unit test for the divide transformation
  * @author f.lautenschlager
  */
-class VectorizationTest extends Specification {
+class DivideTest extends Specification {
 
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Div")
         def now = Instant.now()
 
         100.times {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
-        def vectorization = new Vectorization(0.01f);
+        def divide = new Divide(2);
 
         when:
-        vectorization.getArguments() == ["tolerance=0.01"] as String[]
-        def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
+        divide.getArguments()[0] == "factor=2.0"
+        def dividedTimeSeries = divide.transform(timeSeriesBuilder.build())
 
         then:
-        vectorizedTimeSeries.size() == 2
+        100.times {
+            dividedTimeSeries.getValue(it) == (it + 1) / 2d
+        }
     }
 
-    def "test type"() {
+    def "test getType"() {
         when:
-        def vectorization = new Vectorization(0.01f);
+        def divide = new Divide(2);
         then:
-        vectorization.getType() == FunctionType.VECTOR
+        divide.getType() == FunctionType.DIVIDE
+    }
+
+    def "test getArguments"() {
+        when:
+        def divide = new Divide(2);
+        then:
+        divide.getArguments()[0] == "factor=2.0"
     }
 }

@@ -18,39 +18,49 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
-
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-
 /**
- * Unit test for the vector transformation
+ * Unit test for the bottom transformation
  * @author f.lautenschlager
  */
-class VectorizationTest extends Specification {
-
+class BottomTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector")
-        def now = Instant.now()
+        def bottom = new Bottom(4)
+        def bottomNTimeSeries;
 
-        100.times {
-            timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
-        }
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Top")
+        timeSeriesBuilder.point(1, 5d)
+        timeSeriesBuilder.point(2, 99d)
+        timeSeriesBuilder.point(3, 3d)
+        timeSeriesBuilder.point(4, 5d)
+        timeSeriesBuilder.point(5, 65d)
+        timeSeriesBuilder.point(6, 23d)
 
-        def vectorization = new Vectorization(0.01f);
 
         when:
-        vectorization.getArguments() == ["tolerance=0.01"] as String[]
-        def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
+        bottomNTimeSeries = bottom.transform(timeSeriesBuilder.build())
+
 
         then:
-        vectorizedTimeSeries.size() == 2
+        bottomNTimeSeries.size() == 4
+        bottomNTimeSeries.getValue(0) == 3d
+        bottomNTimeSeries.getValue(1) == 5d
+        bottomNTimeSeries.getValue(2) == 5d
+        bottomNTimeSeries.getValue(3) == 23d
+
     }
 
-    def "test type"() {
+    def "test getType"() {
         when:
-        def vectorization = new Vectorization(0.01f);
+        def bottom = new Bottom(2)
         then:
-        vectorization.getType() == FunctionType.VECTOR
+        bottom.getType() == FunctionType.BOTTOM
+    }
+
+    def "test getArguments"() {
+        when:
+        def bottom = new Bottom(2)
+        then:
+        bottom.getArguments()[0] == "n=2"
     }
 }
