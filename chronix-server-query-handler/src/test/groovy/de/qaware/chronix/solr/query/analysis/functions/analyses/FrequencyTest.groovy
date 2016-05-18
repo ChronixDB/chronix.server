@@ -13,9 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel
+package de.qaware.chronix.solr.query.analysis.functions.analyses
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -62,7 +62,7 @@ class FrequencyTest extends Specification {
         where:
         windowSize << [20, 5]
         windowThreshold << [6, 6]
-        detected << [-1, 1]
+        detected << [false, true]
     }
 
     def "test exception behaviour"() {
@@ -85,7 +85,7 @@ class FrequencyTest extends Specification {
 
     def "test type"() {
         expect:
-        new Frequency(5, 20).getType() == AnalysisType.FREQUENCY
+        new Frequency(5, 20).getType() == FunctionType.FREQUENCY
     }
 
     def "test equals and hash code"() {
@@ -102,7 +102,7 @@ class FrequencyTest extends Specification {
         dtw1Hash == dtw2Hash == result
 
         where:
-        freq1 << [new Frequency(5, 20),new Frequency(5, 20), new Frequency(5, 20)]
+        freq1 << [new Frequency(5, 20), new Frequency(5, 20), new Frequency(5, 20)]
         freq2 << [new Frequency(5, 20), new Frequency(6, 20), new Frequency(5, 21)]
 
         result << [true, false, false]

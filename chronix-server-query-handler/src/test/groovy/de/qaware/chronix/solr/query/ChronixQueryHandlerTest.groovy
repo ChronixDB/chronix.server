@@ -26,8 +26,8 @@ import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.schema.IndexSchema
 import org.apache.solr.schema.SchemaField
 import org.apache.solr.schema.TextField
-import spock.lang.Ignore
 import spock.lang.Specification
+
 /**
  * Unit test for the date range query handler
  * @author f.lautenschlager
@@ -155,24 +155,7 @@ class ChronixQueryHandlerTest extends Specification {
         queryEnd > 0
 
         where:
-        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "ag=max")]
-
-    }
-
-    @Ignore
-    def "min required fields"() {
-        given:
-        def chronixQueryHandler = new ChronixQueryHandler()
-
-        when:
-        def fields = chronixQueryHandler.minRequiredFields(fl)
-
-        then:
-        fields == expected
-
-        where:
-        fl << [null, "", "myField"]
-        expected << [null, null, "myField" + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, ChronixQueryHandler.REQUIRED_FIELDS)]
+        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "function=max")]
 
     }
 

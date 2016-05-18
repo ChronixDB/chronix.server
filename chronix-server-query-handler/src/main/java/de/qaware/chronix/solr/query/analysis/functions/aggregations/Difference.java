@@ -15,16 +15,18 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The difference aggregation returns the difference between the first and the last value of a given time series
  *
  * @author f.lautenschlager
  */
-public class Difference implements ChronixAnalysis {
+public class Difference implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Calculate the difference between the first and the last value of a given time series
@@ -63,8 +65,8 @@ public class Difference implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.DIFF;
+    public FunctionType getType() {
+        return FunctionType.DIFF;
     }
 
     @Override
@@ -75,5 +77,27 @@ public class Difference implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return null;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
     }
 }

@@ -15,16 +15,18 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Sum aggregation for a time series
  *
  * @author f.lautenschlager
  */
-public class Sum implements ChronixAnalysis {
+public class Sum implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public double execute(MetricTimeSeries... args) {
         //Sum needs at least one time series
@@ -57,8 +59,8 @@ public class Sum implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.SUM;
+    public FunctionType getType() {
+        return FunctionType.SUM;
     }
 
     @Override
@@ -69,5 +71,27 @@ public class Sum implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return null;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
     }
 }

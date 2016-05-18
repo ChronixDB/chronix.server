@@ -13,10 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public final class Frequency implements ChronixAnalysis {
+public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
 
     private final long windowSize;
     private final long windowThreshold;
@@ -57,7 +57,7 @@ public final class Frequency implements ChronixAnalysis {
      * @return 1 if there are more points than the defined threshold, otherwise -1
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Frequency needs at least one time series");
         }
@@ -98,11 +98,11 @@ public final class Frequency implements ChronixAnalysis {
             int result = current - former;
             if (result >= windowThreshold) {
                 //add the time series as there are more points per window than the threshold
-                return 1;
+                return true;
             }
         }
         //Nothing bad found
-        return -1;
+        return false;
     }
 
     @Override
@@ -111,8 +111,8 @@ public final class Frequency implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.FREQUENCY;
+    public FunctionType getType() {
+        return FunctionType.FREQUENCY;
     }
 
     @Override

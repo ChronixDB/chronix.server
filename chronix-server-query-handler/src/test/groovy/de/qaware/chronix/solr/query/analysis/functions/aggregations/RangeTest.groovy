@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -70,7 +70,17 @@ class RangeTest extends Specification {
 
     def "test type"() {
         expect:
-        new Range().getType() == AnalysisType.RANGE
+        new Range().getType() == FunctionType.RANGE
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def range = new Range();
+        !range.equals(null)
+        !range.equals(new Object())
+        range.equals(range)
+        range.equals(new Range())
+        new Range().hashCode() == new Range().hashCode()
     }
 
 }

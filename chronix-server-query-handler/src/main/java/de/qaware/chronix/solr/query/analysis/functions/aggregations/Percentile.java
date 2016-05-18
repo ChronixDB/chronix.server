@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public final class Percentile implements ChronixAnalysis {
+public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
 
     private final double percentile;
 
@@ -71,8 +71,8 @@ public final class Percentile implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.P;
+    public FunctionType getType() {
+        return FunctionType.P;
     }
 
     @Override

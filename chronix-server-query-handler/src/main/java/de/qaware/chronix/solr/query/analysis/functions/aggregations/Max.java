@@ -15,16 +15,18 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The maximum aggregation
  *
  * @author f.lautenschlager
  */
-public final class Max implements ChronixAnalysis {
+public final class Max implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Calculates the maximum value of the first time series.
@@ -65,8 +67,8 @@ public final class Max implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.MAX;
+    public FunctionType getType() {
+        return FunctionType.MAX;
     }
 
     @Override
@@ -80,4 +82,24 @@ public final class Max implements ChronixAnalysis {
     }
 
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
+    }
 }

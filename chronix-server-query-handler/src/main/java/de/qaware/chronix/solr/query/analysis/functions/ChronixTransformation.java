@@ -13,25 +13,27 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions
-
-import spock.lang.Specification
+package de.qaware.chronix.solr.query.analysis.functions;
 
 /**
- * Unit test for the analysis type enum
+ * The transformation interface
+ *
+ * @param <T> defines the type of the time series
  * @author f.lautenschlager
  */
-class AnalysisTypeTest extends Specification {
+public interface ChronixTransformation<T> {
 
-    def "test analyses types"() {
-        when:
-        def result = AnalysisType.isAggregation(type)
+    /**
+     * Transforms a time series by changing it inital values
+     *
+     * @param timeSeries the time series that is transformed
+     * @return the transformed time series
+     */
+    T transform(T timeSeries);
 
-        then:
-        result == expected
+    /**
+     * @return the type of the transformation
+     */
+    FunctionType getType();
 
-        where:
-        type << [AnalysisType.MIN, AnalysisType.MAX, AnalysisType.AVG, AnalysisType.DEV, AnalysisType.P, AnalysisType.TREND, AnalysisType.OUTLIER, AnalysisType.FREQUENCY, AnalysisType.FASTDTW]
-        expected << [true, true, true, true, true, false, false, false, false]
-    }
 }

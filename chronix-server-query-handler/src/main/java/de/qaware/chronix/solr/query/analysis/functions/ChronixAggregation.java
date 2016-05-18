@@ -15,11 +15,12 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions;
 
-/**
- * @param <T> the type to apply the analysis on
+/***
+ * A class holding the parsed analysis with its arguments
+ *
  * @author f.lautenschlager
  */
-public interface ChronixAnalysis<T> {
+public interface ChronixAggregation<T> {
 
     /**
      * Executes the analysis
@@ -27,7 +28,7 @@ public interface ChronixAnalysis<T> {
      * @param args the time series
      * @return the value of the analysis
      */
-    boolean execute(T... args);
+    double execute(T... args);
 
     /**
      * @return the arguments

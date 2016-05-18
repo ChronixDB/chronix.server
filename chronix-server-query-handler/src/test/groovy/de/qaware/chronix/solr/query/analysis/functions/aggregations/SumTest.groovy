@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -69,6 +69,16 @@ class SumTest extends Specification {
 
     def "test type"() {
         expect:
-        new Sum().getType() == AnalysisType.SUM
+        new Sum().getType() == FunctionType.SUM
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def sum = new Sum();
+        !sum.equals(null)
+        !sum.equals(new Object())
+        sum.equals(sum)
+        sum.equals(new Sum())
+        new Sum().hashCode() == new Sum().hashCode()
     }
 }

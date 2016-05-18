@@ -13,20 +13,22 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The outlier analysis
  *
  * @author f.lautenschlager
  */
-public class Outlier implements ChronixAnalysis {
+public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
 
     /**
      * Detects outliers using the default box plot implementation.
@@ -36,7 +38,7 @@ public class Outlier implements ChronixAnalysis {
      * @return 1 if there are outliers, otherwise -1
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Trend detection needs at least one time series");
         }
@@ -44,7 +46,7 @@ public class Outlier implements ChronixAnalysis {
         MetricTimeSeries timeSeries = args[0];
 
         if (timeSeries.isEmpty()) {
-            return -1;
+            return false;
         }
 
         DoubleList points = timeSeries.getValues();
@@ -57,10 +59,10 @@ public class Outlier implements ChronixAnalysis {
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
             if (point > threshold) {
-                return 1;
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 
     @Override
@@ -69,8 +71,8 @@ public class Outlier implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.OUTLIER;
+    public FunctionType getType() {
+        return FunctionType.OUTLIER;
     }
 
     @Override
@@ -81,5 +83,26 @@ public class Outlier implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return null;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
     }
 }

@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -69,6 +69,16 @@ class FirstTest extends Specification {
 
     def "test type"() {
         expect:
-        new First().getType() == AnalysisType.FIRST
+        new First().getType() == FunctionType.FIRST
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def first = new First();
+        !first.equals(null)
+        !first.equals(new Object())
+        first.equals(first)
+        first.equals(new First())
+        new First().hashCode() == new First().hashCode()
     }
 }

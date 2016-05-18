@@ -21,7 +21,9 @@ import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;
@@ -68,98 +70,96 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Analyzes the given chunks of time series that match the given join key
+     * Builds a solr document that is needed for the response from the aggregated time series.
+     * If the functions contains only analyses an every analysis result is false the method returns null.
+     * <p>
+     * Transformations -> Return the time series
+     * Aggregations -> Return the document
+     * Analyses -> Return the document if a analysis result is positive
      *
-     * @param analyses   the analysis including the arguments
-     * @param timeSeries the time series that is analyzed
-     * @return the analyzed solr document
+     * @param timeSeries         the time series
+     * @param functionValueMap   a map with executed analyses and values
+     * @param key                the join key
+     * @param dataShouldReturned flag to mark if the data should be returned
+     * @return the resulting solr document, or null if the functions contain only analyses an every is result is false.
      */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries) {
+    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned) {
 
-        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
-
-        //run over the analyses
-        for (ChronixAnalysis analysis : analyses) {
-            //Execute analysis and store the result
-            double value = analysis.execute(timeSeries);
-            analysisAndValues.add(analysis, value, null);
-
+        //If the map is empty, we return null.
+        if (functionValueMap.size() == 0) {
+            return null;
         }
-        return analysisAndValues;
-    }
 
-    /**
-     * Analyzes the given chunk sets of the two time series
-     *
-     * @param analyses      the analyses that are applied on the two time series
-     * @param timeSeries    the time series from the first query
-     * @param subTimeSeries one time series from the sub query (represented in the result)
-     * @return the analyzed solr document
-     */
-    public static AnalysisValueMap analyze(Set<ChronixAnalysis> analyses, MetricTimeSeries timeSeries, MetricTimeSeries subTimeSeries) {
-        //run over the analyses
-        AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
+        //If there are transformations or aggregations, we will return the document
+        boolean returnDocument = functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
 
-        for (ChronixAnalysis analysis : analyses) {
-            double value = analysis.execute(timeSeries, subTimeSeries);
-            analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
-        }
-        return analysisAndValues;
-    }
-
-    /**
-     * Builds a solr document that is needed for the response from the aggregated time series
-     *
-     * @param timeSeries       the time series
-     * @param analysisValueMap a map with executed analyses and values
-     * @param key              the join key
-     * @return the resulting solr document
-     */
-    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, AnalysisValueMap analysisValueMap, String key, boolean dataShouldReturned) {
-
-
-        int analysesCount = analysisValueMap.size();
-        boolean returnDocument = false;
-
-
-        //First check if a document is needed
-        for (int i = 0; i < analysesCount; i++) {
-            double value = analysisValueMap.getValue(i);
-
-            if (!returnDocument && value > 0) {
-                // For aggregations we always return the document
-                returnDocument = true;
+        if (!returnDocument) {
+            //Analyses
+            //-> return the document if the value is true
+            for (int i = 0; i < functionValueMap.sizeOfAnalyses(); i++) {
+                //we have found a positive analysis, lets return the document
+                if (functionValueMap.getAnalysisValue(i)) {
+                    returnDocument = true;
+                    break;
+                }
             }
         }
 
+        //return null to the callee
         if (!returnDocument) {
             return null;
         }
 
         SolrDocument doc = convert(timeSeries, dataShouldReturned);
-        addAnalysesAndResults(analysisValueMap, analysesCount, doc);
+        addAnalysesAndResults(functionValueMap, doc);
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, key);
 
         return doc;
     }
 
-    private static void addAnalysesAndResults(AnalysisValueMap analysisValueMap, int analysesCount, SolrDocument doc) {
-        for (int i = 0; i < analysesCount; i++) {
-            ChronixAnalysis analysis = analysisValueMap.getAnalysis(i);
-            double value = analysisValueMap.getValue(i);
-            String identifier = analysisValueMap.getIdentifier(i);
+    private static void addAnalysesAndResults(FunctionValueMap functionValueMap, SolrDocument doc) {
+
+        //For identification purposes
+        int counter = 0;
+
+        //add the transformation information
+        for (int transformation = 0; transformation < functionValueMap.sizeOfTransformations(); transformation++) {
+            ChronixTransformation chronixTransformation = functionValueMap.getTransformation(transformation);
+            doc.put(counter++ + "_" + ChronixQueryParams.FUNCTION, chronixTransformation.getType().name().toLowerCase());
+        }
+
+        //add the aggregation information
+        for (int aggregation = 0; aggregation < functionValueMap.sizeOfAggregations(); aggregation++) {
+            ChronixAggregation chronixAggregation = functionValueMap.getAggregation(aggregation);
+            double value = functionValueMap.getAggregationValue(aggregation);
+            doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixAggregation.getType().name().toLowerCase(), value);
+            if (chronixAggregation.getArguments().length != 0) {
+                doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + "_" + chronixAggregation.getType().name().toLowerCase(), chronixAggregation.getArguments());
+            }
+            counter++;
+        }
+
+        //add the analyses information
+        for (int analysis = 0; analysis < functionValueMap.sizeOfAnalyses(); analysis++) {
+            ChronixAnalysis chronixAnalysis = functionValueMap.getAnalysis(analysis);
+            boolean value = functionValueMap.getAnalysisValue(analysis);
+            String identifier = functionValueMap.getIdentifier(analysis);
             String nameWithLeadingUnderscore;
             if (Strings.isNullOrEmpty(identifier)) {
-                nameWithLeadingUnderscore = "_" + analysis.getType().name().toLowerCase();
+                nameWithLeadingUnderscore = "_" + chronixAnalysis.getType().name().toLowerCase();
 
             } else {
-                nameWithLeadingUnderscore = "_" + analysis.getType().name().toLowerCase() + "_" + identifier;
+                nameWithLeadingUnderscore = "_" + chronixAnalysis.getType().name().toLowerCase() + "_" + identifier;
             }
 
             //Add some information about the analysis
-            doc.put(i + "_" + ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
-            doc.put(i + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, analysis.getArguments());
+            doc.put(counter + "_" + ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
+
+            if (chronixAnalysis.getArguments().length != 0) {
+                doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, chronixAnalysis.getArguments());
+            }
+            counter++;
         }
     }
 

@@ -18,8 +18,6 @@ package de.qaware.chronix.solr.query.analysis
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
-import de.qaware.chronix.solr.query.analysis.functions.highlevel.FastDtw
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import de.qaware.chronix.timeseries.dt.DoubleList
 import de.qaware.chronix.timeseries.dt.LongList
@@ -64,53 +62,6 @@ class AnalysisDocumentBuilderTest extends Specification {
         then:
         collectedDocs.size() == 1
         collectedDocs.get("groovy-laptop").size() == 2
-    }
-
-
-    def "test aggregate"() {
-        given:
-        def docs = fillDocs()
-        def analyses = AnalysisQueryEvaluator.buildAnalyses(["ag=max"] as String[])
-
-        when:
-        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analyses, ts);
-
-        then:
-        analysesAndValues.getAnalysis(0).type == AnalysisType.MAX
-    }
-
-    def "test analyze"() {
-        given:
-        def docs = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalyses(["analysis=trend"] as String[])
-
-        when:
-        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, ts);
-
-        then:
-        analysesAndValues.getAnalysis(0).type == AnalysisType.TREND
-
-    }
-
-    def "test analyze with subquery"() {
-        given:
-        def docs = fillDocs()
-        def docs2 = fillDocs()
-        def analysis = AnalysisQueryEvaluator.buildAnalyses(["analysis=fastdtw:(metric:*),10,0.5"] as String[])
-
-        when:
-        def ts = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs);
-        def ts2 = AnalysisDocumentBuilder.collectDocumentToTimeSeries(0l, Long.MAX_VALUE, docs2);
-        def analysesAndValues = AnalysisDocumentBuilder.analyze(analysis, ts, ts2);
-
-        then:
-        FastDtw result = analysesAndValues.getAnalysis(0)
-        result.type == AnalysisType.FASTDTW
-        result.searchRadius == 10
-        result.subquery == "metric:*"
-
     }
 
     List<Document> fillDocs() {

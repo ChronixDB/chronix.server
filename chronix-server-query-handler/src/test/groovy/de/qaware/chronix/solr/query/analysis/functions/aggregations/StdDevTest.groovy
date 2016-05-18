@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -67,7 +67,17 @@ class StdDevTest extends Specification {
 
     def "test type"() {
         expect:
-        new StdDev().getType() == AnalysisType.DEV
+        new StdDev().getType() == FunctionType.DEV
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def stdDev = new StdDev();
+        !stdDev.equals(null)
+        !stdDev.equals(new Object())
+        stdDev.equals(stdDev)
+        stdDev.equals(new StdDev())
+        new StdDev().hashCode() == new StdDev().hashCode()
     }
 
 }

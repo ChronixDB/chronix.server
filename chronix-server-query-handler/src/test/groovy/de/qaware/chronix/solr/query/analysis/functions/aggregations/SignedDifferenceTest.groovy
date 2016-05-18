@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -108,6 +108,16 @@ class SignedDifferenceTest extends Specification {
 
     def "test type"() {
         expect:
-        new SignedDifference().getType() == AnalysisType.SDIFF
+        new SignedDifference().getType() == FunctionType.SDIFF
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def sdiff = new SignedDifference();
+        !sdiff.equals(null)
+        !sdiff.equals(new Object())
+        sdiff.equals(sdiff)
+        sdiff.equals(new SignedDifference())
+        new SignedDifference().hashCode() == new SignedDifference().hashCode()
     }
 }

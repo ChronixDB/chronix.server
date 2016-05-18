@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -69,6 +69,16 @@ class LastTest extends Specification {
 
     def "test type"() {
         expect:
-        new Last().getType() == AnalysisType.LAST
+        new Last().getType() == FunctionType.LAST
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def last = new Last();
+        !last.equals(null)
+        !last.equals(new Object())
+        last.equals(last)
+        last.equals(new Last())
+        new Last().hashCode() == new Last().hashCode()
     }
 }

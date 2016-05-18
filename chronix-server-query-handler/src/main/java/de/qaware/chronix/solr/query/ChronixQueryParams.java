@@ -25,14 +25,9 @@ import de.qaware.chronix.Schema;
 public final class ChronixQueryParams {
 
     /**
-     * Used to determine if a query contains an isAggregation
+     * Used to determine if a query contains an aggregation
      */
-    public static final String AGGREGATION_PARAM = "ag=";
-
-    /**
-     * Used to determine if a query contains an analysis
-     */
-    public static final String ANALYSIS_PARAM = "analysis=";
+    public static final String FUNCTION_PARAM = "function=";
 
     /**
      * The function: aggregation or analysis

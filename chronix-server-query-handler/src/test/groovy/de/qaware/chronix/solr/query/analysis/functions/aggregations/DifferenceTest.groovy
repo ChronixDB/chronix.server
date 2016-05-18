@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -83,6 +83,16 @@ class DifferenceTest extends Specification {
 
     def "test type"() {
         expect:
-        new Difference().getType() == AnalysisType.DIFF
+        new Difference().getType() == FunctionType.DIFF
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def diff = new Difference();
+        !diff.equals(null)
+        !diff.equals(new Object())
+        diff.equals(diff)
+        diff.equals(new Difference())
+        new Difference().hashCode() == new Difference().hashCode()
     }
 }

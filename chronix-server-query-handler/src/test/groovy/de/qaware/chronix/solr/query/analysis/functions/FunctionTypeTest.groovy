@@ -13,39 +13,25 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions;
+package de.qaware.chronix.solr.query.analysis.functions
+
+import spock.lang.Specification
 
 /**
- * @param <T> the type to apply the analysis on
+ * Unit test for the analysis type enum
  * @author f.lautenschlager
  */
-public interface ChronixAnalysis<T> {
+class FunctionTypeTest extends Specification {
 
-    /**
-     * Executes the analysis
-     *
-     * @param args the time series
-     * @return the value of the analysis
-     */
-    boolean execute(T... args);
+    def "test analyses types"() {
+        when:
+        def result = FunctionType.isAggregation(type)
 
-    /**
-     * @return the arguments
-     */
-    String[] getArguments();
+        then:
+        result == expected
 
-    /**
-     * @return the type of the analysis
-     */
-    FunctionType getType();
-
-    /**
-     * @return if the analysis needs a getSubquery
-     */
-    boolean needSubquery();
-
-    /**
-     * @return the getSubquery of the analysis
-     */
-    String getSubquery();
+        where:
+        type << [FunctionType.MIN, FunctionType.MAX, FunctionType.AVG, FunctionType.DEV, FunctionType.P, FunctionType.TREND, FunctionType.OUTLIER, FunctionType.FREQUENCY, FunctionType.FASTDTW]
+        expected << [true, true, true, true, true, false, false, false, false]
+    }
 }

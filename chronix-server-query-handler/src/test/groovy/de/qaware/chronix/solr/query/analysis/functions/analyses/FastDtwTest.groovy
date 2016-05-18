@@ -13,9 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel
+package de.qaware.chronix.solr.query.analysis.functions.analyses
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -38,7 +38,7 @@ class FastDtwTest extends Specification {
         when:
         def result = new FastDtw("", 5, 20).execute(ts1, ts2)
         then:
-        result == 0
+        result
     }
 
     def "test time series with equal timestamps"() {
@@ -55,7 +55,7 @@ class FastDtwTest extends Specification {
         def result = new FastDtw("", 5, 0).execute(ts1, ts1)
 
         then:
-        result == 0
+        result
     }
 
     def "test execute for with -1 as result"() {
@@ -73,7 +73,7 @@ class FastDtwTest extends Specification {
         when:
         def result = new FastDtw("", 5, 0).execute(ts1, ts2)
         then:
-        result == -1.0
+        !result
 
     }
 
@@ -98,7 +98,7 @@ class FastDtwTest extends Specification {
 
     def "test type"() {
         expect:
-        new FastDtw("", 5, 20).getType() == AnalysisType.FASTDTW
+        new FastDtw("", 5, 20).getType() == FunctionType.FASTDTW
     }
 
     def "test equals and hash code"() {

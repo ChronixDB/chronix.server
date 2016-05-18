@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -68,6 +68,16 @@ class AvgTest extends Specification {
 
     def "test type"() {
         expect:
-        new Avg().getType() == AnalysisType.AVG
+        new Avg().getType() == FunctionType.AVG
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def avg = new Avg();
+        !avg.equals(null)
+        !avg.equals(new Object())
+        avg.equals(avg)
+        avg.equals(new Avg())
+        new Avg().hashCode() == new Avg().hashCode()
     }
 }

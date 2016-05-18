@@ -17,7 +17,9 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
@@ -94,8 +96,8 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final Set<ChronixAnalysis> analyses = AnalysisQueryEvaluator.buildAnalyses(filterQueries);
-            final List<SolrDocument> resultDocuments = analyze(req, analyses, key, collectedDocs, dataShouldReturned);
+            final QueryFunctions<MetricTimeSeries> queryFunctions = QueryEvaluator.extractFunctions(filterQueries);
+            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs, dataShouldReturned);
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -106,10 +108,10 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     /**
-     * Analyzes the given request using the chronix analysis.
+     * Analyzes the given request using the chronix functions.
      *
      * @param req                the solr request with all information
-     * @param analyses           the chronix analysis that is applied
+     * @param functions          the chronix analysis that is applied
      * @param key                the key for joining documents
      * @param collectedDocs      the prior collected documents of the query
      * @param dataShouldReturned flag to indicate if the data should be returned
@@ -118,14 +120,12 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, Set<ChronixAnalysis> analyses, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
+    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
 
-        if (analyses.isEmpty()) {
-            LOGGER.info("Analyses are empty. Returning empty result");
+        if (functions.isEmpty()) {
+            LOGGER.info("Functions are empty. Returning empty result");
             return new ArrayList<>();
         }
-
-        //Do all analyses
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -135,33 +135,23 @@ public class AnalysisHandler extends SearchHandler {
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
                 MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
-                AnalysisValueMap analysisAndValues = new AnalysisValueMap(analyses.size());
+                FunctionValueMap analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
 
-                //run over the analyses
-                for (ChronixAnalysis analysis : analyses) {
+                //first we do the transformations
+                if (functions.containsTransformations()) {
+                    timeSeries = applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
+                }
 
-                    if (analysis.needSubquery()) {
-                        //lets parse the sub-query for start and and end terms
-                        String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
-                        Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+                //then we apply aggregations
+                if (functions.containsAggregations()) {
+                    applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
 
-                        //execute the analysis with all sub documents
-                        subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                            //Only if have a different time series
-                            if (!docs.getKey().equals(subDocs.getKey())) {
-                                MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+                }
 
-                                double value = analysis.execute(timeSeries, subTimeSeries);
-                                analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
-                            }
+                //finally the analyses
+                if (functions.containsAnalyses()) {
+                    applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
 
-                        });
-
-                    } else {
-                        //Execute analysis and store the result
-                        double value = analysis.execute(timeSeries);
-                        analysisAndValues.add(analysis, value, null);
-                    }
                 }
 
                 //Here we have to build the document with the results of the analyses
@@ -176,6 +166,83 @@ public class AnalysisHandler extends SearchHandler {
             }
         });
         return resultDocuments;
+    }
+
+    /**
+     * Applies the analyses on the given time series
+     *
+     * @param req               the request
+     * @param analyses          the analyses
+     * @param key               the key to joins time series records
+     * @param queryStart        the start of the query
+     * @param queryEnd          the end of the query
+     * @param docs              the documents (time series records)
+     * @param timeSeries        the time series to analyze
+     * @param analysisAndValues the result for the analyses
+     * @throws ParseException if bad things happen
+     * @throws IOException    if bad things happen
+     */
+    private void applyAnalyses(SolrQueryRequest req, List<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
+        //That is the time series we operate on
+        final MetricTimeSeries transformedTimeSeries = timeSeries;
+
+        //run over the analyses
+        for (ChronixAnalysis<MetricTimeSeries> analysis : analyses) {
+
+            if (analysis.needSubquery()) {
+                //lets parse the sub-query for start and and end terms
+                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
+                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+
+                //execute the analysis with all sub documents
+                subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
+                    //Only if have a different time series
+                    if (!docs.getKey().equals(subDocs.getKey())) {
+                        MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+
+                        boolean value = analysis.execute(transformedTimeSeries, subTimeSeries);
+                        analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
+                    }
+
+                });
+
+            } else {
+                //Execute analysis and store the result
+                boolean value = analysis.execute(timeSeries);
+                analysisAndValues.add(analysis, value, null);
+            }
+        }
+    }
+
+    /**
+     * Applies the list of aggregations on the given time series
+     *
+     * @param aggregations      the aggregations
+     * @param timeSeries        the time series to aggregate
+     * @param analysisAndValues the result for the aggregations
+     */
+    private void applyAggregations(List<ChronixAggregation<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+        //run over the aggregations
+        for (ChronixAggregation<MetricTimeSeries> aggregation : aggregations) {
+            //Execute analysis and store the result
+            double value = aggregation.execute(timeSeries);
+            analysisAndValues.add(aggregation, value);
+        }
+    }
+
+    /**
+     * @param transformations   the transformations
+     * @param timeSeries        the time series that is transformed
+     * @param analysisAndValues the result to add the transformations
+     * @return the transformed time series
+     */
+    private MetricTimeSeries applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+        for (ChronixTransformation<MetricTimeSeries> transformation : transformations) {
+            //transform the time series
+            timeSeries = transformation.transform(timeSeries);
+            analysisAndValues.add(transformation);
+        }
+        return timeSeries;
     }
 
     /**

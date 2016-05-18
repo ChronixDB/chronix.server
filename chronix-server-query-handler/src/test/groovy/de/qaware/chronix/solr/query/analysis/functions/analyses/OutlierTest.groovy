@@ -13,19 +13,20 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel
+package de.qaware.chronix.solr.query.analysis.functions.analyses
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
- * Unit test for the trend analysis
+ * Unit test for the maximum aggregation
  * @author f.lautenschlager
  */
-class TrendTest extends Specification {
+class OutlierTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Trend");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Out");
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -34,31 +35,53 @@ class TrendTest extends Specification {
 
 
         when:
-        def result = new Trend().execute(ts)
+        def result = new Outlier().execute(ts)
         then:
-        result == 1.0
+        result
+    }
+
+    def "test execute with a time series that has no outlier"() {
+        given:
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Out");
+        10.times {
+            timeSeries.point(it, 4711)
+        }
+        MetricTimeSeries ts = timeSeries.build()
+
+        when:
+        def result = new Outlier().execute(ts)
+        then:
+        !result
+    }
+
+    def "test execute with empty time series"() {
+        when:
+        def result = new Outlier().execute(new MetricTimeSeries.Builder("Out").build())
+        then:
+        !result
     }
 
     def "test exception behaviour"() {
         when:
-        new Trend().execute(new MetricTimeSeries[0])
+        new Outlier().execute(new MetricTimeSeries[0])
         then:
         thrown IllegalArgumentException.class
     }
 
     def "test need subquery"() {
         expect:
-        !new Trend().needSubquery()
-        new Trend().getSubquery() == null
+        !new Outlier().needSubquery()
+        new Outlier().getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Trend().getArguments().length == 0
+        new Outlier().getArguments().length == 0
     }
 
     def "test type"() {
         expect:
-        new Trend().getType() == AnalysisType.TREND
+        new Outlier().getType() == FunctionType.OUTLIER
     }
+
 }

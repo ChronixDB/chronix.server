@@ -13,19 +13,21 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.LinearRegression;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * The trend analysis
  *
  * @author f.lautenschlager
  */
-public final class Trend implements ChronixAnalysis {
+public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     /**
      * Detects trends in time series using a linear regression.
      *
@@ -33,7 +35,7 @@ public final class Trend implements ChronixAnalysis {
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         if (args.length <= 0) {
             throw new IllegalArgumentException("Trend detection needs at least one time series");
         }
@@ -45,7 +47,7 @@ public final class Trend implements ChronixAnalysis {
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
         //If we have a positive slope, we return 1 otherwise -1
-        return slope > 0 ? 1 : -1;
+        return slope > 0;
     }
 
     @Override
@@ -54,8 +56,8 @@ public final class Trend implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.TREND;
+    public FunctionType getType() {
+        return FunctionType.TREND;
     }
 
     @Override
@@ -66,5 +68,27 @@ public final class Trend implements ChronixAnalysis {
     @Override
     public String getSubquery() {
         return null;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
     }
 }

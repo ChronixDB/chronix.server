@@ -13,15 +13,15 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.highlevel;
+package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.distance.DistanceFunction;
 import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixAnalysis {
+public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
 
     private final DistanceFunction distanceFunction;
     private final int searchRadius;
@@ -52,7 +52,7 @@ public final class FastDtw implements ChronixAnalysis {
     }
 
     @Override
-    public double execute(MetricTimeSeries... args) {
+    public boolean execute(MetricTimeSeries... args) {
         //We need two time series
         if (args.length < 2) {
             throw new IllegalArgumentException("Fast DTW needs at least two time series");
@@ -65,10 +65,10 @@ public final class FastDtw implements ChronixAnalysis {
         //Check the result. If it lower equals the threshold, we can return the other time series
         if (result.getNormalizedDistance() <= maxNormalizedWarpingCost) {
             //Return the normalized distance as result
-            return result.getNormalizedDistance();
+            return true;
         }
         //The time series are not similar
-        return -1;
+        return false;
     }
 
     /**
@@ -122,8 +122,8 @@ public final class FastDtw implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.FASTDTW;
+    public FunctionType getType() {
+        return FunctionType.FASTDTW;
     }
 
     @Override

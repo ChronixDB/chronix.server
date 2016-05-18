@@ -15,14 +15,16 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.functions.AnalysisType;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * @author f.lautenschlager
  */
-public final class Last implements ChronixAnalysis {
+public final class Last implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Gets the last value in the time series.
@@ -57,8 +59,8 @@ public final class Last implements ChronixAnalysis {
     }
 
     @Override
-    public AnalysisType getType() {
-        return AnalysisType.LAST;
+    public FunctionType getType() {
+        return FunctionType.LAST;
     }
 
     @Override
@@ -71,4 +73,25 @@ public final class Last implements ChronixAnalysis {
         return null;
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        return new EqualsBuilder()
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .toHashCode();
+    }
 }
