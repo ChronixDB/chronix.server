@@ -23,12 +23,16 @@ import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.Arrays;
+
 /**
  * This transformation does a vectorization of the time series by removing some points.
  *
  * @author f.lautenschlager
  */
 public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
+
+    private static float DEFAULT_TOLERANCE = 0.01f;
 
     /**
      * Todo: Describe the algorithm, a bit.
@@ -41,26 +45,38 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      */
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+        return transform(timeSeries, DEFAULT_TOLERANCE);
+    }
 
+    /**
+     * Todo: Describe the algorithm, a bit.
+     * <p>
+     * Note: The transformation changes the values of the time series!
+     * Further analyses such as aggregations uses the transformed values for the calculation.
+     *
+     * @param timeSeries the time series that is transformed
+     * @return a vectorized time series
+     */
+    public MetricTimeSeries transform(MetricTimeSeries timeSeries, float tolerance) {
         int size = timeSeries.size();
         //do not simplify if there are insufficient data points
-        if(size <= 3) {
+        if (size <= 3) {
             return timeSeries;
         }
 
         byte[] use_point = new byte[size];
+        Arrays.fill(use_point, (byte) 1);
 
         long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
         double[] rawValues = timeSeries.getValuesAsArray();
 
-        float TOLERANCE = 0.01f;
-        compute(rawTimeStamps, rawValues, use_point, TOLERANCE);
+        compute(rawTimeStamps, rawValues, use_point, tolerance);
 
         LongList vectorizedTimeStamps = new LongList();
         DoubleList vectorizedValues = new DoubleList();
+
         for (int i = 0; i < size; i++) {
-            //Value is not vectorized
-            if (use_point[i] != 0) {
+            if (use_point[i] == 1) {
                 vectorizedTimeStamps.add(rawTimeStamps[i]);
                 vectorizedValues.add(rawValues[i]);
             }
@@ -95,27 +111,21 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
         int ix_a = 0;
         int ix_b = 1;
-        use_point[ix_a] = 1;
-        use_point[ix_b] = 1;
         for (int i = 2; i < timestamps.length; i++) {
             double dist = get_distance(timestamps[i], values[i], timestamps[ix_a], values[ix_a], timestamps[ix_b], values[ix_b]);
+
             if (dist < tolerance) {
                 use_point[i - 1] = 0;
-                use_point[i] = 1;
-            } else {
-                // do not continue if not at least one more point is available
-                if (i + 1 >= timestamps.length) {
-                    for (int j = i; j < timestamps.length; j++) {
-                        use_point[j] = 1;
-                    }
-                    return;
-                }
-                ix_a = i;
-                ix_b = i + 1;
-                use_point[ix_a] = 1;
-                use_point[ix_b] = 1;
-                i++; // continue with next point
+                continue;
             }
+            //reached the end
+            if (i + 1 == timestamps.length) {
+                return;
+            }
+            // continue with next point
+            ix_a = i;
+            ix_b = i + 1;
+            i++;
         }
     }
 
@@ -123,7 +133,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.VECTOR;
     }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -136,14 +145,11 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Vectorization rhs = (Vectorization) obj;
-        return new EqualsBuilder()
-                .isEquals();
+        return new EqualsBuilder().isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .toHashCode();
+        return new HashCodeBuilder().toHashCode();
     }
 }
