@@ -42,8 +42,12 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
 
-
         int size = timeSeries.size();
+        //do not simplify if there are insufficient data points
+        if(size <= 3) {
+            return timeSeries;
+        }
+
         byte[] use_point = new byte[size];
 
         long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
@@ -89,11 +93,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
     private void compute(long[] timestamps, double[] values, byte[] use_point, float tolerance) {
 
-        // do not simplify if not at least 3 points are available
-        if (timestamps.length == 3) {
-            return;
-        }
-
         int ix_a = 0;
         int ix_b = 1;
         use_point[ix_a] = 1;
@@ -104,7 +103,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
                 use_point[i - 1] = 0;
                 use_point[i] = 1;
             } else {
-
                 // do not continue if not at least one more point is available
                 if (i + 1 >= timestamps.length) {
                     for (int j = i; j < timestamps.length; j++) {
@@ -112,7 +110,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
                     }
                     return;
                 }
-
                 ix_a = i;
                 ix_b = i + 1;
                 use_point[ix_a] = 1;
