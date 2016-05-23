@@ -23,6 +23,8 @@ import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.Arrays;
+
 /**
  * This transformation does a vectorization of the time series by removing some points.
  *
@@ -30,19 +32,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
-
-    private final float tolerance;
-
-    /**
-     * Constructs the vectorization transformation.
-     * <p>
-     * A typical tolerance value is 0.01f
-     *
-     * @param tolerance the value that is used to decide if the distance of values is almost equals.
-     */
-    public Vectorization(float tolerance) {
-        this.tolerance = tolerance;
-    }
+    private static float DEFAULT_TOLERANCE = 0.01f;
 
     /**
      * Todo: Describe the algorithm, a bit.
@@ -55,23 +45,38 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      */
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+        return transform(timeSeries, DEFAULT_TOLERANCE);
+    }
 
+    /**
+     * Todo: Describe the algorithm, a bit.
+     * <p>
+     * Note: The transformation changes the values of the time series!
+     * Further analyses such as aggregations uses the transformed values for the calculation.
+     *
+     * @param timeSeries the time series that is transformed
+     * @return a vectorized time series
+     */
+    public MetricTimeSeries transform(MetricTimeSeries timeSeries, float tolerance) {
         int size = timeSeries.size();
-        byte[] usePoint = new byte[size];
+        //do not simplify if there are insufficient data points
+        if (size <= 3) {
+            return timeSeries;
+        }
 
-        //We need to sort the time series
-        timeSeries.sort();
+        byte[] use_point = new byte[size];
+        Arrays.fill(use_point, (byte) 1);
 
         long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
         double[] rawValues = timeSeries.getValuesAsArray();
 
-        compute(rawTimeStamps, rawValues, usePoint, tolerance);
+        compute(rawTimeStamps, rawValues, use_point, tolerance);
 
         LongList vectorizedTimeStamps = new LongList();
         DoubleList vectorizedValues = new DoubleList();
+
         for (int i = 0; i < size; i++) {
-            //Value is not vectorized
-            if (usePoint[i] != 0) {
+            if (use_point[i] == 1) {
                 vectorizedTimeStamps.add(rawTimeStamps[i]);
                 vectorizedValues.add(rawValues[i]);
             }
@@ -94,46 +99,33 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * </code>
      * Then the distance from C to P = |s|*L.
      */
-    private double getDistance(long pX, double pY, long aX, double aY, long bX, double bY) {
+    private double get_distance(long p_x, double p_y, long a_x, double a_y, long b_x, double b_y) {
 
-        double l_2 = (bX - aX) * (bX - aX) + (bY - aY) * (bY - aY);
-        double s = ((aY - pY) * (bX - aX) - (aX - pX) * (bY - aY)) / (l_2);
+        double l_2 = (b_x - a_x) * (b_x - a_x) + (b_y - a_y) * (b_y - a_y);
+        double s = ((a_y - p_y) * (b_x - a_x) - (a_x - p_x) * (b_y - a_y)) / (l_2);
 
         return Math.abs(s) * Math.sqrt(l_2);
     }
 
-    private void compute(long[] timestamps, double[] values, byte[] usePoint, float tolerance) {
+    private void compute(long[] timestamps, double[] values, byte[] use_point, float tolerance) {
 
-        // do not simplify if not at least 3 points are available
-        if (timestamps.length == 3) {
-            return;
-        }
-
-        int ixA = 0;
-        int ixB = 1;
-        usePoint[ixA] = 1;
-        usePoint[ixB] = 1;
+        int ix_a = 0;
+        int ix_b = 1;
         for (int i = 2; i < timestamps.length; i++) {
-            double dist = getDistance(timestamps[i], values[i], timestamps[ixA], values[ixA], timestamps[ixB], values[ixB]);
+            double dist = get_distance(timestamps[i], values[i], timestamps[ix_a], values[ix_a], timestamps[ix_b], values[ix_b]);
+
             if (dist < tolerance) {
-                usePoint[i - 1] = 0;
-                usePoint[i] = 1;
-            } else {
-
-                // do not continue if not at least one more point is available
-                if (i + 1 >= timestamps.length) {
-                    for (int j = i; j < timestamps.length; j++) {
-                        usePoint[j] = 1;
-                    }
-                    return;
-                }
-
-                ixA = i;
-                ixB = i + 1;
-                usePoint[ixA] = 1;
-                usePoint[ixB] = 1;
-                i++; // continue with next point
+                use_point[i - 1] = 0;
+                continue;
             }
+            //reached the end
+            if (i + 1 == timestamps.length) {
+                return;
+            }
+            // continue with next point
+            ix_a = i;
+            ix_b = i + 1;
+            i++;
         }
     }
 
@@ -141,12 +133,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.VECTOR;
     }
-
-    @Override
-    public String[] getArguments() {
-        return new String[]{"tolerance=" + tolerance};
-    }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -159,13 +145,11 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        return new EqualsBuilder()
-                .isEquals();
+        return new EqualsBuilder().isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-                .toHashCode();
+        return new HashCodeBuilder().toHashCode();
     }
 }
