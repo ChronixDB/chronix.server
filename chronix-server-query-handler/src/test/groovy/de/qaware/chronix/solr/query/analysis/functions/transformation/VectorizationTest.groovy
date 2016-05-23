@@ -30,7 +30,7 @@ import java.time.temporal.ChronoUnit
 class VectorizationTest extends Specification {
 
     @Shared
-    def vectorization = new Vectorization()
+    def vectorization = new Vectorization(0.01f)
 
     def "test transform"() {
         given:
@@ -93,7 +93,7 @@ class VectorizationTest extends Specification {
 
     def "test type"() {
         when:
-        def vectorization = new Vectorization();
+        def vectorization = new Vectorization(0.01f);
         then:
         vectorization.getType() == FunctionType.VECTOR
     }
