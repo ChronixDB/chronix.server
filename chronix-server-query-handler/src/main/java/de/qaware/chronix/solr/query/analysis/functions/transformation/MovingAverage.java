@@ -65,6 +65,9 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
 
+        //we need a sorted time series
+        timeSeries.sort();
+
         //get the raw values as arrays
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();

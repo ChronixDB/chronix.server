@@ -57,6 +57,10 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      */
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+
+        //we need a sorted time series
+        timeSeries.sort();
+
         int size = timeSeries.size();
         //do not simplify if there are insufficient data points
         if (size <= 3) {
