@@ -250,9 +250,9 @@ class ChronixClientTestIT extends Specification {
         points << [7000, 7000, 7000, 7000]
     }
 
-    def "test transformation query"(){
+    def "test transformation query"() {
         when:
-        def query = new SolrQuery("metric:\\\\Tasks\\\\stopped")
+        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
         query.addFilterQuery(analysisQuery)
         query.setFields("+data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
@@ -261,11 +261,13 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() == points
-        selectedTimeSeries.attribute("0_function_vector") == ["tolerance=0.01"]
+        selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
 
         where:
-        analysisQuery << ["function=vector:0.01"]
-        points << [10]
+        analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes", "function=top:10", "function=bottom:10"]
+        attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg", "0_function_top", "0_function_bottom"]
+        attributeValues << ["tolerance=0.01", "scale=4.0", "factor=4.0", "timeSpan=4", "n=10", "n=10"]
+        points << [7075, 9693, 9693, 9692, 10, 10]
     }
 
     def "Test analysis fastdtw"() {
