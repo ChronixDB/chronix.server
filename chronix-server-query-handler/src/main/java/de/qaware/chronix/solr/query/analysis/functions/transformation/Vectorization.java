@@ -98,7 +98,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * </code>
      * Then the distance from C to P = |s|*L.
      */
-    private double get_distance(long pX, double pY, long aX, double aY, long bX, double bY) {
+    private double getDistance(long pX, double pY, long aX, double aY, long bX, double bY) {
 
         double l2 = (bX - aX) * (bX - aX) + (bY - aY) * (bY - aY);
         double s = ((aY - pY) * (bX - aX) - (aX - pX) * (bY - aY)) / (l2);
@@ -106,15 +106,15 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         return Math.abs(s) * Math.sqrt(l2);
     }
 
-    private void compute(long[] timestamps, double[] values, byte[] use_point, float tolerance) {
+    private void compute(long[] timestamps, double[] values, byte[] usePoint, float tolerance) {
 
         int ixA = 0;
         int ixB = 1;
         for (int i = 2; i < timestamps.length; i++) {
-            double dist = get_distance(timestamps[i], values[i], timestamps[ixA], values[ixA], timestamps[ixB], values[ixB]);
+            double dist = getDistance(timestamps[i], values[i], timestamps[ixA], values[ixA], timestamps[ixB], values[ixB]);
 
             if (dist < tolerance) {
-                use_point[i - 1] = 0;
+                usePoint[i - 1] = 0;
                 continue;
             }
             //reached the end
