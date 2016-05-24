@@ -29,12 +29,12 @@ public final class DerivativeUtil {
     /**
      * Calculates derivative of two points of a time series.
      * It uses the following algorithm:
-     * <p>
-     * ____________xT2-xT0<p>
-     * <p>
-     * derivative = -----------
-     * <p>
-     * ____________2 * (yT2 - yT0)
+     * <pre>
+     *                  xT2 - xT0
+     * derivative = ---------------
+     *              2 * (yT2 - yT0)
+     * </pre>
+     * The algorithm uses a centered difference.
      *
      * @param xT2 the next value
      * @param xT0 the current value

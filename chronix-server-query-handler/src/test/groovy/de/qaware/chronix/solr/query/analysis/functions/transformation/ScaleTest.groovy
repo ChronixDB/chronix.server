@@ -62,4 +62,21 @@ class ScaleTest extends Specification {
         then:
         scale.getArguments()[0] == "scale=2.0"
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Scale(4);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Scale(4))
+        new Scale(4).hashCode() == new Scale(4).hashCode()
+        new Scale(4).hashCode() != new Scale(2).hashCode()
+    }
+
+    def "test string representation"() {
+        expect:
+        def string = new Scale(4).toString()
+        string.contains("scale")
+    }
 }

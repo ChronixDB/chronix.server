@@ -97,4 +97,21 @@ class VectorizationTest extends Specification {
         then:
         vectorization.getType() == FunctionType.VECTOR
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Vectorization(4);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Vectorization(4))
+        new Vectorization(4).hashCode() == new Vectorization(4).hashCode()
+        new Vectorization(4).hashCode() != new Vectorization(2).hashCode()
+    }
+
+    def "test string representation"() {
+        expect:
+        def string = new Vectorization(4).toString()
+        string.contains("tolerance")
+    }
 }

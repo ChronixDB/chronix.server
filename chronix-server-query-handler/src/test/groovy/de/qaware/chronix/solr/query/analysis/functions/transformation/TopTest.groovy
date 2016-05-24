@@ -63,4 +63,21 @@ class TopTest extends Specification {
         then:
         bottom.getArguments()[0] == "n=2"
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Top(4);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Top(4))
+        new Top(4).hashCode() == new Top(4).hashCode()
+        new Top(4).hashCode() != new Top(2).hashCode()
+    }
+
+    def "test string representation"() {
+        expect:
+        def string = new Top(4).toString()
+        string.contains("n")
+    }
 }

@@ -64,4 +64,14 @@ class NonNegativeDerivativeTest extends Specification {
         expect:
         new NonNegativeDerivative().getArguments().length == 0
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new NonNegativeDerivative();
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new NonNegativeDerivative())
+        new NonNegativeDerivative().hashCode() == new NonNegativeDerivative().hashCode()
+    }
 }

@@ -18,9 +18,9 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import de.qaware.chronix.timeseries.dt.DoubleList;
-import de.qaware.chronix.timeseries.dt.LongList;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Arrays;
 
@@ -72,22 +72,19 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
         double[] rawValues = timeSeries.getValuesAsArray();
 
-        compute(rawTimeStamps, rawValues, usePoint, tolerance);
+        //Clear the original time series
+        timeSeries.clear();
 
-        LongList vectorizedTimeStamps = new LongList();
-        DoubleList vectorizedValues = new DoubleList();
+        compute(rawTimeStamps, rawValues, usePoint, tolerance);
 
         for (int i = 0; i < size; i++) {
             if (usePoint[i] == 1) {
-                vectorizedTimeStamps.add(rawTimeStamps[i]);
-                vectorizedValues.add(rawValues[i]);
+                timeSeries.add(rawTimeStamps[i], rawValues[i]);
             }
         }
 
-        return new MetricTimeSeries.Builder(timeSeries.getMetric())
-                .attributes(timeSeries.attributes())
-                .points(vectorizedTimeStamps, vectorizedValues)
-                .build();
+        return timeSeries;
+
     }
 
     /**
@@ -141,10 +138,36 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         return new String[]{"tolerance=" + tolerance};
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Vectorization rhs = (Vectorization) obj;
+        return new EqualsBuilder()
+                .append(this.tolerance, rhs.tolerance)
+                .isEquals();
+    }
+
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
                 .append(tolerance)
                 .toHashCode();
+    }
+
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("tolerance", tolerance)
+                .toString();
     }
 }

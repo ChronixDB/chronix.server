@@ -18,7 +18,9 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Scale transformation
@@ -65,9 +67,34 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
 
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Scale rhs = (Scale) obj;
+        return new EqualsBuilder()
+                .append(this.scale, rhs.scale)
+                .isEquals();
+    }
+
+    @Override
     public int hashCode() {
         return new HashCodeBuilder()
                 .append(scale)
                 .toHashCode();
+    }
+
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("scale", scale)
+                .toString();
     }
 }

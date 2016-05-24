@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
 /**
  * Unit test for the bottom transformation
  * @author f.lautenschlager
@@ -62,5 +63,22 @@ class BottomTest extends Specification {
         def bottom = new Bottom(2)
         then:
         bottom.getArguments()[0] == "n=2"
+    }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Bottom(4);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Bottom(4))
+        new Bottom(4).hashCode() == new Bottom(4).hashCode()
+        new Bottom(4).hashCode() != new Bottom(2).hashCode()
+    }
+
+    def "test string representation"() {
+        expect:
+        def string = new Bottom(4).toString()
+        string.contains("n")
     }
 }

@@ -62,4 +62,14 @@ class DivideTest extends Specification {
         then:
         divide.getArguments()[0] == "factor=2.0"
     }
+    def "test equals and hash code"() {
+        expect:
+        def function = new Divide(4);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Divide(4))
+        new Divide(4).hashCode() == new Divide(4).hashCode()
+        new Divide(4).hashCode() != new Divide(2).hashCode()
+    }
 }

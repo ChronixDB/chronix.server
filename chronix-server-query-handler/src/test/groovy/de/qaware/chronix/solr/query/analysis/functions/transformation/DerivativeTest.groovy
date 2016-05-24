@@ -65,4 +65,14 @@ class DerivativeTest extends Specification {
         expect:
         new Derivative().getArguments().length == 0
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Derivative();
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Derivative())
+        new Derivative().hashCode() == new Derivative().hashCode()
+    }
 }

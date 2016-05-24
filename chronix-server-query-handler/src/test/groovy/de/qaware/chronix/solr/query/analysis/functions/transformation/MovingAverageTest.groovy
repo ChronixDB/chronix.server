@@ -88,4 +88,16 @@ class MovingAverageTest extends Specification {
         stringRepresentation.contains("timeSpan")
         stringRepresentation.contains("unit")
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new MovingAverage(4,ChronoUnit.DAYS);
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new MovingAverage(4,ChronoUnit.DAYS))
+        new MovingAverage(4,ChronoUnit.DAYS).hashCode() == new MovingAverage(4,ChronoUnit.DAYS).hashCode()
+        new MovingAverage(4,ChronoUnit.DAYS).hashCode() != new MovingAverage(2,ChronoUnit.DAYS).hashCode()
+        new MovingAverage(4,ChronoUnit.DAYS).hashCode() != new MovingAverage(4,ChronoUnit.MINUTES).hashCode()
+    }
 }

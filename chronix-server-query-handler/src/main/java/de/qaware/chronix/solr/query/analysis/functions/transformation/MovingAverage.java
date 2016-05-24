@@ -20,6 +20,8 @@ import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.temporal.ChronoUnit;
@@ -168,11 +170,40 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
 
 
 
+
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .append("timeSpan", timeSpan)
                 .append("unit", unit)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        MovingAverage rhs = (MovingAverage) obj;
+        return new EqualsBuilder()
+                .append(this.timeSpan, rhs.timeSpan)
+                .append(this.unit, rhs.unit)
+                .append(this.windowTime, rhs.windowTime)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(timeSpan)
+                .append(unit)
+                .append(windowTime)
+                .toHashCode();
     }
 }
