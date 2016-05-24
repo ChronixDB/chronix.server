@@ -63,6 +63,6 @@ class DerivativeTest extends Specification {
 
     def "test getArguments"() {
         expect:
-        new Derivative().getArguments() == new String[0]
+        new Derivative().getArguments().length == 0
     }
 }

@@ -267,7 +267,7 @@ class ChronixClientTestIT extends Specification {
         analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes", "function=top:10", "function=bottom:10"]
         attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg", "0_function_top", "0_function_bottom"]
         attributeValues << ["tolerance=0.01", "scale=4.0", "factor=4.0", "timeSpan=4", "n=10", "n=10"]
-        points << [7075, 9693, 9693, 9692, 10, 10]
+        points << [7074, 9693, 9693, 9692, 10, 10]
     }
 
     def "Test analysis fastdtw"() {

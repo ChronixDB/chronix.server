@@ -49,7 +49,6 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         return timeSeries;
     }
 
-
     @Override
     public FunctionType getType() {
         return FunctionType.TOP;

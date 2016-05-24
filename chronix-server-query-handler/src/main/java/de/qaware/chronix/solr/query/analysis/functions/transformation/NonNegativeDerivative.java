@@ -17,57 +17,63 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * Scale transformation
+ * Non negative derivative transformation.
+ * Like the derivative transformation but does not return negative values
  *
  * @author f.lautenschlager
  */
-public class Scale implements ChronixTransformation<MetricTimeSeries> {
-
-    private final double scale;
-
+public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSeries> {
     /**
-     * Scales the time series by the given factor
+     * Calculates the derivative of the time series
      *
-     * @param scale the scale factor
+     * @param timeSeries the time series that is transformed
+     * @return the derivative values expect negative ones
      */
-    public Scale(double scale) {
-        this.scale = scale;
-    }
-
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+        //we need a sorted time series
+        timeSeries.sort();
 
-        double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
-        for (int i = 0; i < timeSeries.size(); i++) {
-            values[i] = values[i] * scale;
-        }
+        double[] values = timeSeries.getValuesAsArray();
 
+        //Clear the time series
         timeSeries.clear();
-        timeSeries.addAll(times, values);
 
+        for (int i = 1; i < values.length - 1; i++) {
+
+            long yT1 = times[i + 1];
+            long yT0 = times[i - 1];
+
+            double xT1 = values[i + 1];
+            double xT0 = values[i - 1];
+
+            double derivativeValue = DerivativeUtil.derivative(xT1, xT0, yT1, yT0);
+
+            if (derivativeValue >= 0) {
+                //We use the average time of
+                long derivativeTime = yT1 + (yT1 - yT0) / 2;
+
+                timeSeries.add(derivativeTime, derivativeValue);
+            }
+        }
+        
         return timeSeries;
     }
 
     @Override
     public FunctionType getType() {
-        return FunctionType.SCALE;
+        return FunctionType.NNDERIVATIVE;
     }
 
     @Override
     public String[] getArguments() {
-        return new String[]{"scale=" + scale};
+        return new String[0];
     }
 
 
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder()
-                .append(scale)
-                .toHashCode();
-    }
 }

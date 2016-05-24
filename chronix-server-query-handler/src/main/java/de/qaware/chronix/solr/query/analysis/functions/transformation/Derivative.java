@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
@@ -52,7 +53,7 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
             double xT1 = values[i + 1];
             double xT0 = values[i - 1];
 
-            double derivativeValue = calc(xT1, xT0, yT1, yT0);
+            double derivativeValue = DerivativeUtil.derivative(xT1, xT0, yT1, yT0);
             //We use the average time of
             long derivativeTime = yT1 + (yT1 - yT0) / 2;
 
@@ -62,24 +63,6 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
         return timeSeries;
     }
 
-    /**
-     * Calculates derivative of two points of a time series.
-     * It uses the following algorithm:
-     * <p>
-     * ____________x{t+1}-x{t-1}
-     * derivative = -----------
-     * ____________2 * delta(t)
-     *
-     * @param xT1 the next value
-     * @param xT  the current value
-     * @param yT1 the next timestamp
-     * @param yT  the current timestamp
-     * @return the derivative value
-     */
-    private double calc(double xT1, double xT, long yT1, long yT) {
-        long deltaTinSeconds = (yT1 - yT) / 1000;
-        return (xT1 - xT) / (2 * deltaTinSeconds);
-    }
 
     @Override
     public FunctionType getType() {

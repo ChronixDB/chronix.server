@@ -20,17 +20,16 @@ import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
- * Unit test for the moving average transformation
+ * Unit test for the non negative derivative transformation
  * @author f.lautenschlager
  */
-class MovingAverageTest extends Specification {
+class NonNegativeDerivativeTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average")
-        def movAvg = new MovingAverage(5, ChronoUnit.SECONDS)
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series")
+        def derivative = new NonNegativeDerivative()
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)
@@ -46,19 +45,10 @@ class MovingAverageTest extends Specification {
 
 
         when:
-        def movingAvgSeries = movAvg.transform(timeSeriesBuilder.build())
+        def derivativeTimeSeries = derivative.transform(timeSeriesBuilder.build())
+
         then:
-        movingAvgSeries.size() == 8
-        movingAvgSeries.getValue(0) == 4.5d
-        movingAvgSeries.getValue(1) == 6.0d
-        movingAvgSeries.getValue(2) == 8.0d
-        movingAvgSeries.getValue(3) == 15.666666666666666d
-        movingAvgSeries.getValue(4) == 14.0d
-        movingAvgSeries.getValue(5) == 11.6d
-        movingAvgSeries.getValue(6) == 1d
-        movingAvgSeries.getValue(7) == 3d
-
-
+        derivativeTimeSeries.size() == 4
     }
 
     def long dateOf(def format) {
@@ -66,26 +56,12 @@ class MovingAverageTest extends Specification {
     }
 
     def "test getType"() {
-        when:
-        def movAvg = new MovingAverage(4, ChronoUnit.DAYS)
-
-        then:
-        movAvg.getType() == FunctionType.MOVAVG
+        expect:
+        new NonNegativeDerivative().getType() == FunctionType.NNDERIVATIVE;
     }
 
     def "test getArguments"() {
-        when:
-        def movAvg = new MovingAverage(4, ChronoUnit.DAYS)
-
-        then:
-        movAvg.getArguments()[0] == "timeSpan=4"
-        movAvg.getArguments()[1] == "unit=DAYS"
-    }
-
-    def "test toString"(){
         expect:
-        def stringRepresentation = new MovingAverage(4, ChronoUnit.DAYS).toString();
-        stringRepresentation.contains("timeSpan")
-        stringRepresentation.contains("unit")
+        new NonNegativeDerivative().getArguments().length == 0
     }
 }

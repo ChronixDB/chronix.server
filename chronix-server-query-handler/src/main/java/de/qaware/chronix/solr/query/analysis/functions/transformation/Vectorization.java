@@ -20,7 +20,6 @@ import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.dt.DoubleList;
 import de.qaware.chronix.timeseries.dt.LongList;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Arrays;
@@ -142,23 +141,10 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         return new String[]{"tolerance=" + tolerance};
     }
 
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (obj.getClass() != getClass()) {
-            return false;
-        }
-        return new EqualsBuilder().isEquals();
-    }
-
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().toHashCode();
+        return new HashCodeBuilder()
+                .append(tolerance)
+                .toHashCode();
     }
 }

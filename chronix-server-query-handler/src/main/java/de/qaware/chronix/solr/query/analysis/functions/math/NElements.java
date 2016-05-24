@@ -24,6 +24,10 @@ import java.util.Arrays;
  */
 public class NElements {
 
+    private NElements() {
+        //avoid instances
+    }
+
     /**
      * @param type        the calculation type: BOTTOM or TOP
      * @param n           the number of values n bottom or top values
