@@ -22,7 +22,7 @@ import java.util.Arrays;
  *
  * @author f.lautenschlager
  */
-public class NElements {
+public final class NElements {
 
     private NElements() {
         //avoid instances
@@ -82,8 +82,8 @@ public class NElements {
      * Helper class to represent values with belonging index
      */
     private static final class Pair implements Comparable<Pair> {
-        int index;
-        double value;
+        private int index;
+        private double value;
 
         /**
          * Constructs a pair
@@ -98,7 +98,13 @@ public class NElements {
 
         @Override
         public int compareTo(Pair o) {
-            return Double.compare(value, o.value);
+            if (value == o.value) {
+                return 0;
+            }
+            if (value > o.value) {
+                return 1;
+            }
+            return -1;
         }
     }
 
@@ -121,6 +127,7 @@ public class NElements {
          * @param nTimes  the n time stamps
          * @param nValues the n values
          */
+        @SuppressWarnings("all")
         NElementsResult(long[] nTimes, double[] nValues) {
             this.nTimes = nTimes;
             this.nValues = nValues;
@@ -129,6 +136,7 @@ public class NElements {
         /**
          * @return the n values
          */
+        @SuppressWarnings("all")
         public double[] getNValues() {
             return nValues;
         }
@@ -136,6 +144,7 @@ public class NElements {
         /**
          * @return the n times
          */
+        @SuppressWarnings("all")
         public long[] getNTimes() {
             return nTimes;
         }

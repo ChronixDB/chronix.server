@@ -33,13 +33,13 @@ public enum FunctionType {
     FIRST,
     LAST,
     RANGE,
+    DIFF,
+    SDIFF,
     //Analysis
     TREND,
     OUTLIER,
     FREQUENCY,
     FASTDTW,
-    DIFF,
-    SDIFF,
     //Transformations
     VECTOR,
     DIVIDE,
@@ -53,21 +53,31 @@ public enum FunctionType {
     /**
      * Checks if the given type is a high level analysis
      *
-     * @param type - the analysis type
+     * @param type the function type
      * @return true if the analysis type is a high level analysis, otherwise false
      */
-    public static boolean isHighLevel(FunctionType type) {
+    public static boolean isAnalysis(FunctionType type) {
         return TREND == type || OUTLIER == type || FREQUENCY == type || FASTDTW == type;
     }
 
     /**
-     * Check if the given type is an isAggregation
+     * Check if the given type is an aggregation
      *
-     * @param type - the analysis type
-     * @return true if an isAggregation, otherwise false
+     * @param type the function type
+     * @return true if an aggregation, otherwise false
      */
     public static boolean isAggregation(FunctionType type) {
-        return !isHighLevel(type);
+        return !isAnalysis(type) && !isTransformation(type);
+    }
+
+    /**
+     * Checks if the given type is a transformation
+     *
+     * @param type the function type
+     * @return true if the type is a transformation, otherwise false
+     */
+    public static boolean isTransformation(FunctionType type) {
+        return VECTOR == type || DIVIDE == type || SCALE == type || BOTTOM == type || TOP == type || MOVAVG == type || DERIVATIVE == type || NNDERIVATIVE == type;
     }
 
 }

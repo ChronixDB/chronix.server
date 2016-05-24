@@ -23,6 +23,8 @@ import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
 import de.qaware.chronix.solr.query.analysis.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.MalformedParametersException;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +33,8 @@ import java.time.temporal.ChronoUnit;
  * @author f.lautenschlager
  */
 public final class QueryEvaluator {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryEvaluator.class);
 
     private static final String AGGREGATION_DELIMITER = "=";
     private static final String AGGREGATION_ARGUMENT_DELIMITER = ":";
@@ -77,8 +81,10 @@ public final class QueryEvaluator {
                     arguments = extractAggregationParameter(subFunction);
                     subFunction = subFunction.substring(0, subFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                 }
+                FunctionType type = FunctionType.valueOf(subFunction.toUpperCase());
+
                 //add the implementation of the asked functions
-                addFunction(result, FunctionType.valueOf(subFunction.toUpperCase()), arguments);
+                addFunction(result, type, arguments);
 
             }
         }
@@ -88,6 +94,21 @@ public final class QueryEvaluator {
 
     private static void addFunction(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
 
+        if (FunctionType.isTransformation(type)) {
+            //Check if the type is a transformation and add it
+            addTransformation(result, type, arguments);
+        } else if (FunctionType.isAnalysis(type)) {
+            //Check if the type is an analysis and add it
+            addAnalysis(result, type, arguments);
+        } else if (FunctionType.isAggregation(type)) {
+            //Check if the type is an aggregation and add it
+            addAggregation(result, type, arguments);
+        } else {
+            LOGGER.info("{} is unknown. {} is ignored", type, type);
+        }
+    }
+
+    private static void addAggregation(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
         switch (type) {
             //Aggregations
             case AVG:
@@ -127,6 +148,13 @@ public final class QueryEvaluator {
                 double p = Double.parseDouble(arguments[0]);
                 result.addAggregation(new Percentile(p));
                 break;
+            default:
+                LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", type, type);
+        }
+    }
+
+    private static void addAnalysis(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+        switch (type) {
             //Analyses
             case TREND:
                 result.addAnalysis(new Trend());
@@ -145,6 +173,13 @@ public final class QueryEvaluator {
                 double maxAvgWarpingCost = Double.parseDouble(arguments[2]);
                 result.addAnalysis(new FastDtw(subquery, searchRadius, maxAvgWarpingCost));
                 break;
+            default:
+                LOGGER.warn("Ignoring {} as an analysis. {} is unknown", type, type);
+        }
+    }
+
+    private static void addTransformation(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+        switch (type) {
             //Transformations
             case VECTOR:
                 float tolerance = Float.parseFloat(arguments[0]);
@@ -172,11 +207,13 @@ public final class QueryEvaluator {
                 result.addTransformation(new Divide(factor));
                 break;
             case DERIVATIVE:
+                result.addTransformation(new Derivative());
                 break;
             case NNDERIVATIVE:
+                result.addTransformation(new NonNegativeDerivative());
                 break;
             default:
-                throw new EnumConstantNotPresentException(FunctionType.class, "Type: " + type + " not present.");
+                LOGGER.warn("Ignoring {} as a transformation. {} is unknown", type, type);
         }
     }
 
