@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions;
 /***
  * A class holding the parsed analysis with its arguments
  *
+ * @param <T> the type on which the aggregation is applied
  * @author f.lautenschlager
  */
 public interface ChronixAggregation<T> {
