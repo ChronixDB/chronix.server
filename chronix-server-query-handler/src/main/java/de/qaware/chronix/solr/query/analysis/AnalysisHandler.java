@@ -182,7 +182,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws ParseException if bad things happen
      * @throws IOException    if bad things happen
      */
-    private void applyAnalyses(SolrQueryRequest req, List<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
+    private void applyAnalyses(SolrQueryRequest req, Iterable<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
         //That is the time series we operate on
         final MetricTimeSeries transformedTimeSeries = timeSeries;
 
@@ -221,7 +221,7 @@ public class AnalysisHandler extends SearchHandler {
      * @param timeSeries        the time series to aggregate
      * @param analysisAndValues the result for the aggregations
      */
-    private void applyAggregations(List<ChronixAggregation<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    private void applyAggregations(Iterable<ChronixAggregation<MetricTimeSeries>> aggregations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         //run over the aggregations
         for (ChronixAggregation<MetricTimeSeries> aggregation : aggregations) {
             //Execute analysis and store the result

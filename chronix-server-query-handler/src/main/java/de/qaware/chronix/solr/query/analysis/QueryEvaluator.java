@@ -21,10 +21,11 @@ import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
-import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization;
+import de.qaware.chronix.solr.query.analysis.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 import java.lang.reflect.MalformedParametersException;
+import java.time.temporal.ChronoUnit;
 
 /**
  * @author f.lautenschlager
@@ -146,7 +147,33 @@ public final class QueryEvaluator {
                 break;
             //Transformations
             case VECTOR:
-                result.addTransformation(new Vectorization());
+                float tolerance = Float.parseFloat(arguments[0]);
+                result.addTransformation(new Vectorization(tolerance));
+                break;
+            case BOTTOM:
+                int bottomN = Integer.parseInt(arguments[0]);
+                result.addTransformation(new Bottom(bottomN));
+                break;
+            case TOP:
+                int topN = Integer.parseInt(arguments[0]);
+                result.addTransformation(new Top(topN));
+                break;
+            case MOVAVG:
+                long timeSpan = Long.parseLong(arguments[0]);
+                ChronoUnit unit = ChronoUnit.valueOf(arguments[1].toUpperCase());
+                result.addTransformation(new MovingAverage(timeSpan, unit));
+                break;
+            case SCALE:
+                double scale = Double.parseDouble(arguments[0]);
+                result.addTransformation(new Scale(scale));
+                break;
+            case DIVIDE:
+                double factor = Double.parseDouble(arguments[0]);
+                result.addTransformation(new Divide(factor));
+                break;
+            case DERIVATIVE:
+                break;
+            case NNDERIVATIVE:
                 break;
             default:
                 throw new EnumConstantNotPresentException(FunctionType.class, "Type: " + type + " not present.");

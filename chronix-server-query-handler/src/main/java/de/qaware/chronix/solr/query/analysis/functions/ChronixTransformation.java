@@ -36,4 +36,9 @@ public interface ChronixTransformation<T> {
      */
     FunctionType getType();
 
+    /**
+     * @return the arguments
+     */
+    String[] getArguments();
+
 }

@@ -30,11 +30,12 @@ class QueryFunctionsTest extends Specification {
     def "test query functions"() {
         given:
         def queryFunctions = new QueryFunctions<MetricTimeSeries>();
+        def vectorization = new Vectorization(0.01f)
 
         when:
         queryFunctions.addAggregation(new Max())
         queryFunctions.addAnalysis(new Trend())
-        queryFunctions.addTransformation(new Vectorization())
+        queryFunctions.addTransformation(vectorization)
 
         then:
         !queryFunctions.isEmpty()
@@ -45,7 +46,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 1
 
         queryFunctions.getAggregations().contains(new Max())
-        queryFunctions.getTransformations().contains(new Vectorization())
+        queryFunctions.getTransformations().contains(vectorization)
         queryFunctions.getAnalyses().contains(new Trend())
 
         queryFunctions.containsAggregations()
@@ -66,7 +67,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 0
 
         !queryFunctions.getAggregations().contains(new Max())
-        !queryFunctions.getTransformations().contains(new Vectorization())
+        !queryFunctions.getTransformations().contains(new Vectorization(0.01f))
         !queryFunctions.getAnalyses().contains(new Trend())
 
         !queryFunctions.containsAggregations()

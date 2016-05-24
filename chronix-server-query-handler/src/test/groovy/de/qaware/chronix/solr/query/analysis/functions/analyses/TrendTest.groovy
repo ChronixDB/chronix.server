@@ -61,4 +61,14 @@ class TrendTest extends Specification {
         expect:
         new Trend().getType() == FunctionType.TREND
     }
+
+    def "test equals and hash code"() {
+        expect:
+        def function = new Trend();
+        !function.equals(null)
+        !function.equals(new Object())
+        function.equals(function)
+        function.equals(new Trend())
+        new Trend().hashCode() == new Trend().hashCode()
+    }
 }

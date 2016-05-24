@@ -20,7 +20,9 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class that holds the query functions
@@ -33,27 +35,27 @@ import java.util.List;
  */
 class QueryFunctions<T> {
 
-    private List<ChronixAnalysis<T>> analyses;
-    private List<ChronixAggregation<T>> aggregations;
+    private Set<ChronixAnalysis<T>> analyses;
+    private Set<ChronixAggregation<T>> aggregations;
     private List<ChronixTransformation<T>> transformations;
 
     QueryFunctions() {
-        analyses = new ArrayList<>();
-        aggregations = new ArrayList<>();
+        analyses = new HashSet<>();
+        aggregations = new HashSet<>();
         transformations = new ArrayList<>();
     }
 
     /**
      * @return the analyses in the query
      */
-    public List<ChronixAnalysis<T>> getAnalyses() {
+    public Set<ChronixAnalysis<T>> getAnalyses() {
         return analyses;
     }
 
     /**
      * @return the aggregations in the query
      */
-    public List<ChronixAggregation<T>> getAggregations() {
+    public Set<ChronixAggregation<T>> getAggregations() {
         return aggregations;
     }
 

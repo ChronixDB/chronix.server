@@ -39,7 +39,7 @@ class SumTest extends Specification {
         when:
         def result = new Sum().execute(ts)
         then:
-        result == 10449.0
+        result == 10449.0d
     }
 
     def "test exception behaviour"() {
