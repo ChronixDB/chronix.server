@@ -17,44 +17,55 @@ package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
-import de.qaware.chronix.solr.query.analysis.functions.math.NElements;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
- * Top transformation to get value top values
+ * The subtract transformation
  *
  * @author f.lautenschlager
  */
-public class Top implements ChronixTransformation<MetricTimeSeries> {
+public class Subtract implements ChronixTransformation<MetricTimeSeries> {
 
-    private final int value;
+    private final double value;
 
     /**
-     * Constructs the top value transformation
+     * Constructs the subtract transformation.
+     * The value is subtracted from each time series value
      *
-     * @param value values that are returned
+     * @param value the value that is subtracted
      */
-    public Top(int value) {
+    public Subtract(double value) {
         this.value = value;
     }
 
+    /**
+     * Subtracts the value from each time series value
+     *
+     * @param timeSeries the time series that is transformed
+     * @return the transformed time series
+     */
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
-        NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.TOP, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
+        long[] timestamps = timeSeries.getTimestampsAsArray();
+        double[] values = timeSeries.getValuesAsArray();
 
-        //remove old time series
         timeSeries.clear();
-        timeSeries.addAll(result.getNTimes(), result.getNValues());
+
+        for (int i = 0; i < values.length; i++) {
+            values[i] -= value;
+        }
+
+        timeSeries.addAll(timestamps, values);
 
         return timeSeries;
     }
 
     @Override
     public FunctionType getType() {
-        return FunctionType.TOP;
+        return FunctionType.SUB;
     }
 
     @Override
@@ -62,6 +73,14 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         return new String[]{"value=" + value};
     }
 
+
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("value", value)
+                .toString();
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -74,7 +93,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Top rhs = (Top) obj;
+        Subtract rhs = (Subtract) obj;
         return new EqualsBuilder()
                 .append(this.value, rhs.value)
                 .isEquals();
@@ -85,13 +104,5 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         return new HashCodeBuilder()
                 .append(value)
                 .toHashCode();
-    }
-
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("value", value)
-                .toString();
     }
 }

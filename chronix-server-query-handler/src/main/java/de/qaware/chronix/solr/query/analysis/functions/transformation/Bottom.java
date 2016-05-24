@@ -24,26 +24,26 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
- * Bottom transformation get the n bottom values
+ * Bottom transformation get the value bottom values
  *
  * @author f.lautenschlager
  */
 public class Bottom implements ChronixTransformation<MetricTimeSeries> {
 
-    private final int n;
+    private final int value;
 
     /**
-     * Constructs the bottom n values transformation
+     * Constructs the bottom value values transformation
      *
-     * @param n the threshold for the lowest values
+     * @param value the threshold for the lowest values
      */
-    public Bottom(int n) {
-        this.n = n;
+    public Bottom(int value) {
+        this.value = value;
     }
 
     @Override
     public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
-        NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, n, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
+        NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
 
         //remove old time series
         timeSeries.clear();
@@ -60,7 +60,7 @@ public class Bottom implements ChronixTransformation<MetricTimeSeries> {
 
     @Override
     public String[] getArguments() {
-        return new String[]{"n=" + n};
+        return new String[]{"value=" + value};
     }
 
 
@@ -77,14 +77,14 @@ public class Bottom implements ChronixTransformation<MetricTimeSeries> {
         }
         Bottom rhs = (Bottom) obj;
         return new EqualsBuilder()
-                .append(this.n, rhs.n)
+                .append(this.value, rhs.value)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(n)
+                .append(value)
                 .toHashCode();
     }
 
@@ -92,7 +92,7 @@ public class Bottom implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("n", n)
+                .append("value", value)
                 .toString();
     }
 }

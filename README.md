@@ -154,42 +154,55 @@ Example Result:
 }
 ```
 
-### Analysis Query
-A custom query handler answers an analysis query.
-Chronix determines if a query is an analysis query by using the filter query mechanism of Apache Solr.
-There are two types of analysis queries: Aggregations and High-level Analyses.
+### Function Query
+A custom query handler answers function queries.
+Chronix determines if a query is a function query by using the filter query mechanism of Apache Solr.
+There are three types of functions: Aggregations, Transformations, and High-level Analyses.
 
-- fq=ag marks an aggregation
-- fq=analysis marks an high-level analysis
+Currently the following functions are available:
 
-Currently the following analyses are available:
-
-- Maximum (ag=max)
-- Minimum (ag=min)
-- Average (ag=avg)
-- Standard Deviation (ag=dev)
-- Percentiles (ag=p:[0.1,...,1.0])
-- Count (ag=count) (*Relase 0.2*)
-- Sum (ag=sum) (*Relase 0.2*)
-- Range (ag=range) (*Relase 0.2*)
-- First/Last (ag=first/last) (*Relase 0.2*)
-- Bottom/Top (analysis=bottom/top:10) (*Relase 0.2*)
-- Derivative (analysis=derivative) (*Relase 0.2*)
-- Non Negative Derivative (analysis=NonNegDerivative) (*Relase 0.2*)
-- Difference (analysis=diff) (*Relase 0.2*)
-- Signed Difference (analysis=sdiff) (*Relase 0.2*)
-- Scale (analysis=scale:0.5) (*Relase 0.2*)
-- Moving Average (analysis=movAvg:10m) (*Relase 0.2*)
+- Maximum (function=max)
+- Minimum (function=min)
+- Average (function=avg)
+- Standard Deviation (function=dev)
+- Percentiles (function=p:[0.1,...,1.0])
+- Count (function=count) (*Release 0.2*)
+- Sum (function=sum) (*Release 0.2*)
+- Range (function=range) (*Release 0.2*)
+- First/Last (function=first/last) (*Release 0.2*)
+- Bottom/Top (function=bottom/top:10) (*Release 0.2*)
+- Derivative (function=derivative) (*Release 0.2*)
+- Non Negative Derivative (function=nnderivative) (*Release 0.2*)
+- Difference (function=diff) (*Release 0.2*)
+- Signed Difference (function=sdiff) (*Release 0.2*)
+- Scale (function=scale:0.5) (*Release 0.2*)
+- Divide (function=divide:4) (*Release 0.2*)
+- Moving Average (function=movavg:10,MINUTES) (*Release 0.2*)
+- Add (function=add:4) (*Release 0.2*)
+- Subtract (function=sub:4) (*Release 0.2*)
 - A linear trend detection (analysis=trend)
 - Outlier detection (analysis=outlier)
 - Frequency detection (analysis=frequency:10,6)
 - Time series similarity search (analysis=fastdtw:(metric:\*Load\*),1,0.8)
+
+Multiple analyses, aggregations, and transformations are allowed per query.
+If so, Chronix will first execute the the transformations in the order they occur.
+Then it executes the analyses and aggregations on the result of the chained transformations.
+For example the query:
+
+```
+fq=function=max;min;trend;movavg:10,minutes;scale:4
+```
+
+is executed as follows:
+
+1. Calculate the moving average
+2. Scale the result of the moving average by 4
+3. Calculate the max, min, and the trend based on the prior result.
  
-Only one analysis is allowed per query.
-If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
-An analysis query does not return the raw time series data by default.
+A function query does not return the raw time series data by default.
 It returns all requested time series attributes, the analysis and its result.
-With the enabled option ```fl=data``` Chronix will return the data for the analyses.
+With the enabled option ```fl=+data``` Chronix will return the data for the analyses.
 The attributes are merged using a set to avoid duplicates.
 For example a query for a metric that is collected on several hosts might return the following result:
 ```
@@ -214,11 +227,11 @@ A few example analyses:
 ```
 q=metric:*load* // Get all time series that metric name matches *load*
 
-+ fq=ag=max //Get the maximum of 
-+ fq=ag=p:0.25 //To get the 25% percentile of the time series data
-+ fq=analysis=trend //Returns all time series that have a positive trend
-+ fq=analysis=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
-+ fq=analysis=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
++ fq=function=max //Get the maximum of 
++ fq=function=p:0.25 //To get the 25% percentile of the time series data
++ fq=function=trend //Returns all time series that have a positive trend
++ fq=function=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
++ fq=function=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
 ```
 
 #### Join Time Series Records

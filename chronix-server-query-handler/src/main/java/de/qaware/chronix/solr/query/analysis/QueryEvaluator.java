@@ -181,6 +181,14 @@ public final class QueryEvaluator {
     private static void addTransformation(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
         switch (type) {
             //Transformations
+            case ADD:
+                double addValue = Double.parseDouble(arguments[0]);
+                result.addTransformation(new Add(addValue));
+                break;
+            case SUB:
+                double subValue = Double.parseDouble(arguments[0]);
+                result.addTransformation(new Subtract(subValue));
+                break;
             case VECTOR:
                 float tolerance = Float.parseFloat(arguments[0]);
                 result.addTransformation(new Vectorization(tolerance));

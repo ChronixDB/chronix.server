@@ -29,7 +29,7 @@ class BottomTest extends Specification {
         def bottom = new Bottom(4)
         def bottomNTimeSeries;
 
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Top")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Bottom")
         timeSeriesBuilder.point(1, 5d)
         timeSeriesBuilder.point(2, 99d)
         timeSeriesBuilder.point(3, 3d)
@@ -62,7 +62,7 @@ class BottomTest extends Specification {
         when:
         def bottom = new Bottom(2)
         then:
-        bottom.getArguments()[0] == "n=2"
+        bottom.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
@@ -79,6 +79,6 @@ class BottomTest extends Specification {
     def "test string representation"() {
         expect:
         def string = new Bottom(4).toString()
-        string.contains("n")
+        string.contains("value")
     }
 }

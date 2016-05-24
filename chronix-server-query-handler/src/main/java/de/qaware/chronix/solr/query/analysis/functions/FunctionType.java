@@ -48,7 +48,10 @@ public enum FunctionType {
     TOP,
     MOVAVG,
     DERIVATIVE,
-    NNDERIVATIVE;
+    NNDERIVATIVE,
+    ADD,
+    SUB;
+
 
     /**
      * Checks if the given type is a high level analysis
@@ -77,7 +80,7 @@ public enum FunctionType {
      * @return true if the type is a transformation, otherwise false
      */
     public static boolean isTransformation(FunctionType type) {
-        return VECTOR == type || DIVIDE == type || SCALE == type || BOTTOM == type || TOP == type || MOVAVG == type || DERIVATIVE == type || NNDERIVATIVE == type;
+        return VECTOR == type || DIVIDE == type || SCALE == type || BOTTOM == type || TOP == type || MOVAVG == type || DERIVATIVE == type || NNDERIVATIVE == type || ADD == type || SUB == type;
     }
 
 }

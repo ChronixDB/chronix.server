@@ -40,7 +40,7 @@ class DivideTest extends Specification {
         def divide = new Divide(2);
 
         when:
-        divide.getArguments()[0] == "factor=2.0"
+        divide.getArguments()[0] == "value=2.0"
         def dividedTimeSeries = divide.transform(timeSeriesBuilder.build())
 
         then:
@@ -60,7 +60,7 @@ class DivideTest extends Specification {
         when:
         def divide = new Divide(2);
         then:
-        divide.getArguments()[0] == "factor=2.0"
+        divide.getArguments()[0] == "value=2.0"
     }
     def "test equals and hash code"() {
         expect:

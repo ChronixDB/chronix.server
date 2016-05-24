@@ -19,64 +19,55 @@ import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-
 /**
- * Unit test for the value transformation
+ * Unit test for the subtract transformation
  * @author f.lautenschlager
  */
-class ScaleTest extends Specification {
-
+class SubtractTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Scale")
-        def now = Instant.now()
-
-        100.times {
-            timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Add")
+        10.times {
+            timeSeriesBuilder.point(it * 100, it + 10)
         }
+        timeSeriesBuilder.point(10 * 100, -10)
+        def timeSeries = timeSeriesBuilder.build()
 
-        def scale = new Scale(2);
-
+        def sub = new Subtract(4);
         when:
-        scale.getArguments()[0] == "value=2.0"
-        def scaledTimeSeries = scale.transform(timeSeriesBuilder.build())
+        def transformed = sub.transform(timeSeries)
 
         then:
-        100.times {
-            scaledTimeSeries.getValue(it) == (it + 1) * 2
-        }
+        transformed.size() == 11
+        timeSeries.getValue(1) == (1 + 10 - 4)
+
+        timeSeries.getValue(10) == -14
     }
 
     def "test getType"() {
-        when:
-        def scale = new Scale(2);
-        then:
-        scale.getType() == FunctionType.SCALE
+        expect:
+        new Subtract(4).getType() == FunctionType.SUB
     }
 
     def "test getArguments"() {
-        when:
-        def scale = new Scale(2);
-        then:
-        scale.getArguments()[0] == "value=2.0"
+        expect:
+        new Subtract(4).getArguments()[0] == "value=4.0"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Scale(4);
+        def function = new Subtract(4);
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new Scale(4))
-        new Scale(4).hashCode() == new Scale(4).hashCode()
-        new Scale(4).hashCode() != new Scale(2).hashCode()
+        function.equals(new Subtract(4))
+        new Subtract(4).hashCode() == new Subtract(4).hashCode()
+        new Subtract(4).hashCode() != new Subtract(2).hashCode()
     }
 
     def "test string representation"() {
         expect:
-        def string = new Scale(4).toString()
+        def string = new Subtract(4).toString()
         string.contains("value")
     }
 }

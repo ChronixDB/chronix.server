@@ -18,7 +18,7 @@ package de.qaware.chronix.solr.query.analysis.functions.math
 import spock.lang.Specification
 
 /**
- * Unit test for the n top / bottom elements helper
+ * Unit test for the value top / bottom elements helper
  * @author f.lautenschlager
  */
 class NElementsTest extends Specification {

@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Unit test for the query evaluator class.
@@ -95,7 +96,8 @@ class QueryEvaluatorTest extends Specification {
         needSubQuery << [false, false, false, true, true]
     }
 
-    def "test transformation query"() {
+    @Unroll
+    def "test transformation query #fqs"() {
         when:
         def functions = QueryEvaluator.extractFunctions(fqs)
         then:
@@ -109,10 +111,29 @@ class QueryEvaluatorTest extends Specification {
                 ["function=divide:4"] as String[],
                 ["function=top:10"] as String[],
                 ["function=bottom:10"] as String[],
-                ["function=movavg:10,MINUTES"] as String[]]
+                ["function=movavg:10,MINUTES"] as String[],
+                ["function=add:10"] as String[],
+                ["function=sub:10"] as String[]]
 
-        expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP, FunctionType.BOTTOM, FunctionType.MOVAVG]
-        expectedArgs << ["tolerance=0.01", "scale=4.0", "factor=4.0", "n=10", "n=10", "timeSpan=10"]
+        expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP,
+                         FunctionType.BOTTOM, FunctionType.MOVAVG, FunctionType.ADD, FunctionType.SUB]
+        expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
+                         "value=10", "timeSpan=10", "value=10.0", "value=10.0"]
+    }
+
+    @Unroll
+    def "test transformation query without args #fqs"() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(fqs)
+        then:
+        def transformation = functions.getTransformations().getAt(0)
+        transformation.getType() == expectedType
+
+        where:
+        fqs << [["function=derivative"] as String[],
+                ["function=nnderivative"] as String[]]
+
+        expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE]
     }
 
     def "test ag query strings that produce exceptions"() {

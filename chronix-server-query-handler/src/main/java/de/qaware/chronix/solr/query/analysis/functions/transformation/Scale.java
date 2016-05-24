@@ -29,15 +29,15 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public class Scale implements ChronixTransformation<MetricTimeSeries> {
 
-    private final double scale;
+    private final double value;
 
     /**
      * Scales the time series by the given factor
      *
-     * @param scale the scale factor
+     * @param value the value factor
      */
-    public Scale(double scale) {
-        this.scale = scale;
+    public Scale(double value) {
+        this.value = value;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
         for (int i = 0; i < timeSeries.size(); i++) {
-            values[i] = values[i] * scale;
+            values[i] = values[i] * value;
         }
 
         timeSeries.clear();
@@ -62,7 +62,7 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
 
     @Override
     public String[] getArguments() {
-        return new String[]{"scale=" + scale};
+        return new String[]{"value=" + value};
     }
 
 
@@ -79,14 +79,14 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
         }
         Scale rhs = (Scale) obj;
         return new EqualsBuilder()
-                .append(this.scale, rhs.scale)
+                .append(this.value, rhs.value)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(scale)
+                .append(value)
                 .toHashCode();
     }
 
@@ -94,7 +94,7 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("scale", scale)
+                .append("value", value)
                 .toString();
     }
 }
