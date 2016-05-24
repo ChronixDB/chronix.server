@@ -127,6 +127,7 @@ public class NElements {
          * @param nTimes  the n time stamps
          * @param nValues the n values
          */
+        @SuppressWarnings("all")
         NElementsResult(long[] nTimes, double[] nValues) {
             this.nTimes = nTimes;
             this.nValues = nValues;
