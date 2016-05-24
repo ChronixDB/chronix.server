@@ -22,7 +22,7 @@ import java.util.Arrays;
  *
  * @author f.lautenschlager
  */
-public class NElements {
+public final class NElements {
 
     private NElements() {
         //avoid instances
