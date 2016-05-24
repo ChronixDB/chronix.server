@@ -250,7 +250,8 @@ class ChronixClientTestIT extends Specification {
         points << [7000, 7000, 7000, 7000]
     }
 
-    def "test transformation query"() {
+    @Unroll
+    def "test transformation query: #analysisQuery"() {
         when:
         def query = new SolrQuery("metric:\\\\Tasks\\\\running")
         query.addFilterQuery(analysisQuery)
@@ -264,10 +265,33 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
 
         where:
-        analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes", "function=top:10", "function=bottom:10"]
-        attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg", "0_function_top", "0_function_bottom"]
-        attributeValues << ["tolerance=0.01", "scale=4.0", "factor=4.0", "timeSpan=4", "n=10", "n=10"]
-        points << [7074, 9693, 9693, 9692, 10, 10]
+        analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes",
+                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4"]
+        attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
+                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub"]
+        attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
+                            "value=4.0", "value=4.0"]
+        points << [7074, 9693, 9693, 9692, 10, 10, 9693, 9693]
+    }
+
+    @Unroll
+    def "test transformation query #analysisQuery with empty arguments"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
+        query.addFilterQuery(analysisQuery)
+        query.setFields("+data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() == points
+
+        where:
+        analysisQuery << ["function=derivative", "function=nnderivative"]
+        attributeKeys << ["0_function_derivative", "0_function_nnderivative"]
+
+        points << [9691, 7302]
     }
 
     def "Test analysis fastdtw"() {

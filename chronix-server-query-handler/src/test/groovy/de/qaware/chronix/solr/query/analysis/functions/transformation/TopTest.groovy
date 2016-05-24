@@ -61,7 +61,7 @@ class TopTest extends Specification {
         when:
         def bottom = new Bottom(2)
         then:
-        bottom.getArguments()[0] == "n=2"
+        bottom.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
@@ -78,6 +78,6 @@ class TopTest extends Specification {
     def "test string representation"() {
         expect:
         def string = new Top(4).toString()
-        string.contains("n")
+        string.contains("value")
     }
 }

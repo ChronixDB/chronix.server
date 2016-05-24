@@ -28,15 +28,15 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  */
 public class Divide implements ChronixTransformation<MetricTimeSeries> {
 
-    private final double factor;
+    private final double value;
 
     /**
-     * Scales the time series by the given factor
+     * Scales the time series by the given value
      *
-     * @param factor the factor factor
+     * @param value the value value
      */
-    public Divide(double factor) {
-        this.factor = factor;
+    public Divide(double value) {
+        this.value = value;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
         for (int i = 0; i < timeSeries.size(); i++) {
-            values[i] = values[i] / factor;
+            values[i] = values[i] / value;
         }
 
         timeSeries.clear();
@@ -61,7 +61,7 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
 
     @Override
     public String[] getArguments() {
-        return new String[]{"factor=" + factor};
+        return new String[]{"value=" + value};
     }
 
 
@@ -78,17 +78,16 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
         }
         Divide rhs = (Divide) obj;
         return new EqualsBuilder()
-                .append(this.factor, rhs.factor)
+                .append(this.value, rhs.value)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(factor)
+                .append(value)
                 .toHashCode();
     }
-
 
 
 }
