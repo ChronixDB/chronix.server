@@ -33,10 +33,9 @@ public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSe
      * Calculates the derivative of the time series
      *
      * @param timeSeries the time series that is transformed
-     * @return the derivative values expect negative ones
      */
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
         //we need a sorted time series
         timeSeries.sort();
 
@@ -62,8 +61,6 @@ public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSe
                 timeSeries.add(derivativeTime, derivativeValue);
             }
         }
-        
-        return timeSeries;
     }
 
     @Override

@@ -42,22 +42,24 @@ class VectorizationTest extends Specification {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
+        vectorization.transform(timeSeries)
 
         then:
-        vectorizedTimeSeries.size() == 2
+        timeSeries.size() == 2
     }
 
     def "test transform - 0 points"() {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector")
 
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        def vectorizedTimeSeries = vectorization.transform(timeSeriesBuilder.build())
+        vectorization.transform(timeSeries)
 
         then:
-        vectorizedTimeSeries.size() == 0
+        timeSeries.size() == 0
     }
 
     def "test transform - 1..3 Points"() {
@@ -80,15 +82,18 @@ class VectorizationTest extends Specification {
         3.times {
             timeSeriesBuilder3.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
+        def ts1 = timeSeriesBuilder1.build()
+        def ts2 = timeSeriesBuilder2.build()
+        def ts3 = timeSeriesBuilder3.build()
 
-        def vectorized1 = vectorization.transform(timeSeriesBuilder1.build())
-        def vectorized2 = vectorization.transform(timeSeriesBuilder2.build())
-        def vectorized3 = vectorization.transform(timeSeriesBuilder3.build())
+        vectorization.transform(ts1)
+        vectorization.transform(ts2)
+        vectorization.transform(ts3)
 
         then:
-        vectorized1.size() == 1
-        vectorized2.size() == 2
-        vectorized3.size() == 3
+        ts1.size() == 1
+        ts2.size() == 2
+        ts3.size() == 3
     }
 
     def "test type"() {

@@ -52,10 +52,9 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * Further analyses such as aggregations uses the transformed values for the calculation.
      *
      * @param timeSeries the time series that is transformed
-     * @return a vectorized time series
      */
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -63,7 +62,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
         int size = timeSeries.size();
         //do not simplify if there are insufficient data points
         if (size <= 3) {
-            return timeSeries;
+            return;
         }
 
         byte[] usePoint = new byte[size];
@@ -82,9 +81,6 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
                 timeSeries.add(rawTimeStamps[i], rawValues[i]);
             }
         }
-
-        return timeSeries;
-
     }
 
     /**

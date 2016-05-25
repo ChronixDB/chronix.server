@@ -139,7 +139,7 @@ public class AnalysisHandler extends SearchHandler {
 
                 //first we do the transformations
                 if (functions.containsTransformations()) {
-                    timeSeries = applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
+                    applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
                 }
 
                 //then we apply aggregations
@@ -236,13 +236,12 @@ public class AnalysisHandler extends SearchHandler {
      * @param analysisAndValues the result to add the transformations
      * @return the transformed time series
      */
-    private MetricTimeSeries applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    private void applyTransformations(List<ChronixTransformation<MetricTimeSeries>> transformations, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         for (ChronixTransformation<MetricTimeSeries> transformation : transformations) {
             //transform the time series
-            timeSeries = transformation.transform(timeSeries);
+            transformation.transform(timeSeries);
             analysisAndValues.add(transformation);
         }
-        return timeSeries;
     }
 
     /**

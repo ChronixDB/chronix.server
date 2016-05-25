@@ -27,7 +27,6 @@ class BottomTest extends Specification {
     def "test transform"() {
         given:
         def bottom = new Bottom(4)
-        def bottomNTimeSeries;
 
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Bottom")
         timeSeriesBuilder.point(1, 5d)
@@ -37,17 +36,17 @@ class BottomTest extends Specification {
         timeSeriesBuilder.point(5, 65d)
         timeSeriesBuilder.point(6, 23d)
 
-
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        bottomNTimeSeries = bottom.transform(timeSeriesBuilder.build())
+        bottom.transform(timeSeries)
 
 
         then:
-        bottomNTimeSeries.size() == 4
-        bottomNTimeSeries.getValue(0) == 3d
-        bottomNTimeSeries.getValue(1) == 5d
-        bottomNTimeSeries.getValue(2) == 5d
-        bottomNTimeSeries.getValue(3) == 23d
+        timeSeries.size() == 4
+        timeSeries.getValue(0) == 3d
+        timeSeries.getValue(1) == 5d
+        timeSeries.getValue(2) == 5d
+        timeSeries.getValue(3) == 23d
 
     }
 

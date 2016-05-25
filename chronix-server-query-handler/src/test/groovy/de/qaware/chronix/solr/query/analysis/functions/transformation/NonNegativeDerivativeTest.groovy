@@ -43,12 +43,12 @@ class NonNegativeDerivativeTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:15.000Z"), 1)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
-
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        def derivativeTimeSeries = derivative.transform(timeSeriesBuilder.build())
+        derivative.transform(timeSeries)
 
         then:
-        derivativeTimeSeries.size() == 4
+        timeSeries.size() == 4
     }
 
     def long dateOf(def format) {

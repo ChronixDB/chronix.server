@@ -44,19 +44,19 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:15.000Z"), 1)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
-
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        def movingAvgSeries = movAvg.transform(timeSeriesBuilder.build())
+        movAvg.transform(timeSeries)
         then:
-        movingAvgSeries.size() == 8
-        movingAvgSeries.getValue(0) == 4.5d
-        movingAvgSeries.getValue(1) == 6.0d
-        movingAvgSeries.getValue(2) == 8.0d
-        movingAvgSeries.getValue(3) == 15.666666666666666d
-        movingAvgSeries.getValue(4) == 14.0d
-        movingAvgSeries.getValue(5) == 11.6d
-        movingAvgSeries.getValue(6) == 1d
-        movingAvgSeries.getValue(7) == 3d
+        timeSeries.size() == 8
+        timeSeries.getValue(0) == 4.5d
+        timeSeries.getValue(1) == 6.0d
+        timeSeries.getValue(2) == 8.0d
+        timeSeries.getValue(3) == 15.666666666666666d
+        timeSeries.getValue(4) == 14.0d
+        timeSeries.getValue(5) == 11.6d
+        timeSeries.getValue(6) == 1d
+        timeSeries.getValue(7) == 3d
 
 
     }
