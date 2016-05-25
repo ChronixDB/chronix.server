@@ -98,13 +98,13 @@ public final class NElements {
 
         @Override
         public int compareTo(Pair o) {
-            if (value == o.value) {
-                return 0;
+            if (value < o.value) {
+                return -1;
             }
             if (value > o.value) {
                 return 1;
             }
-            return -1;
+            return 0;
         }
     }
 
