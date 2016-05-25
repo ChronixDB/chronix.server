@@ -63,7 +63,7 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
      * @return the transformed time series
      */
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -104,8 +104,6 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
 
         //add them to clean time series
         timeSeries.addAll(timesMovAvg.toArray(), valuesMovAvg.toArray());
-
-        return timeSeries;
     }
 
     private boolean outsideWindow(long currentWindow, long windowTime) {

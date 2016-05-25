@@ -38,14 +38,13 @@ class ScaleTest extends Specification {
         }
 
         def scale = new Scale(2);
-
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        scale.getArguments()[0] == "value=2.0"
-        def scaledTimeSeries = scale.transform(timeSeriesBuilder.build())
+        scale.transform(timeSeries)
 
         then:
         100.times {
-            scaledTimeSeries.getValue(it) == (it + 1) * 2
+            timeSeries.getValue(it) == (it + 1) * 2
         }
     }
 

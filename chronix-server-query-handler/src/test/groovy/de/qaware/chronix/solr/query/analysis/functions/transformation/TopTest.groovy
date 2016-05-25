@@ -27,7 +27,6 @@ class TopTest extends Specification {
     def "test transform"() {
         given:
         def top = new Top(4)
-        def topNTimeSeries;
 
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Top")
         timeSeriesBuilder.point(1, 5d)
@@ -37,16 +36,17 @@ class TopTest extends Specification {
         timeSeriesBuilder.point(5, 65d)
         timeSeriesBuilder.point(6, 23d)
 
+        def timeSeries = timeSeriesBuilder.build()
         when:
-        topNTimeSeries = top.transform(timeSeriesBuilder.build())
+        top.transform(timeSeries)
 
 
         then:
-        topNTimeSeries.size() == 4
-        topNTimeSeries.getValue(0) == 99d
-        topNTimeSeries.getValue(1) == 65d
-        topNTimeSeries.getValue(2) == 23d
-        topNTimeSeries.getValue(3) == 5d
+        timeSeries.size() == 4
+        timeSeries.getValue(0) == 99d
+        timeSeries.getValue(1) == 65d
+        timeSeries.getValue(2) == 23d
+        timeSeries.getValue(3) == 5d
 
     }
 

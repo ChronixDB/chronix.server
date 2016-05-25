@@ -42,14 +42,12 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
         NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.TOP, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
 
         //remove old time series
         timeSeries.clear();
         timeSeries.addAll(result.getNTimes(), result.getNValues());
-
-        return timeSeries;
     }
 
     @Override

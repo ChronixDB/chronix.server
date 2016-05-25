@@ -35,10 +35,10 @@ class SubtractTest extends Specification {
 
         def sub = new Subtract(4);
         when:
-        def transformed = sub.transform(timeSeries)
+        sub.transform(timeSeries)
 
         then:
-        transformed.size() == 11
+        timeSeries.size() == 11
         timeSeries.getValue(1) == (1 + 10 - 4)
 
         timeSeries.getValue(10) == -14

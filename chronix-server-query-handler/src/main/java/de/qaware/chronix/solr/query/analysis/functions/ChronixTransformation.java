@@ -27,9 +27,8 @@ public interface ChronixTransformation<T> {
      * Transforms a time series by changing it inital values
      *
      * @param timeSeries the time series that is transformed
-     * @return the transformed time series
      */
-    T transform(T timeSeries);
+    void transform(T timeSeries);
 
     /**
      * @return the type of the transformation

@@ -52,7 +52,7 @@ public class Add implements ChronixTransformation<MetricTimeSeries> {
      * @return the transfomred time series
      */
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
         long[] timestamps = timeSeries.getTimestampsAsArray();
         double[] values = timeSeries.getValuesAsArray();
 
@@ -63,8 +63,6 @@ public class Add implements ChronixTransformation<MetricTimeSeries> {
         }
 
         timeSeries.addAll(timestamps, values);
-
-        return timeSeries;
     }
 
     @Override

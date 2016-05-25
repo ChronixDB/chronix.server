@@ -15,6 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.math;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import java.util.Arrays;
 
 /**
@@ -105,6 +108,28 @@ public final class NElements {
                 return 1;
             }
             return 0;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Pair pair = (Pair) o;
+
+            return new EqualsBuilder()
+                    .append(index, pair.index)
+                    .append(value, pair.value)
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .append(index)
+                    .append(value)
+                    .toHashCode();
         }
     }
 

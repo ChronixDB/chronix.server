@@ -38,14 +38,14 @@ class DivideTest extends Specification {
         }
 
         def divide = new Divide(2);
+        def timeSeries = timeSeriesBuilder.build()
 
         when:
-        divide.getArguments()[0] == "value=2.0"
-        def dividedTimeSeries = divide.transform(timeSeriesBuilder.build())
+        divide.transform(timeSeries)
 
         then:
         100.times {
-            dividedTimeSeries.getValue(it) == (it + 1) / 2d
+            timeSeries.getValue(it) == (it + 1) / 2d
         }
     }
 

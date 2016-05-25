@@ -41,7 +41,7 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public MetricTimeSeries transform(MetricTimeSeries timeSeries) {
+    public void transform(MetricTimeSeries timeSeries) {
 
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
@@ -51,8 +51,6 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
 
         timeSeries.clear();
         timeSeries.addAll(times, values);
-
-        return timeSeries;
     }
 
     @Override
