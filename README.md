@@ -68,7 +68,7 @@ A time series has at least the following required fields:
 | data       | Byte[]  |
 
 The data field contains json serialized and gzip compressed points of time stamp (long) and numeric value (double).
-Furthermore a time series can have an arbitrary user-defined attributes. 
+Furthermore a time series can have arbitrary user-defined attributes. 
 The type of an attribute is restricted by the available [fields](https://cwiki.apache.org/confluence/display/solr/Solr+Field+Types) of Apache Solr.
 
 ## Chronix Server Client ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-client))
@@ -109,16 +109,16 @@ List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.to
 ## Chronix Server Parts
 The Chronix server parts are Solr extensions (e.g. a custom query handler).
 Hence there is no need to build a custom modified Solr.
-We just plug the Chronix server parts into a standard Solr release.
+We just plug the Chronix server parts into a standard Solr.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
 The latest release of Chronix server is based on Apache Solr version 6.0.0
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
-It splits a request based on the filter queries up in range or analysis queries:
+It splits a request based on the filter queries up in range or function queries:
 
-- fq=(ag | analysis) (for aggregations or analyses)
+- fq=function=* (for aggregations, analyses, or transformations)
 - fq='' (empty, for range queries)
 
 But before the Chronix Query Handler delegates a request, it modifies the user query string.
