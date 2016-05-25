@@ -186,7 +186,7 @@ Currently the following functions are available:
 - Time series similarity search (analysis=fastdtw:(metric:\*Load\*),1,0.8)
 
 Multiple analyses, aggregations, and transformations are allowed per query.
-If so, Chronix will first execute the the transformations in the order they occur.
+If so, Chronix will first execute the transformations in the order they occur.
 Then it executes the analyses and aggregations on the result of the chained transformations.
 For example the query:
 
