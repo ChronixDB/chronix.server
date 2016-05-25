@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The current implemented aggregations
+ * The current implemented AGGREGATIONS
  *
  * @author f.lautenschlager
  */
@@ -61,18 +61,18 @@ public enum FunctionType {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FunctionType.class);
 
-    //Sets to hold the aggregations,analyses and transformations.
+    //Sets to hold the aggregations, analyses and transformations.
     //Otherwise the complexity of if(type == X || type == X ...) is to high
-    private static final Set<FunctionType> aggregations = new HashSet<>();
-    private static final Set<FunctionType> analyses = new HashSet<>();
-    private static final Set<FunctionType> transformations = new HashSet<>();
+    private static final Set<FunctionType> AGGREGATIONS = new HashSet<>();
+    private static final Set<FunctionType> ANALYSES = new HashSet<>();
+    private static final Set<FunctionType> TRANSFORMATIONS = new HashSet<>();
 
     static {
-        Collections.addAll(aggregations, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF);
-        Collections.addAll(analyses, TREND, OUTLIER, FREQUENCY, FASTDTW);
-        Collections.addAll(transformations, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB);
+        Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF);
+        Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
+        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB);
 
-        if (aggregations.size() + analyses.size() + transformations.size() != FunctionType.values().length) {
+        if (AGGREGATIONS.size() + ANALYSES.size() + TRANSFORMATIONS.size() != FunctionType.values().length) {
             LOGGER.warn("Not all functions are added to the collections. There are more functions defined.");
         }
     }
@@ -84,7 +84,7 @@ public enum FunctionType {
      * @return true if the analysis type is a high level analysis, otherwise false
      */
     public static boolean isAnalysis(FunctionType type) {
-        return analyses.contains(type);
+        return ANALYSES.contains(type);
     }
 
     /**
@@ -94,7 +94,7 @@ public enum FunctionType {
      * @return true if an aggregation, otherwise false
      */
     public static boolean isAggregation(FunctionType type) {
-        return aggregations.contains(type);
+        return AGGREGATIONS.contains(type);
     }
 
     /**
@@ -104,7 +104,7 @@ public enum FunctionType {
      * @return true if the type is a transformation, otherwise false
      */
     public static boolean isTransformation(FunctionType type) {
-        return transformations.contains(type);
+        return TRANSFORMATIONS.contains(type);
     }
 
 }
