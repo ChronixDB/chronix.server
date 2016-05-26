@@ -150,9 +150,13 @@ import de.undercouch.gradle.tasks.download.Download
 
 def solrVersion = "6.0.0"
 
+//Apache archive
+//"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+//Alternative
+//http://ftp.fau.de/apache/lucene/solr/${solrVersion}/solr-${solrVersion}.zip
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src "http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    src "http://ftp.fau.de/apache/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
