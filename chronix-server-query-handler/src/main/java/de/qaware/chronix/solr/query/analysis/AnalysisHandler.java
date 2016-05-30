@@ -117,17 +117,12 @@ public class AnalysisHandler extends SearchHandler {
      */
     private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs) throws IOException, IllegalStateException, ParseException {
 
-        if (functions.isEmpty()) {
-            LOGGER.info("Functions are empty. Returning empty result");
-            return new ArrayList<>();
-        }
-
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
         final long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
 
         //Check if the data field should be returned - default is true
-        String fields = params.get(CommonParams.FL, Schema.DATA);
+        final String fields = params.get(CommonParams.FL, Schema.DATA);
         final boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
         final boolean dataAsJson = fields.contains(ChronixQueryParams.DATA_AS_JSON);
 
@@ -135,24 +130,27 @@ public class AnalysisHandler extends SearchHandler {
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+                final MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+
+                //TODO: We could omit this creation
                 FunctionValueMap analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
+                //Only if we have functions, execute the following block
+                if (!functions.isEmpty()) {
 
-                //first we do the transformations
-                if (functions.containsTransformations()) {
-                    applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
-                }
+                    //first we do the transformations
+                    if (functions.containsTransformations()) {
+                        applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
+                    }
 
-                //then we apply aggregations
-                if (functions.containsAggregations()) {
-                    applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+                    //then we apply aggregations
+                    if (functions.containsAggregations()) {
+                        applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+                    }
 
-                }
-
-                //finally the analyses
-                if (functions.containsAnalyses()) {
-                    applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
-
+                    //finally the analyses
+                    if (functions.containsAnalyses()) {
+                        applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
+                    }
                 }
 
                 //Here we have to build the document with the results of the analyses

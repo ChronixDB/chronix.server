@@ -87,13 +87,15 @@ public final class AnalysisDocumentBuilder {
     public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned, boolean dataAsJson) {
 
         //If the map is empty, we return null.
-        if (functionValueMap.size() == 0) {
+        if (!dataAsJson && functionValueMap == null) {
             return null;
         }
 
+        //Only run through the function results if there are some
         //If there are transformations or aggregations, we will return the document
-        boolean returnDocument = functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
+        boolean returnDocument = (functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0) || dataAsJson;
 
+        //we check if a analysis has a positive match
         if (!returnDocument) {
             //Analyses
             //-> return the document if the value is true
@@ -105,16 +107,19 @@ public final class AnalysisDocumentBuilder {
                 }
             }
         }
-
         //return null to the callee
         if (!returnDocument) {
             return null;
         }
 
+
+        //Convert the document
         SolrDocument doc = convert(timeSeries, dataShouldReturned, dataAsJson);
-        addAnalysesAndResults(functionValueMap, doc);
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, key);
+        //Add the function results
+        addAnalysesAndResults(functionValueMap, doc);
+
 
         return doc;
     }
@@ -242,10 +247,10 @@ public final class AnalysisDocumentBuilder {
             }
 
             if (!merged.containsKey(key)) {
-                merged.put(key, new HashSet<>());
+                merged.put(key, new LinkedHashSet());
             }
 
-            Set<Object> values = (Set<Object>) merged.get(key);
+            LinkedHashSet values = (LinkedHashSet) merged.get(key);
             Object value = newEntry.getValue();
 
             //Check if the value is a collection.
