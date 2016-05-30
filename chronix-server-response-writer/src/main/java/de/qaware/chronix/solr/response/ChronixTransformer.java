@@ -61,7 +61,7 @@ public class ChronixTransformer extends TransformerFactory {
          *
          * @param flName the name of the field
          */
-        public DataFieldSerializer(String flName) {
+        DataFieldSerializer(String flName) {
             LOGGER.debug("Constructing Chronix transformer for field {}", flName);
             this.name = flName;
         }

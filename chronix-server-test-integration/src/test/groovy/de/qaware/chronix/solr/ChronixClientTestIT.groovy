@@ -312,6 +312,17 @@ class ChronixClientTestIT extends Specification {
 
     }
 
+    def "test function query with data as json"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu\\\\sy")
+        query.addFilterQuery("function=vector:0.1")
+        query.setFields("dataAsJson")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == 2
+    }
+
     def "test analysis with empty result"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\min")

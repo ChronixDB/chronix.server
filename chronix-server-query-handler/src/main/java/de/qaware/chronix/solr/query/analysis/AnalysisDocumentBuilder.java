@@ -17,8 +17,8 @@ package de.qaware.chronix.solr.query.analysis;
 
 import com.google.common.base.Strings;
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.converter.common.MetricTSSchema;
+import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
@@ -31,6 +31,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.function.Function;
 
@@ -80,10 +81,10 @@ public final class AnalysisDocumentBuilder {
      * @param timeSeries         the time series
      * @param functionValueMap   a map with executed analyses and values
      * @param key                the join key
-     * @param dataShouldReturned flag to mark if the data should be returned
-     * @return the resulting solr document, or null if the functions contain only analyses an every is result is false.
+     * @param dataShouldReturned true if the data should be returned, otherwise false
+     * @param dataAsJson         if true, the data is returned as json
      */
-    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned) {
+    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned, boolean dataAsJson) {
 
         //If the map is empty, we return null.
         if (functionValueMap.size() == 0) {
@@ -110,7 +111,7 @@ public final class AnalysisDocumentBuilder {
             return null;
         }
 
-        SolrDocument doc = convert(timeSeries, dataShouldReturned);
+        SolrDocument doc = convert(timeSeries, dataShouldReturned, dataAsJson);
         addAnalysesAndResults(functionValueMap, doc);
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, key);
@@ -294,19 +295,28 @@ public final class AnalysisDocumentBuilder {
     }
 
 
-    private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData) {
+    private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData, boolean asJson) {
 
         SolrDocument doc = new SolrDocument();
 
         if (withData) {
-            new KassiopeiaSimpleConverter().to(timeSeries).getFields().forEach(doc::addField);
-        } else {
-            timeSeries.attributes().forEach(doc::addField);
-            //add the metric field as it is not stored in the attributes
-            doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
-            doc.addField(Schema.START, timeSeries.getStart());
-            doc.addField(Schema.END, timeSeries.getEnd());
+            byte[] data;
+            //data should returned serialized as json
+            if (asJson) {
+                data = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
+                doc.setField(ChronixQueryParams.DATA_AS_JSON, new String(data, Charset.forName("UTF-8")));
+            } else {
+                data = ProtoBufKassiopeiaSimpleSerializer.to(timeSeries.points().iterator());
+                doc.addField(Schema.DATA, data);
+
+            }
         }
+
+        timeSeries.attributes().forEach(doc::addField);
+        //add the metric field as it is not stored in the attributes
+        doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
+        doc.addField(Schema.START, timeSeries.getStart());
+        doc.addField(Schema.END, timeSeries.getEnd());
 
         return doc;
     }
