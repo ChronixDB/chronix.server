@@ -35,7 +35,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Constructs the top value transformation
      *
-     * @param value values that are returned
+     * @param value number of largest values that are returned
      */
     public Top(int value) {
         this.value = value;
@@ -43,10 +43,17 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
 
     @Override
     public void transform(MetricTimeSeries timeSeries) {
-        NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.TOP, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
 
-        //remove old time series
+        //Calculate the largest values
+        NElements.NElementsResult result = NElements.calc(
+                NElements.NElementsCalculation.TOP,
+                value,
+                timeSeries.getTimestampsAsArray(),
+                timeSeries.getValuesAsArray());
+
+        //remove the old time series values
         timeSeries.clear();
+        //set the new top largest values
         timeSeries.addAll(result.getNTimes(), result.getNValues());
     }
 
