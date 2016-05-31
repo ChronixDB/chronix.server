@@ -83,6 +83,7 @@ public final class AnalysisDocumentBuilder {
      * @param key                the join key
      * @param dataShouldReturned true if the data should be returned, otherwise false
      * @param dataAsJson         if true, the data is returned as json
+     * @return the time series as solr document
      */
     public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned, boolean dataAsJson) {
 
@@ -93,7 +94,7 @@ public final class AnalysisDocumentBuilder {
 
         //Only run through the function results if there are some
         //If there are transformations or aggregations, we will return the document
-        boolean returnDocument = (functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0) || dataAsJson;
+        boolean returnDocument = hasTransformationsOrAggregations(functionValueMap) || dataAsJson;
 
         //we check if a analysis has a positive match
         if (!returnDocument) {
@@ -117,11 +118,21 @@ public final class AnalysisDocumentBuilder {
         SolrDocument doc = convert(timeSeries, dataShouldReturned, dataAsJson);
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, key);
-        //Add the function results
-        addAnalysesAndResults(functionValueMap, doc);
-
+        //Only add if we have analyses
+        if (functionValueMap != null) {
+            //Add the function results
+            addAnalysesAndResults(functionValueMap, doc);
+        }
 
         return doc;
+    }
+
+    /**
+     * @param functionValueMap the function value map
+     * @return false if the the function value map is null or if there are no transformations and aggregations
+     */
+    private static boolean hasTransformationsOrAggregations(FunctionValueMap functionValueMap) {
+        return functionValueMap != null && functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
     }
 
     private static void addAnalysesAndResults(FunctionValueMap functionValueMap, SolrDocument doc) {
