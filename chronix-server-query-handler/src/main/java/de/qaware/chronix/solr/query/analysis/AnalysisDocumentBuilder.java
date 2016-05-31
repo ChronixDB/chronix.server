@@ -83,6 +83,7 @@ public final class AnalysisDocumentBuilder {
      * @param key                the join key
      * @param dataShouldReturned true if the data should be returned, otherwise false
      * @param dataAsJson         if true, the data is returned as json
+     * @return the time series as solr document
      */
     public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned, boolean dataAsJson) {
 
