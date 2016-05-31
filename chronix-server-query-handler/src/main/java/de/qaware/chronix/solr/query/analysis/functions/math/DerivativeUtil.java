@@ -43,7 +43,9 @@ public final class DerivativeUtil {
      * @return the derivative value
      */
     public static double derivative(double xT2, double xT0, long yT2, long yT0) {
+        //convert the given timestamps into seconds
         long deltaTinSeconds = (yT2 - yT0) / 1000;
+        //calculate the derivative
         return (xT2 - xT0) / (2 * deltaTinSeconds);
     }
 
