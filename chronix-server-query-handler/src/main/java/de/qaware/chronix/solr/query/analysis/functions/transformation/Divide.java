@@ -33,7 +33,7 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Scales the time series by the given value
      *
-     * @param value the value value
+     * @param value the divisor
      */
     public Divide(double value) {
         this.value = value;
@@ -42,12 +42,15 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public void transform(MetricTimeSeries timeSeries) {
 
+        //Get a copy of the values
         double[] values = timeSeries.getValuesAsArray();
+        //Get a copy of the timestamps
         long[] times = timeSeries.getTimestampsAsArray();
         for (int i = 0; i < timeSeries.size(); i++) {
+            //simply divide the original value
             values[i] = values[i] / value;
         }
-
+        //Clear the original time series and add the values
         timeSeries.clear();
         timeSeries.addAll(times, values);
     }
