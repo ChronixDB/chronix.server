@@ -611,9 +611,6 @@
         <processor class="solr.RunUpdateProcessorFactory"/>
     </updateRequestProcessorChain>
 
-
-    <transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer"/>
-
     <!-- Uncomment to activate the rentetion handler.
     <requestHandler name="/retention"
                     class="de.qaware.chronix.solr.retention.ChronixRetentionHandler">

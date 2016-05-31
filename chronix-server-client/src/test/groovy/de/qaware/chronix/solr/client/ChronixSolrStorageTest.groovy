@@ -28,7 +28,6 @@ import spock.lang.Specification
 
 import java.util.function.BinaryOperator
 import java.util.function.Function
-
 /**
  * Unit test for the ChronixSolrStorage class
  * @author f.lautenschlager
@@ -75,6 +74,7 @@ class ChronixSolrStorageTest extends Specification {
 
         then:
         stream != null
+        stream.count() == 0
     }
 
     def "test add"() {
