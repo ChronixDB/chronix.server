@@ -132,11 +132,11 @@ public class AnalysisHandler extends SearchHandler {
             try {
                 final MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
 
-                //TODO: We could omit this creation
-                FunctionValueMap analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
+                FunctionValueMap analysisAndValues = null;
                 //Only if we have functions, execute the following block
                 if (!functions.isEmpty()) {
 
+                    analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
                     //first we do the transformations
                     if (functions.containsTransformations()) {
                         applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
