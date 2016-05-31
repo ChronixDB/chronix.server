@@ -270,21 +270,15 @@ But if the raw data is needed, one can pass
 fl=+data
 ```
 
-### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-response-writer))
-This allows one to query raw (uncompressed) data from Chronix in JSON format. 
-It is implemented as a Solr [document transformer](https://cwiki.apache.org/confluence/display/solr/Transforming+Result+Documents).
-Hence the transformer is defined in the config.xml: 
-
-```XML
-<transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer" />
-
-```
+### Chronix Response Writer
+This allows one to query raw (uncompressed) data from Chronix in JSON format.
 To execute the transformer you have to add it to the *fl* parameter:
 ```
-q=metric:*load*&fl=dataAsJson:[dataAsJson]
+q=metric:*load*&fl=+dataAsJson //to get all fields and the dataAsJson field
+q=metric:*load*&fl=dataAsJson //to get only the required fields (except the data field) and dataAsJson
 ```
 The records in the result contains a field called *dataAsJson* that holds the raw time series data as json.
-Note: The transformer removes the data field that normally ship the compressed data.
+Note: The data field that normally ship the compressed data is not included in the result.
 
 Example Result:
 ```
