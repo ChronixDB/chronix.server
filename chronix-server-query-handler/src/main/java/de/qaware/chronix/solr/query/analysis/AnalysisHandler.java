@@ -130,33 +130,36 @@ public class AnalysisHandler extends SearchHandler {
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                final MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+                final MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
 
-                FunctionValueMap analysisAndValues = null;
+                FunctionValueMap functionValues = null;
                 //Only if we have functions, execute the following block
                 if (!functions.isEmpty()) {
 
-                    analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
+                    functionValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
                     //first we do the transformations
                     if (functions.containsTransformations()) {
-                        applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
+                        applyTransformations(functions.getTransformations(), timeSeries, functionValues);
                     }
 
                     //then we apply aggregations
                     if (functions.containsAggregations()) {
-                        applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+                        applyAggregations(functions.getAggregations(), timeSeries, functionValues);
                     }
 
                     //finally the analyses
                     if (functions.containsAnalyses()) {
-                        applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
+                        applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, functionValues);
                     }
                 }
 
-                //Here we have to build the document with the results of the analyses
-                SolrDocument doc = AnalysisDocumentBuilder.buildDocument(timeSeries, analysisAndValues, docs.getKey(), dataShouldReturned, dataAsJson);
-
-                if (doc != null) {
+                //We Return the document, if
+                // 1) the data is explicit requested as json
+                // 2) there are aggregations / transformations
+                // 3) there are matching analyses
+                if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues)) {
+                    //Here we have to build the document with the results of the analyses
+                    SolrDocument doc = SolrDocumentBuilder.buildDocument(timeSeries, functionValues, docs.getKey(), dataShouldReturned, dataAsJson);
                     resultDocuments.add(doc);
                 }
 
@@ -165,6 +168,30 @@ public class AnalysisHandler extends SearchHandler {
             }
         });
         return resultDocuments;
+    }
+
+    private static boolean hasMatchingAnalyses(FunctionValueMap functionValueMap) {
+        if (functionValueMap == null || functionValueMap.sizeOfAnalyses() == 0) {
+            return false;
+        } else {
+            //Analyses
+            //-> return the document if the value is true
+            for (int i = 0; i < functionValueMap.sizeOfAnalyses(); i++) {
+                //we have found a positive analysis, lets return the document
+                if (functionValueMap.getAnalysisValue(i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * @param functionValueMap the function value map
+     * @return false if the the function value map is null or if there are no transformations and aggregations
+     */
+    private static boolean hasTransformationsOrAggregations(FunctionValueMap functionValueMap) {
+        return functionValueMap != null && functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
     }
 
     /**
@@ -197,7 +224,7 @@ public class AnalysisHandler extends SearchHandler {
                 subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
                     //Only if have a different time series
                     if (!docs.getKey().equals(subDocs.getKey())) {
-                        MetricTimeSeries subTimeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+                        MetricTimeSeries subTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
 
                         boolean value = analysis.execute(transformedTimeSeries, subTimeSeries);
                         analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
@@ -275,7 +302,7 @@ public class AnalysisHandler extends SearchHandler {
         }
         DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
         SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
-        return AnalysisDocumentBuilder.collect(docs, collectionKey);
+        return SolrDocumentBuilder.collect(docs, collectionKey);
     }
 
 

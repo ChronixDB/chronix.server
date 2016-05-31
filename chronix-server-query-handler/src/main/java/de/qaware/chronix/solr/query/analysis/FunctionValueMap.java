@@ -19,6 +19,8 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 
+import java.util.Arrays;
+
 /**
  * Simple fixed size map of chronix analysis and value
  *
@@ -192,5 +194,20 @@ public class FunctionValueMap {
      */
     public int sizeOfAggregations() {
         return aggregationSize;
+    }
+
+    @Override
+    public String toString() {
+        return "FunctionValueMap{" +
+                "analyses=" + Arrays.toString(analyses) +
+                ", transformations=" + Arrays.toString(transformations) +
+                ", aggregations=" + Arrays.toString(aggregations) +
+                ", analysisValues=" + Arrays.toString(analysisValues) +
+                ", aggregationValues=" + Arrays.toString(aggregationValues) +
+                ", identifiers=" + Arrays.toString(identifiers) +
+                ", analysisSize=" + analysisSize +
+                ", aggregationSize=" + aggregationSize +
+                ", transformationSize=" + transformationSize +
+                '}';
     }
 }

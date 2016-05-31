@@ -43,12 +43,15 @@ public class Scale implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public void transform(MetricTimeSeries timeSeries) {
 
+        //get a copy of the values
         double[] values = timeSeries.getValuesAsArray();
+        //get a copy of timestamps
         long[] times = timeSeries.getTimestampsAsArray();
         for (int i = 0; i < timeSeries.size(); i++) {
+            //scale the original value
             values[i] = values[i] * value;
         }
-
+        //clear and delete the time series
         timeSeries.clear();
         timeSeries.addAll(times, values);
     }

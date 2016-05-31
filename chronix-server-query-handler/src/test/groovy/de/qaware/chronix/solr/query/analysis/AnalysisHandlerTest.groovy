@@ -19,6 +19,8 @@ import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
 import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
+import de.qaware.chronix.solr.query.analysis.functions.transformation.Add
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.common.SolrDocument
@@ -27,7 +29,9 @@ import org.apache.solr.core.PluginInfo
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.search.DocSlice
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -39,7 +43,7 @@ import java.util.function.Function
  */
 class AnalysisHandlerTest extends Specification {
 
-    def "test handle aggregation request"() {
+    def "test handle function request"() {
         given:
         def request = Mock(SolrQueryRequest)
 
@@ -88,7 +92,11 @@ class AnalysisHandlerTest extends Specification {
         result << [null, ["myField", "start", "end", "data", "metric"] as Set<String>]
     }
 
-    def "test analyze / aggregate single time series"() {
+    @Shared
+    def functions = new QueryFunctions<>()
+
+    @Unroll
+    def "test single time series for #queryFunction"() {
         given:
         def docListMock = Stub(DocListProvider)
         def analysisHandler = new AnalysisHandler(docListMock)
@@ -100,20 +108,34 @@ class AnalysisHandlerTest extends Specification {
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                 .add("fq", "function=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
-        def analyses = new QueryFunctions<>()
-        analyses.addAggregation(new Max())
+        function()
+
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
 
 
         when:
-        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords)
+        def result = analysisHandler.analyze(request, functions, key, timeSeriesRecords)
 
         then:
         result.size() == 1
-        result.get(0).get("0_function_max") == 4713
+        result.get(0).get(resultKey) == expectredResult
+
+        where:
+        queryFunction << ["function=max",
+                          "function=trend",
+                          "function=add:5"]
+        function << [{ -> functions.addAggregation(new Max()) },
+                     { -> functions.addAnalysis(new Trend()) },
+                     { -> functions.addTransformation(new Add(5)) }]
+
+        resultKey << ["0_function_max",
+                      "0_function_trend",
+                      "0_function_add"]
+
+        expectredResult << [4713, null, ["value=5.0"]]
     }
 
-    def "test analyze multiple time series"() {
+    def "test function with multiple time series"() {
         given:
         def docListMock = Stub(DocListProvider)
         def analysisHandler = new AnalysisHandler(docListMock)
@@ -142,24 +164,6 @@ class AnalysisHandlerTest extends Specification {
         result.size() == 0
     }
 
-    List<SolrDocument> solrDocument(Instant start) {
-        def result = new ArrayList<SolrDocument>()
-        def ts = new MetricTimeSeries.Builder("test")
-                .point(start.toEpochMilli(), 4711)
-                .point(start.plusSeconds(1).toEpochMilli(), 4712)
-                .point(start.plusSeconds(2).toEpochMilli(), 4713)
-                .build()
-        SolrDocument doc = new SolrDocument()
-        doc.put("start", start.toEpochMilli())
-        doc.put("end", start.plusSeconds(10).toEpochMilli())
-        doc.put("metric", "test")
-        def data = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator())
-        doc.put("data", ByteBuffer.wrap(data))
-
-        result.add(doc)
-        return result
-    }
-
     def "test get description"() {
         given:
         def analysisHandler = new AnalysisHandler(new SolrDocListProvider())
@@ -182,5 +186,23 @@ class AnalysisHandlerTest extends Specification {
 
         then:
         thrown NullPointerException
+    }
+
+    List<SolrDocument> solrDocument(Instant start) {
+        def result = new ArrayList<SolrDocument>()
+        def ts = new MetricTimeSeries.Builder("test")
+                .point(start.toEpochMilli(), 4711)
+                .point(start.plusSeconds(1).toEpochMilli(), 4712)
+                .point(start.plusSeconds(2).toEpochMilli(), 4713)
+                .build()
+        SolrDocument doc = new SolrDocument()
+        doc.put("start", start.toEpochMilli())
+        doc.put("end", start.plusSeconds(10).toEpochMilli())
+        doc.put("metric", "test")
+        def data = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator())
+        doc.put("data", ByteBuffer.wrap(data))
+
+        result.add(doc)
+        return result
     }
 }

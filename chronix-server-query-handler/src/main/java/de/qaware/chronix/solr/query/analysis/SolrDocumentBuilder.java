@@ -40,9 +40,9 @@ import java.util.function.Function;
  *
  * @author f.lautenschlager
  */
-public final class AnalysisDocumentBuilder {
+public final class SolrDocumentBuilder {
 
-    private AnalysisDocumentBuilder() {
+    private SolrDocumentBuilder() {
         //avoid instances
     }
 
@@ -71,7 +71,7 @@ public final class AnalysisDocumentBuilder {
     }
 
     /**
-     * Builds a solr document that is needed for the response from the aggregated time series.
+     * Builds a solr document that is needed for the response.
      * If the functions contains only analyses an every analysis result is false the method returns null.
      * <p>
      * Transformations -> Return the time series
@@ -79,62 +79,33 @@ public final class AnalysisDocumentBuilder {
      * Analyses -> Return the document if a analysis result is positive
      *
      * @param timeSeries         the time series
-     * @param functionValueMap   a map with executed analyses and values
+     * @param functionValues     a map with executed analyses and values
      * @param key                the join key
      * @param dataShouldReturned true if the data should be returned, otherwise false
      * @param dataAsJson         if true, the data is returned as json
      * @return the time series as solr document
      */
-    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap, String key, boolean dataShouldReturned, boolean dataAsJson) {
-
-        //If the map is empty, we return null.
-        if (!dataAsJson && functionValueMap == null) {
-            return null;
-        }
-
-        //Only run through the function results if there are some
-        //If there are transformations or aggregations, we will return the document
-        boolean returnDocument = hasTransformationsOrAggregations(functionValueMap) || dataAsJson;
-
-        //we check if a analysis has a positive match
-        if (!returnDocument) {
-            //Analyses
-            //-> return the document if the value is true
-            for (int i = 0; i < functionValueMap.sizeOfAnalyses(); i++) {
-                //we have found a positive analysis, lets return the document
-                if (functionValueMap.getAnalysisValue(i)) {
-                    returnDocument = true;
-                    break;
-                }
-            }
-        }
-        //return null to the callee
-        if (!returnDocument) {
-            return null;
-        }
-
+    public static SolrDocument buildDocument(MetricTimeSeries timeSeries, FunctionValueMap functionValues, String key, boolean dataShouldReturned, boolean dataAsJson) {
 
         //Convert the document
         SolrDocument doc = convert(timeSeries, dataShouldReturned, dataAsJson);
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, key);
-        //Only add if we have analyses
-        if (functionValueMap != null) {
+        //Only add if we have function values
+        if (functionValues != null) {
             //Add the function results
-            addAnalysesAndResults(functionValueMap, doc);
+            addAnalysesAndResults(functionValues, doc);
         }
 
         return doc;
     }
 
     /**
-     * @param functionValueMap the function value map
-     * @return false if the the function value map is null or if there are no transformations and aggregations
+     * Add the functions and its results to the given solr document
+     *
+     * @param functionValueMap the function value map with the functions and the results
+     * @param doc              the solr document to add the result
      */
-    private static boolean hasTransformationsOrAggregations(FunctionValueMap functionValueMap) {
-        return functionValueMap != null && functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
-    }
-
     private static void addAnalysesAndResults(FunctionValueMap functionValueMap, SolrDocument doc) {
 
         //For identification purposes
@@ -143,14 +114,8 @@ public final class AnalysisDocumentBuilder {
         //add the transformation information
         for (int transformation = 0; transformation < functionValueMap.sizeOfTransformations(); transformation++) {
             ChronixTransformation chronixTransformation = functionValueMap.getTransformation(transformation);
-
-            if (chronixTransformation.getArguments().length != 0) {
-                doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixTransformation.getType().name().toLowerCase(), chronixTransformation.getArguments());
-            } else {
-                doc.put(counter + "_" + ChronixQueryParams.FUNCTION, chronixTransformation.getType().name().toLowerCase());
-            }
+            doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixTransformation.getType().name().toLowerCase(), chronixTransformation.getArguments());
             counter++;
-
         }
 
         //add the aggregation information
@@ -158,6 +123,8 @@ public final class AnalysisDocumentBuilder {
             ChronixAggregation chronixAggregation = functionValueMap.getAggregation(aggregation);
             double value = functionValueMap.getAggregationValue(aggregation);
             doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixAggregation.getType().name().toLowerCase(), value);
+
+            //Only if arguments exists
             if (chronixAggregation.getArguments().length != 0) {
                 doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + "_" + chronixAggregation.getType().name().toLowerCase(), chronixAggregation.getArguments());
             }
@@ -170,9 +137,10 @@ public final class AnalysisDocumentBuilder {
             boolean value = functionValueMap.getAnalysisValue(analysis);
             String identifier = functionValueMap.getAnalysisIdentifier(analysis);
             String nameWithLeadingUnderscore;
+
+            //Check if there is an identifier
             if (Strings.isNullOrEmpty(identifier)) {
                 nameWithLeadingUnderscore = "_" + chronixAnalysis.getType().name().toLowerCase();
-
             } else {
                 nameWithLeadingUnderscore = "_" + chronixAnalysis.getType().name().toLowerCase() + "_" + identifier;
             }
@@ -180,6 +148,7 @@ public final class AnalysisDocumentBuilder {
             //Add some information about the analysis
             doc.put(counter + "_" + ChronixQueryParams.FUNCTION + nameWithLeadingUnderscore, value);
 
+            //Only if arguments exists
             if (chronixAnalysis.getArguments().length != 0) {
                 doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, chronixAnalysis.getArguments());
             }
@@ -197,7 +166,7 @@ public final class AnalysisDocumentBuilder {
      * @param documents  the lucene documents
      * @return a metric time series that holds all the points
      */
-    public static MetricTimeSeries collectDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
+    public static MetricTimeSeries reduceDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
         //Collect all document of a time series
 
         LongList timestamps = null;
@@ -278,7 +247,7 @@ public final class AnalysisDocumentBuilder {
 
 
     /**
-     * Converts the given Lucene document in a metric time series
+     * Converts the given solr document in a metric time series
      *
      * @param doc        - the lucene document
      * @param queryStart - the query start
@@ -286,7 +255,6 @@ public final class AnalysisDocumentBuilder {
      * @return a metric time series
      */
     private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
-
 
         String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
         long tsStart = (long) doc.getFieldValue(Schema.START);
@@ -310,7 +278,14 @@ public final class AnalysisDocumentBuilder {
         return ts.build();
     }
 
-
+    /**
+     * Converts the given time series in a solr document
+     *
+     * @param timeSeries the time series
+     * @param withData   flag to indicate if with data or without
+     * @param asJson     flag to mark if the data should be returned as json
+     * @return the filled solr document
+     */
     private static SolrDocument convert(MetricTimeSeries timeSeries, boolean withData, boolean asJson) {
 
         SolrDocument doc = new SolrDocument();

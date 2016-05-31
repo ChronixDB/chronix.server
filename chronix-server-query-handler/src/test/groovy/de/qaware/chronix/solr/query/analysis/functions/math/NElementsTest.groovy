@@ -32,7 +32,6 @@ class NElementsTest extends Specification {
 
     def "test calc"() {
         given:
-
         def times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as long[]
         def value = [42, 1, 3, 6, 0, 19, 4, 20, 0, 10] as double[]
 
@@ -49,6 +48,25 @@ class NElementsTest extends Specification {
         result.NValues[0] == 42d
         result.NValues[1] == 20d
         result.NValues[2] == 19d
+    }
+
+    def "test equals and hashCode of internal points"() {
+        given:
+        NElements.Pair pair = new NElements.Pair(0, 1)
+        NElements.Pair pairCopy = new NElements.Pair(0, 1)
+        NElements.Pair pairInvalidCopy = new NElements.Pair(1, 0)
+
+        expect:
+        pair.equals(pair)
+        pair.equals(pairCopy)
+
+        !pair.equals(null)
+        !pair.equals(new Object())
+        !pair.equals(pairInvalidCopy)
+
+        pair.hashCode() == pair.hashCode()
+        pair.hashCode() == pairCopy.hashCode()
+        pair.hashCode() != pairInvalidCopy.hashCode()
     }
 
 }

@@ -16,7 +16,11 @@
 package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
+import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Unit test for the analysis value map
@@ -26,23 +30,59 @@ class FunctionValueMapTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def analysisValueMap = new FunctionValueMap(3, 0, 0)
+        def functionValueMap = new FunctionValueMap(3, 3, 3)
 
         when:
-        size.times {
-            analysisValueMap.add(new Max(), it)
+        aggregations.times {
+            functionValueMap.add(new Max(), it)
         }
+        analyses.times {
+            functionValueMap.add(new Trend(), true, "")
+        }
+
+        transformations.times {
+            functionValueMap.add(new Vectorization(0.1f))
+        }
+
 
         then:
-        analysisValueMap.size() == size
-        size.times {
-            analysisValueMap.getAggregation(it) == new Max()
-            analysisValueMap.getAggregationValue(it) == it
-        }
+        functionValueMap.size() == aggregations + analyses + transformations
+
+        functionValueMap.sizeOfAggregations() == aggregations
+        functionValueMap.sizeOfAnalyses() == analyses
+        functionValueMap.sizeOfTransformations() == transformations
+
+        functionValueMap.getAggregation(0) == new Max()
+        functionValueMap.getAggregationValue(0) == 0
+
+        functionValueMap.getAnalysis(0) == new Trend()
+        functionValueMap.getAnalysisValue(0) == true
+        functionValueMap.getAnalysisIdentifier(0) == ""
+
+        functionValueMap.getTransformation(0) == new Vectorization(0.1f)
 
         where:
-        size << [3]
-
+        aggregations << [3]
+        analyses << [3]
+        transformations << [3]
     }
 
+    @Shared
+    def functionValueMap = new FunctionValueMap(0, 0, 0)
+
+    @Unroll
+    def "test exception case for #function"() {
+        when:
+        function()
+
+        then:
+        thrown IndexOutOfBoundsException
+
+
+        where:
+        function << [{ -> functionValueMap.add(new Max(), 0.0) },
+                     { -> functionValueMap.add(new Trend(), true, "") },
+                     { -> functionValueMap.add(new Vectorization(0.1f)) }]
+
+    }
 }
