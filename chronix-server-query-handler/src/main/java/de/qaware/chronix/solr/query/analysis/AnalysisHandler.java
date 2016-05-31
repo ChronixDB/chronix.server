@@ -83,10 +83,6 @@ public class AnalysisHandler extends SearchHandler {
         SolrDocumentList results = new SolrDocumentList();
         String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
 
-        //Check if the data field should be returned - default is true
-        String fields = req.getParams().get(CommonParams.FL, Schema.DATA);
-        boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
-
         //Do a query and collect them on the join function
         Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(filterQueries);
         Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, key);
@@ -97,7 +93,7 @@ public class AnalysisHandler extends SearchHandler {
         } else {
             //Otherwise return the analyzed time series
             final QueryFunctions<MetricTimeSeries> queryFunctions = QueryEvaluator.extractFunctions(filterQueries);
-            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs, dataShouldReturned);
+            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs);
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -110,52 +106,55 @@ public class AnalysisHandler extends SearchHandler {
     /**
      * Analyzes the given request using the chronix functions.
      *
-     * @param req                the solr request with all information
-     * @param functions          the chronix analysis that is applied
-     * @param key                the key for joining documents
-     * @param collectedDocs      the prior collected documents of the query
-     * @param dataShouldReturned flag to indicate if the data should be returned
+     * @param req           the solr request with all information
+     * @param functions     the chronix analysis that is applied
+     * @param key           the key for joining documents
+     * @param collectedDocs the prior collected documents of the query
      * @return a list containing the analyzed time series as solr documents
      * @throws IOException              if bad things happen in querying the documents
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean dataShouldReturned) throws IOException, IllegalStateException, ParseException {
-
-        if (functions.isEmpty()) {
-            LOGGER.info("Functions are empty. Returning empty result");
-            return new ArrayList<>();
-        }
+    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
         final long queryEnd = Long.parseLong(params.get(ChronixQueryParams.QUERY_END_LONG));
+
+        //Check if the data field should be returned - default is true
+        final String fields = params.get(CommonParams.FL, Schema.DATA);
+        final boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
+        final boolean dataAsJson = fields.contains(ChronixQueryParams.DATA_AS_JSON);
+
         final List<SolrDocument> resultDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+                final MetricTimeSeries timeSeries = AnalysisDocumentBuilder.collectDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+
+                //TODO: We could omit this creation
                 FunctionValueMap analysisAndValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
+                //Only if we have functions, execute the following block
+                if (!functions.isEmpty()) {
 
-                //first we do the transformations
-                if (functions.containsTransformations()) {
-                    applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
-                }
+                    //first we do the transformations
+                    if (functions.containsTransformations()) {
+                        applyTransformations(functions.getTransformations(), timeSeries, analysisAndValues);
+                    }
 
-                //then we apply aggregations
-                if (functions.containsAggregations()) {
-                    applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+                    //then we apply aggregations
+                    if (functions.containsAggregations()) {
+                        applyAggregations(functions.getAggregations(), timeSeries, analysisAndValues);
+                    }
 
-                }
-
-                //finally the analyses
-                if (functions.containsAnalyses()) {
-                    applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
-
+                    //finally the analyses
+                    if (functions.containsAnalyses()) {
+                        applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, timeSeries, analysisAndValues);
+                    }
                 }
 
                 //Here we have to build the document with the results of the analyses
-                SolrDocument doc = AnalysisDocumentBuilder.buildDocument(timeSeries, analysisAndValues, docs.getKey(), dataShouldReturned);
+                SolrDocument doc = AnalysisDocumentBuilder.buildDocument(timeSeries, analysisAndValues, docs.getKey(), dataShouldReturned, dataAsJson);
 
                 if (doc != null) {
                     resultDocuments.add(doc);

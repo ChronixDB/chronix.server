@@ -136,7 +136,7 @@ class QueryEvaluatorTest extends Specification {
         expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE]
     }
 
-    def "test ag query strings that produce exceptions"() {
+    def "test filter query strings that produce exceptions"() {
         when:
         QueryEvaluator.extractFunctions(fqs)
 
@@ -147,8 +147,20 @@ class QueryEvaluatorTest extends Specification {
         fqs << [["min"] as String[],
                 ["ag=p="] as String[],
                 ["analysis"] as String[],
-                ["analysis=UNKNOWN:127"] as String[],
-                null]
+                ["analysis=UNKNOWN:127"] as String[]]
+
+    }
+
+    def "test empty or null filter query"() {
+        when:
+        def result = QueryEvaluator.extractFunctions(fqs)
+
+        then:
+        noExceptionThrown()
+        result.isEmpty()
+
+        where:
+        fqs << [[""] as String[], null]
 
     }
 

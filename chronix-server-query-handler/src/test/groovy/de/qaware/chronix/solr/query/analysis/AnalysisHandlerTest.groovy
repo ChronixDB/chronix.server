@@ -106,14 +106,13 @@ class AnalysisHandlerTest extends Specification {
 
 
         when:
-        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords, false)
+        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords)
 
         then:
         result.size() == 1
         result.get(0).get("0_function_max") == 4713
     }
 
-    //TODO: Fix test.
     def "test analyze multiple time series"() {
         given:
         def docListMock = Stub(DocListProvider)
@@ -137,15 +136,10 @@ class AnalysisHandlerTest extends Specification {
 
         when:
         analysisHandler.metaClass.collectDocuments = { -> return timeSeriesRecordsFromSubQuery }
-        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords, true)
+        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords)
 
         then:
         result.size() == 0
-        /*
-        result.get(0).get("function_value") == 0.0
-        result.get(0).get("metric") == "test"
-        result.get(0).get("join_key") == "something-other"
-        */
     }
 
     List<SolrDocument> solrDocument(Instant start) {

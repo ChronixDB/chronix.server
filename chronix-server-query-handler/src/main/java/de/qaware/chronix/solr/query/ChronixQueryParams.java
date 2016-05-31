@@ -15,8 +15,6 @@
  */
 package de.qaware.chronix.solr.query;
 
-import de.qaware.chronix.Schema;
-
 /**
  * The Chronix Query parameter constants
  *
@@ -85,7 +83,7 @@ public final class ChronixQueryParams {
      */
     public static final String SOLR_VERSION_FIELD = "_version_";
 
-    public static final String NO_DATA = "-" + Schema.DATA;
+    public static final String DATA_AS_JSON = "dataAsJson";
 
     private ChronixQueryParams() {
         //avoid instances

@@ -20,6 +20,7 @@ import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
+import org.apache.solr.common.StringUtils;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.core.PluginInfo;
@@ -81,9 +82,9 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         LOGGER.debug("Handling request {}", req);
-        ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(req.getParams());
+        final ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams(req.getParams());
 
-        String originQuery = modifiableSolrParams.get(CommonParams.Q);
+        final String originQuery = modifiableSolrParams.get(CommonParams.Q);
 
         final long[] startAndEnd = dateRangeParser.getNumericQueryTerms(originQuery);
         final long queryStart = or(startAndEnd[0], -1L, 0L);
@@ -91,19 +92,20 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
         modifiableSolrParams.set(ChronixQueryParams.QUERY_START_LONG, String.valueOf(queryStart));
         modifiableSolrParams.set(ChronixQueryParams.QUERY_END_LONG, String.valueOf(queryEnd));
-        String query = dateRangeParser.replaceRangeQueryTerms(originQuery);
+        final String query = dateRangeParser.replaceRangeQueryTerms(originQuery);
         modifiableSolrParams.set(CommonParams.Q, query);
 
         //Set the min required fields if the user define a sub set of fields
-        modifiableSolrParams.set(CommonParams.FL, requestedFields(modifiableSolrParams.get(CommonParams.FL), req.getSchema().getFields().keySet()));
+        final String fields = modifiableSolrParams.get(CommonParams.FL);
+        modifiableSolrParams.set(CommonParams.FL, requestedFields(fields, req.getSchema().getFields().keySet()));
         //Set the updated query
         req.setParams(modifiableSolrParams);
 
         //check the filter queries
-        String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
+        final String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
 
-        //if we have an analysis or aggregation request
-        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM)) {
+        //if we have an function query or someone wants the data as json
+        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {
@@ -152,7 +154,14 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
             //Check if we have only fields to remove
             Set<String> resultingFields = new HashSet<>(schema);
-            //remove fields
+
+            //If a user requests the data as json (fl=dataAsJson)
+            if (fl.contains(ChronixQueryParams.DATA_AS_JSON)) {
+                //if the field is dataAsJson -> add it to the fields.
+                resultingFields.add(ChronixQueryParams.DATA_AS_JSON);
+            }
+
+            //remove fields that are marked with minus sign '-'
             for (String field : fields) {
                 //we only remove the fields. We have already added all fields
                 if (field.indexOf('-') > -1) {
@@ -184,6 +193,10 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
             }
         }
         return false;
+    }
+
+    private boolean contains(String field, String fields) {
+        return !(StringUtils.isEmpty(field) || StringUtils.isEmpty(fields)) && fields.contains(field);
     }
 
 

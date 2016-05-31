@@ -312,6 +312,17 @@ class ChronixClientTestIT extends Specification {
 
     }
 
+    def "test function query with data as json"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu\\\\sy")
+        query.addFilterQuery("function=vector:0.1")
+        query.setFields("dataAsJson")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == 2
+    }
+
     def "test analysis with empty result"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\min")
@@ -325,7 +336,7 @@ class ChronixClientTestIT extends Specification {
     def "Test query raw time series"() {
         when:
         def query = new SolrQuery("*:*")
-        query.addField("dataAsJson:[dataAsJson],myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
+        query.addField("dataAsJson,myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
         //query all documents
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
 
@@ -334,13 +345,28 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attribute("myIntField") == 5
-        selectedTimeSeries.attribute("myLongField") == 8L
-        selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") == listStringField
-        selectedTimeSeries.attribute("myIntList") == listIntField
-        selectedTimeSeries.attribute("myLongList") == listLongField
-        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.attribute("myIntField")[0] == 5
+        selectedTimeSeries.attribute("myLongField")[0] == 8L
+        selectedTimeSeries.attribute("myDoubleField")[0] == 5.5D
+        selectedTimeSeries.attribute("myByteField")[0] == "String as byte".getBytes("UTF-8")
+        selectedTimeSeries.attribute("myStringList") as List<String> == listStringField
+        selectedTimeSeries.attribute("myIntList") as List<Integer> == listIntField
+        selectedTimeSeries.attribute("myLongList") as List<Long> == listLongField
+        selectedTimeSeries.attribute("myDoubleList") as List<Double> == listDoubleField
+    }
+
+    def "Test query raw time series with +dataAsJson"() {
+        when:
+        def query = new SolrQuery("*:*")
+        query.addField("+dataAsJson")
+        //query all documents
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 26i
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.attributes().size() == 13
     }
 }

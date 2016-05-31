@@ -7,7 +7,7 @@ sonarqube {
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
     testCompile 'commons-codec:commons-codec:1.10'
-    testCompile 'org.apache.solr:solr-solrj:6.0.0'
+    testCompile 'org.apache.solr:solr-solrj:6.0.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
     testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.8-beta-4'
@@ -148,15 +148,13 @@ pluginBundle {
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.0.0"
+def solrVersion = "6.0.1"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
-//Alternative
-//http://ftp.fau.de/apache/lucene/solr/${solrVersion}/solr-${solrVersion}.zip
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src "http://ftp.fau.de/apache/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    src "http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 

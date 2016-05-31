@@ -23,10 +23,10 @@ import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
 import de.qaware.chronix.solr.query.analysis.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.MalformedParametersException;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -54,11 +54,15 @@ public final class QueryEvaluator {
      */
     public static QueryFunctions<MetricTimeSeries> extractFunctions(String[] filterQueries) {
 
-        if (filterQueries == null || filterQueries.length == 0) {
-            throw new MalformedParametersException("Functions must not be null.");
-        }
         //The result that contains the asked analyses
-        QueryFunctions<MetricTimeSeries> result = new QueryFunctions<>();
+        final QueryFunctions<MetricTimeSeries> result = new QueryFunctions<>();
+        //Check if there are filter queries with functions
+        if (isEmpty(filterQueries)) {
+            //return a empty result
+            return result;
+        }
+
+        //Placeholder for arguments
         String[] arguments = new String[0];
 
         //Iterate over all filter queries
@@ -90,6 +94,26 @@ public final class QueryEvaluator {
         }
 
         return result;
+    }
+
+    /**
+     * Helper to check if the given string array is empty.
+     * A string is empty if it is null, or ""
+     *
+     * @param fqs the string array
+     * @return true if empty, otherwise false
+     */
+    private static boolean isEmpty(String[] fqs) {
+        if (fqs == null || fqs.length == 0) {
+            return true;
+        }
+
+        for (String fq : fqs) {
+            if (!StringUtils.isEmpty(fq)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void addFunction(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
