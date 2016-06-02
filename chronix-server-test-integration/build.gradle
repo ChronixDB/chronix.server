@@ -10,9 +10,9 @@ dependencies {
     testCompile 'org.apache.solr:solr-solrj:6.0.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.8-beta-4'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.8-beta-4'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.8-beta-4'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.2'
 
 
     testCompile project(':chronix-server-client')
@@ -157,7 +157,7 @@ task downloadZipFile(type: Download) {
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
-task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
+task downloadAndUnzipFile(type: Copy) {
     from zipTree(downloadZipFile.dest)
     into buildDir
 }

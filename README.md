@@ -332,10 +332,9 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.1.3'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.3'
-   compile 'de.qaware.chronix:chronix-server-retention:0.1.3'
-   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.3'
+   compile 'de.qaware.chronix:chronix-server-client:0.2'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.2'
+   compile 'de.qaware.chronix:chronix-server-retention:0.2'
 }
 ```
 

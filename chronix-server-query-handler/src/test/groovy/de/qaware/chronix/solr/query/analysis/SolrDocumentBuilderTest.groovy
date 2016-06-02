@@ -19,6 +19,8 @@ import de.qaware.chronix.Schema
 import de.qaware.chronix.converter.BinaryTimeSeries
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
+import de.qaware.chronix.converter.common.DoubleList
+import de.qaware.chronix.converter.common.LongList
 import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Percentile
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency
@@ -26,14 +28,13 @@ import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
 import de.qaware.chronix.solr.query.analysis.functions.transformation.Derivative
 import de.qaware.chronix.solr.query.analysis.functions.transformation.Top
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import de.qaware.chronix.timeseries.dt.DoubleList
-import de.qaware.chronix.timeseries.dt.LongList
 import org.apache.solr.common.SolrDocument
 import org.apache.solr.common.SolrDocumentList
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.ByteBuffer
+
 /**
  * @author f.lautenschlager
  */

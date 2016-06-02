@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.query.analysis.functions.math;
 
 
-import de.qaware.chronix.timeseries.dt.DoubleList;
+import de.qaware.chronix.converter.common.DoubleList;
 
 import java.util.Arrays;
 
