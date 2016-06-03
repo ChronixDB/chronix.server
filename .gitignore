@@ -75,3 +75,4 @@ gradle-app.setting
 !gradle-wrapper.jar
 
 bintrayUpload.bat
+bintrayUpload.sh
