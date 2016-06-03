@@ -142,9 +142,6 @@ pluginBundle {
 }
 
 
-
-
-
 import de.undercouch.gradle.tasks.download.Download
 
 def solrVersion = "6.0.1"
@@ -157,7 +154,7 @@ task downloadZipFile(type: Download) {
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
-task downloadAndUnzipFile(type: Copy) {
+task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     from zipTree(downloadZipFile.dest)
     into buildDir
 }
@@ -171,7 +168,8 @@ task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
     from(configurations)
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
-    include("*chronix-server-*.jar")
+    include("*chronix-server-query*.jar")
+    include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
     include("*quartz*.jar")
