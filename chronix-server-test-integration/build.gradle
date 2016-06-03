@@ -10,9 +10,9 @@ dependencies {
     testCompile 'org.apache.solr:solr-solrj:6.0.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.8-beta-4'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.8-beta-4'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.8-beta-4'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.2'
 
 
     testCompile project(':chronix-server-client')
@@ -142,9 +142,6 @@ pluginBundle {
 }
 
 
-
-
-
 import de.undercouch.gradle.tasks.download.Download
 
 def solrVersion = "6.0.1"
@@ -171,7 +168,8 @@ task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
     from(configurations)
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
-    include("*chronix-server-*.jar")
+    include("*chronix-server-query*.jar")
+    include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
     include("*quartz*.jar")

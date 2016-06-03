@@ -17,6 +17,8 @@ package de.qaware.chronix.solr.query.analysis;
 
 import com.google.common.base.Strings;
 import de.qaware.chronix.Schema;
+import de.qaware.chronix.converter.common.DoubleList;
+import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
@@ -25,8 +27,6 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import de.qaware.chronix.timeseries.dt.DoubleList;
-import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 

@@ -15,11 +15,11 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.converter.common.DoubleList;
+import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import de.qaware.chronix.timeseries.dt.DoubleList;
-import de.qaware.chronix.timeseries.dt.LongList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -72,7 +72,6 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
 
-        //the
         LongList timesMovAvg = new LongList(times.length);
         DoubleList valuesMovAvg = new DoubleList(values.length);
 
