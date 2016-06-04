@@ -100,7 +100,7 @@ ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix =
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
 SolrQuery query = new SolrQuery("metric:*load*");
-query.addFilterQuery("ag=max");
+query.addFilterQuery("function=max");
 
 //The result is a Java Stream. We simply collect the result into a list.
 List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.toList());
