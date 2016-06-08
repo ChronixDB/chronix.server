@@ -180,10 +180,10 @@ Currently the following functions are available:
 - Moving Average (function=movavg:10,MINUTES) (*Release 0.2*)
 - Add (function=add:4) (*Release 0.2*)
 - Subtract (function=sub:4) (*Release 0.2*)
-- A linear trend detection (analysis=trend)
-- Outlier detection (analysis=outlier)
-- Frequency detection (analysis=frequency:10,6)
-- Time series similarity search (analysis=fastdtw:(metric:\*Load\*),1,0.8)
+- A linear trend detection (function=trend)
+- Outlier detection (function=outlier)
+- Frequency detection (function=frequency:10,6)
+- Time series similarity search (function=fastdtw:(metric:\*Load\*),1,0.8)
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.
