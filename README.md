@@ -235,7 +235,7 @@ q=metric:*load* // Get all time series that metric name matches *load*
 ```
 
 #### Join Time Series Records
-An analysis query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
+An function query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
 For example we want to join all records that have the same attribute values for host, process, and metric:
 ```
