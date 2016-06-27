@@ -160,10 +160,14 @@ task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
 }
 task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr"
-    from "$projectDir/src/test/resources/de/qaware/chronix/"
+    from "$projectDir/src/test/resources/de/qaware/chronix/solr"
+}
+task copyWEBXMLToSolr(dependsOn: copyCoreToSolr, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/WEB-INF/"
+    from "$projectDir/src/test/resources/de/qaware/chronix/solr-webapp/webapp/WEB-INF/"
 }
 
-task copyIntegrationRuntimeLibs(dependsOn: copyCoreToSolr, type: Copy) {
+task copyIntegrationRuntimeLibs(dependsOn: copyWEBXMLToSolr, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
