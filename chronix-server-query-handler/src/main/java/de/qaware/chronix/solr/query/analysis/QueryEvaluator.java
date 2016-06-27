@@ -244,6 +244,11 @@ public final class QueryEvaluator {
             case NNDERIVATIVE:
                 result.addTransformation(new NonNegativeDerivative());
                 break;
+            case TIMESHIFT:
+                long shiftAmount = Long.parseLong(arguments[0]);
+                ChronoUnit shiftUnit = ChronoUnit.valueOf(arguments[1].toUpperCase());
+                result.addTransformation(new Timeshift(shiftAmount,shiftUnit));
+                break;
             default:
                 LOGGER.warn("Ignoring {} as a transformation. {} is unknown", type, type);
         }

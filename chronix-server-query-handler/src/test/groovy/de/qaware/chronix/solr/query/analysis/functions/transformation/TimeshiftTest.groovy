@@ -42,8 +42,10 @@ class TimeshiftTest extends Specification {
         then:
         timeSeries.size() == 11
         timeSeries.getTime(0) == 4
+        timeSeries.getValue(0) == 10
 
         timeSeries.getTime(10) == 1004
+        timeSeries.getValue(10) == -10
     }
 
     def "test getType"() {
