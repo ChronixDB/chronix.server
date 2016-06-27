@@ -54,7 +54,8 @@ public enum FunctionType {
     DERIVATIVE,
     NNDERIVATIVE,
     ADD,
-    SUB;
+    SUB,
+    TIMESHIFT;
 
     //Sets to hold the aggregations, analyses and transformations.
     //Otherwise the complexity of if(type == X || type == X ...) is to high
@@ -65,7 +66,7 @@ public enum FunctionType {
     static {
         Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF);
         Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
-        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB);
+        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT);
     }
 
     /**

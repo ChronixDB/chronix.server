@@ -266,12 +266,13 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes",
-                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4"]
+                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4", "function=timeshift:10,DAYS"]
         attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
-                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub"]
+                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift"]
         attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
-                            "value=4.0", "value=4.0"]
-        points << [7074, 9693, 9693, 9692, 10, 10, 9693, 9693]
+                            "value=4.0", "value=4.0",
+                            "amount=10"]
+        points << [7074, 9693, 9693, 9692, 10, 10, 9693, 9693, 9693]
     }
 
     @Unroll
