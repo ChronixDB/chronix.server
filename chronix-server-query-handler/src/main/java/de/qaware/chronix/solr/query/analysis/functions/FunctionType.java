@@ -54,7 +54,8 @@ public enum FunctionType {
     DERIVATIVE,
     NNDERIVATIVE,
     ADD,
-    SUB;
+    SUB,
+    TIMESHIFT;
 
     //Sets to hold the aggregations, analyses and transformations.
     //Otherwise the complexity of if(type == X || type == X ...) is to high
