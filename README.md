@@ -100,7 +100,7 @@ ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix =
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
 SolrQuery query = new SolrQuery("metric:*load*");
-query.addFilterQuery("ag=max");
+query.addFilterQuery("function=max");
 
 //The result is a Java Stream. We simply collect the result into a list.
 List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.toList());
@@ -180,10 +180,10 @@ Currently the following functions are available:
 - Moving Average (function=movavg:10,MINUTES) (*Release 0.2*)
 - Add (function=add:4) (*Release 0.2*)
 - Subtract (function=sub:4) (*Release 0.2*)
-- A linear trend detection (analysis=trend)
-- Outlier detection (analysis=outlier)
-- Frequency detection (analysis=frequency:10,6)
-- Time series similarity search (analysis=fastdtw:(metric:\*Load\*),1,0.8)
+- A linear trend detection (function=trend)
+- Outlier detection (function=outlier)
+- Frequency detection (function=frequency:10,6)
+- Time series similarity search (function=fastdtw:(metric:\*Load\*),1,0.8)
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.
@@ -235,7 +235,7 @@ q=metric:*load* // Get all time series that metric name matches *load*
 ```
 
 #### Join Time Series Records
-An analysis query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
+An function query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
 For example we want to join all records that have the same attribute values for host, process, and metric:
 ```
