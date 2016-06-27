@@ -184,6 +184,7 @@ Currently the following functions are available:
 - Outlier detection (function=outlier)
 - Frequency detection (function=frequency:10,6)
 - Time series similarity search (function=fastdtw:(metric:\*Load\*),1,0.8)
+- Timeshift (function=timeshift:[+/-]10,DAYS)
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.

@@ -48,6 +48,28 @@ class TimeshiftTest extends Specification {
         timeSeries.getValue(10) == -10
     }
 
+    def "test transform for negative amount"() {
+        given:
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Timeshift")
+        10.times {
+            timeSeriesBuilder.point(it * 100, it + 10)
+        }
+        timeSeriesBuilder.point(10 * 100, -10)
+        def timeSeries = timeSeriesBuilder.build()
+
+        def timeshift = new Timeshift(-4, ChronoUnit.MILLIS);
+
+        when:
+        timeshift.transform(timeSeries)
+        then:
+        timeSeries.size() == 11
+        timeSeries.getTime(0) == -4
+        timeSeries.getValue(0) == 10
+
+        timeSeries.getTime(10) == 996
+        timeSeries.getValue(10) == -10
+    }
+
     def "test getType"() {
         expect:
         new Timeshift(4, ChronoUnit.DAYS).getType() == FunctionType.TIMESHIFT
