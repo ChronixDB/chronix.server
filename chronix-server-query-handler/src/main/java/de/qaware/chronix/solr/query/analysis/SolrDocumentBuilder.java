@@ -292,6 +292,8 @@ public final class SolrDocumentBuilder {
 
         if (withData) {
             byte[] data;
+            //ensure that the returned data is sorted
+            timeSeries.sort();
             //data should returned serialized as json
             if (asJson) {
                 data = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
