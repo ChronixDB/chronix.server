@@ -110,20 +110,29 @@ class SolrDocumentBuilderTest extends Specification {
         nrOfAttributes << [9, 8, 9, 8, 8]
     }
 
-    def "test reduce to time series"() {
+    @Unroll
+    def "test reduce to time series with data: #withData"() {
 
         given:
         def solrDocuments = fillDocs()
 
         when:
-        def ts = SolrDocumentBuilder.reduceDocumentToTimeSeries(0l, 100l, solrDocuments)
+        def ts = SolrDocumentBuilder.reduceDocumentToTimeSeries(0l, 100l, solrDocuments, true)
 
         then:
-        ts.sort()
-        ts.size() == 70
-        ts.getEnd() == 100
-        ts.getStart() == 1
+        if (withData) {
+            ts.sort()
+            ts.size() == 70
+            ts.getEnd() == 100
+            ts.getStart() == 1
+        } else {
+            ts.size() == 0
+            ts.getEnd() == 100
+            ts.getStart() == 1
+        }
 
+        where:
+        withData << [true, false]
 
     }
 

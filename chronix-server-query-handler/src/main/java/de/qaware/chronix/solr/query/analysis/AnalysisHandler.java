@@ -127,11 +127,15 @@ public class AnalysisHandler extends SearchHandler {
         final boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
         final boolean dataAsJson = fields.contains(ChronixQueryParams.DATA_AS_JSON);
 
+        //the data is needed if there are functions, or the data should be returned or
+        boolean decompressDataAsItIsRequested = (!functions.isEmpty() || dataAsJson || dataShouldReturned);
+
         final List<SolrDocument> resultDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                final MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+
+                MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue(), decompressDataAsItIsRequested);
 
                 FunctionValueMap functionValues = null;
                 //Only if we have functions, execute the following block
@@ -223,9 +227,9 @@ public class AnalysisHandler extends SearchHandler {
 
                 //execute the analysis with all sub documents
                 subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                    //Only if have a different time series
+                    //Only if we have a different time series
                     if (!docs.getKey().equals(subDocs.getKey())) {
-                        MetricTimeSeries subTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+                        MetricTimeSeries subTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue(), true);
 
                         boolean value = analysis.execute(transformedTimeSeries, subTimeSeries);
                         analysisAndValues.add(analysis, value, subTimeSeries.getMetric());
