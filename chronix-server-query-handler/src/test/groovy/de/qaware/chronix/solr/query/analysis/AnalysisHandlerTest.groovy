@@ -114,7 +114,7 @@ class AnalysisHandlerTest extends Specification {
 
 
         when:
-        def result = analysisHandler.analyze(request, functions, key, timeSeriesRecords)
+        def result = analysisHandler.analyze(request, functions, key, timeSeriesRecords, false)
 
         then:
         result.size() == 1
@@ -158,7 +158,7 @@ class AnalysisHandlerTest extends Specification {
 
         when:
         analysisHandler.metaClass.collectDocuments = { -> return timeSeriesRecordsFromSubQuery }
-        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords)
+        def result = analysisHandler.analyze(request, analyses, key, timeSeriesRecords, false)
 
         then:
         result.size() == 0

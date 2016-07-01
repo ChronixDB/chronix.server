@@ -105,7 +105,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         final String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
 
         //if we have an function query or someone wants the data as json
-        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields)) {
+        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || contains(filterQueries,ChronixQueryParams.JOIN_PARAM)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {

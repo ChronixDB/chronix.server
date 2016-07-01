@@ -147,10 +147,9 @@ class QueryEvaluatorTest extends Specification {
         thrown Exception
 
         where:
-        fqs << [["min"] as String[],
-                ["ag=p="] as String[],
-                ["analysis"] as String[],
-                ["analysis=UNKNOWN:127"] as String[]]
+        fqs << [["function=p="] as String[],
+                ["function"] as String[],
+                ["function=UNKNOWN:127"] as String[]]
 
     }
 

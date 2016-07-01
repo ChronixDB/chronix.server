@@ -87,12 +87,12 @@ class ChronixQueryHandlerTest extends Specification {
     def "test handle default request"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AnalysisHandler.class)
+        def analysisHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(analysisHandler, "analysisHandler", chronixQueryHandler)
 
 
         def request = Mock(SolrQueryRequest)
@@ -109,8 +109,8 @@ class ChronixQueryHandlerTest extends Specification {
         chronixQueryHandler.handleRequestBody(request, response)
 
         then:
-        1 * defaultHandler.handleRequestBody(request, response)
-        0 * aggregationHandler.handleRequestBody(request, response)
+        defaultHandlerCount * defaultHandler.handleRequestBody(request, response)
+        analysisHandlerCount * analysisHandler.handleRequestBody(request, response)
 
         where:
         modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW"),
@@ -119,6 +119,9 @@ class ChronixQueryHandlerTest extends Specification {
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", null),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", ""),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric")]
+
+        defaultHandlerCount << [1,1,1,1,1,0]
+        analysisHandlerCount << [0,0,0,0,0,1]
     }
 
     def "test handle aggregation request"() {

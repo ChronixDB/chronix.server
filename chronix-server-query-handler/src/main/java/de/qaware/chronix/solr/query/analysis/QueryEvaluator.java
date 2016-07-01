@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
+import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.*;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw;
@@ -109,7 +110,7 @@ public final class QueryEvaluator {
         }
 
         for (String fq : fqs) {
-            if (!StringUtils.isEmpty(fq)) {
+            if (!StringUtils.isEmpty(fq) && fq.startsWith(ChronixQueryParams.FUNCTION)) {
                 return false;
             }
         }
