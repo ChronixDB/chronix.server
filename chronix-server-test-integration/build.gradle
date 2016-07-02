@@ -154,7 +154,7 @@ task downloadZipFile(type: Download) {
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
-task downloadAndUnzipFile(type: Copy) {
+task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     from zipTree(downloadZipFile.dest)
     into buildDir
 }
