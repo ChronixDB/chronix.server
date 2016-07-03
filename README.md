@@ -235,8 +235,8 @@ q=metric:*load* // Get all time series that metric name matches *load*
 + fq=function=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
 ```
 
-#### Join Time Series Records
-An function query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
+### Join Time Series Records
+An query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
 For example we want to join all records that have the same attribute values for host, process, and metric:
 ```

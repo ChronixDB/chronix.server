@@ -164,9 +164,10 @@ public final class SolrDocumentBuilder {
      * @param queryStart the user query start
      * @param queryEnd   the user query end
      * @param documents  the lucene documents
+     * @param decompress marks if the data is requested and should be decompressed
      * @return a metric time series that holds all the points
      */
-    public static MetricTimeSeries reduceDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents) {
+    public static MetricTimeSeries reduceDocumentToTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents, boolean decompress) {
         //Collect all document of a time series
 
         LongList timestamps = null;
@@ -175,22 +176,25 @@ public final class SolrDocumentBuilder {
         String metric = null;
 
         for (SolrDocument doc : documents) {
-            MetricTimeSeries ts = convert(doc, queryStart, queryEnd);
+            MetricTimeSeries ts = convert(doc, queryStart, queryEnd, decompress);
 
-            //Performance optimization. Avoiding fine grained growing.
-            if (timestamps == null) {
-                int size = ts.size();
-                if (size < 1000) {
-                    //well we have a small time series
-                    size = 1000;
+            //only if we decompress the data.
+            if (decompress) {
+                //Performance optimization. Avoiding fine grained growing.
+                if (timestamps == null) {
+                    int size = ts.size();
+                    if (size < 1000) {
+                        //well we have a small time series
+                        size = 1000;
+                    }
+                    int calcAmountOfPoints = documents.size() * size;
+                    timestamps = new LongList(calcAmountOfPoints);
+                    values = new DoubleList(calcAmountOfPoints);
                 }
-                int calcAmountOfPoints = documents.size() * size;
-                timestamps = new LongList(calcAmountOfPoints);
-                values = new DoubleList(calcAmountOfPoints);
-            }
 
-            timestamps.addAll(ts.getTimestampsAsArray());
-            values.addAll(ts.getValuesAsArray());
+                timestamps.addAll(ts.getTimestampsAsArray());
+                values.addAll(ts.getValuesAsArray());
+            }
 
             //we use the metric of the first time series.
             //metric is the default join key.
@@ -249,12 +253,13 @@ public final class SolrDocumentBuilder {
     /**
      * Converts the given solr document in a metric time series
      *
-     * @param doc        - the lucene document
-     * @param queryStart - the query start
-     * @param queryEnd   - the query end
+     * @param doc        the lucene document
+     * @param queryStart the query start
+     * @param queryEnd   the query end
+     * @param decompress marks if the data is requested and hence we have to decompress it or not
      * @return a metric time series
      */
-    private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd) {
+    private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd, boolean decompress) {
 
         String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
         long tsStart = (long) doc.getFieldValue(Schema.START);
@@ -273,8 +278,10 @@ public final class SolrDocumentBuilder {
 
             }
         }
-
-        ProtoBufKassiopeiaSimpleSerializer.from(data, tsStart, tsEnd, queryStart, queryEnd, ts);
+        //No data is requested, hence we do not decompress it
+        if (decompress) {
+            ProtoBufKassiopeiaSimpleSerializer.from(data, tsStart, tsEnd, queryStart, queryEnd, ts);
+        }
         return ts.build();
     }
 
@@ -292,6 +299,8 @@ public final class SolrDocumentBuilder {
 
         if (withData) {
             byte[] data;
+            //ensure that the returned data is sorted
+            timeSeries.sort();
             //data should returned serialized as json
             if (asJson) {
                 data = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);

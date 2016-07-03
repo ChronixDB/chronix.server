@@ -324,6 +324,36 @@ class ChronixClientTestIT extends Specification {
         timeSeries.get(0).size() == 2
     }
 
+    def "test function query with dataAsJson and join"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu*")
+        query.addFilterQuery("join=group")
+        query.setFields("dataAsJson")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == 77544
+    }
+
+    @Unroll
+    def "test join documents with data: #ifData"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu*")
+        query.addFilterQuery("join=group")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        if (ifData) {
+            timeSeries.get(0).size() == 77544
+        } else {
+            timeSeries.get(0).size() == 0
+        }
+
+        where:
+        data << ["", "+data"]
+        ifData << [false, true]
+    }
+
     def "test analysis with empty result"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\min")

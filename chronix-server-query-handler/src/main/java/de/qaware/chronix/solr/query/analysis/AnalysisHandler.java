@@ -93,7 +93,7 @@ public class AnalysisHandler extends SearchHandler {
         } else {
             //Otherwise return the analyzed time series
             final QueryFunctions<MetricTimeSeries> queryFunctions = QueryEvaluator.extractFunctions(filterQueries);
-            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs);
+            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs, !JoinFunctionEvaluator.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -110,12 +110,13 @@ public class AnalysisHandler extends SearchHandler {
      * @param functions     the chronix analysis that is applied
      * @param key           the key for joining documents
      * @param collectedDocs the prior collected documents of the query
+     * @param isJoined      true if the documents are joined on a user defined attribute combination
      * @return a list containing the analyzed time series as solr documents
      * @throws IOException              if bad things happen in querying the documents
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs) throws IOException, IllegalStateException, ParseException {
+    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -126,11 +127,15 @@ public class AnalysisHandler extends SearchHandler {
         final boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
         final boolean dataAsJson = fields.contains(ChronixQueryParams.DATA_AS_JSON);
 
+        //the data is needed if there are functions, or the data should be returned or
+        boolean decompressDataAsItIsRequested = (!functions.isEmpty() || dataAsJson || dataShouldReturned);
+
         final List<SolrDocument> resultDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                final MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue());
+
+                MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue(), decompressDataAsItIsRequested);
 
                 FunctionValueMap functionValues = null;
                 //Only if we have functions, execute the following block
@@ -157,7 +162,7 @@ public class AnalysisHandler extends SearchHandler {
                 // 1) the data is explicit requested as json
                 // 2) there are aggregations / transformations
                 // 3) there are matching analyses
-                if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues)) {
+                if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues) || isJoined) {
                     //Here we have to build the document with the results of the analyses
                     SolrDocument doc = SolrDocumentBuilder.buildDocument(timeSeries, functionValues, docs.getKey(), dataShouldReturned, dataAsJson);
                     resultDocuments.add(doc);
@@ -222,9 +227,9 @@ public class AnalysisHandler extends SearchHandler {
 
                 //execute the analysis with all sub documents
                 subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                    //Only if have a different time series
+                    //Only if we have a different time series
                     if (!docs.getKey().equals(subDocs.getKey())) {
-                        MetricTimeSeries subTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue());
+                        MetricTimeSeries subTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, subDocs.getValue(), true);
 
                         boolean value = analysis.execute(transformedTimeSeries, subTimeSeries);
                         analysisAndValues.add(analysis, value, subTimeSeries.getMetric());

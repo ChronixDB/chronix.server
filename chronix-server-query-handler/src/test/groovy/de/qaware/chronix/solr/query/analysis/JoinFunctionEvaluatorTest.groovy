@@ -36,10 +36,12 @@ class JoinFunctionEvaluatorTest extends Specification {
         def joinKey = joinFunction.apply(doc)
         then:
         joinKey == result
+        JoinFunctionEvaluator.isDefaultJoinFunction(joinFunction) == isDefault
 
         where:
         filterQueries << [validJoinFilterQuery(), noJoinFilterQuery(), noFilterQueries(), null]
         result << ["laptop-unitTest-groovy", "unitTest", "unitTest", "unitTest"]
+        isDefault << [false, true, true, true]
     }
 
     private static String[] noFilterQueries() {
