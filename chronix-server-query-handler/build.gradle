@@ -78,7 +78,7 @@ def pomConfig = {
 
 publishing {
     publications {
-        chronixServerRangeQuery(MavenPublication) {
+        chronixServerQueryHandler(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
@@ -97,7 +97,7 @@ publishing {
 bintray {
     user = project.hasProperty('bintrayUsername') ? project.bintrayUsername : 'unknown'
     key = project.hasProperty('bintrayApiKey') ? project.bintrayApiKey : 'unknown'
-    publications = ['chronixServerRangeQuery']
+    publications = ['chronixServerQueryHandler']
     dryRun = false
     publish = true
     pkg {
@@ -116,7 +116,7 @@ bintray {
             released = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
             vcsTag = "v${project.version}"
             attributes = [
-                    'chronix-server-range-query': ['de.qaware.chronix', project.group, project.name].join(':')
+                    'chronix-server-query-handler': ['de.qaware.chronix', project.group, project.name].join(':')
             ]
             mavenCentralSync {
                 sync = false
