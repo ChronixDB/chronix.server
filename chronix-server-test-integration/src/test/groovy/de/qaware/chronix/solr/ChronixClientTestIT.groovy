@@ -17,6 +17,7 @@ package de.qaware.chronix.solr
 
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
+import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.converter.common.DoubleList
 import de.qaware.chronix.converter.common.LongList
 import de.qaware.chronix.solr.client.ChronixSolrStorage
@@ -48,7 +49,7 @@ class ChronixClientTestIT extends Specification {
 
     //Test subjects
     @Shared
-    SolrClient solr
+    HttpSolrClient solr
     @Shared
     ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix
 
@@ -399,5 +400,39 @@ class ChronixClientTestIT extends Specification {
 
         selectedTimeSeries.size() >= 7000
         selectedTimeSeries.attributes().size() == 13
+    }
+
+    def "Test query with compression result"() {
+        when:
+        def query = new SolrQuery("*:*")
+        //Enable serverside compression
+        solr.setAllowCompression(true)
+        //query all documents
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 26i
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.attributes().size() == 12
+    }
+
+    @Unroll
+    def "Test raw query with compression activated: #withCompression"() {
+        when:
+        def connection = "http://localhost:8913/solr/chronix/select?indent=on&q=*:*&wt=json".toURL().openConnection()
+        connection.setRequestProperty("Accept-Encoding", "gzip");
+        def result = Compression.decompress(connection.getInputStream().bytes)
+
+        then:
+        if (withCompression) {
+            result.length > 0
+        } else {
+            result.length == 0
+        }
+
+        where:
+        withCompression << [true, false]
     }
 }
