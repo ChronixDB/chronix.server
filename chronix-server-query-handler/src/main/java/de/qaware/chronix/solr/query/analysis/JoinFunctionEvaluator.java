@@ -64,7 +64,7 @@ public final class JoinFunctionEvaluator {
      * @return true if it is the same as the default join function (default = join on metric field)
      */
     public static boolean isDefaultJoinFunction(Function<SolrDocument, String> joinFunction) {
-        return DEFAULT_JOIN_FUNCTION == joinFunction;
+        return DEFAULT_JOIN_FUNCTION.equals(joinFunction);
     }
 
     private static String[] fields(String filterQuery) {
