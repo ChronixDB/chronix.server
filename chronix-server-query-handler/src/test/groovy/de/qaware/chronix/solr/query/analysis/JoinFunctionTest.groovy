@@ -22,7 +22,7 @@ import spock.lang.Specification
  * Unit test for the join function evaluator
  * @author f.lautenschlager
  */
-class JoinFunctionEvaluatorTest extends Specification {
+class JoinFunctionTest extends Specification {
     def "test join function"() {
         given:
         def doc = new SolrDocument()
@@ -32,11 +32,11 @@ class JoinFunctionEvaluatorTest extends Specification {
 
 
         when:
-        def joinFunction = JoinFunctionEvaluator.joinFunction(filterQueries)
+        def joinFunction = new JoinFunction(filterQueries)
         def joinKey = joinFunction.apply(doc)
         then:
         joinKey == result
-        JoinFunctionEvaluator.isDefaultJoinFunction(joinFunction) == isDefault
+        JoinFunction.isDefaultJoinFunction(joinFunction) == isDefault
 
         where:
         filterQueries << [validJoinFilterQuery(), noJoinFilterQuery(), noFilterQueries(), null]
@@ -58,7 +58,7 @@ class JoinFunctionEvaluatorTest extends Specification {
 
     def "test private constructor"() {
         when:
-        JoinFunctionEvaluator.newInstance()
+        JoinFunction.newInstance()
         then:
         noExceptionThrown()
     }

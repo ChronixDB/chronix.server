@@ -110,7 +110,7 @@ class AnalysisHandlerTest extends Specification {
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         function()
 
-        Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
+        Function<SolrDocument, String> key = new JoinFunction(null);
 
 
         when:
@@ -154,7 +154,7 @@ class AnalysisHandlerTest extends Specification {
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         def analyses = new QueryFunctions<>()
         analyses.addAnalysis(new FastDtw("ignored", 1, 0.8))
-        Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
+        Function<SolrDocument, String> key = new JoinFunction(null);
 
         when:
         analysisHandler.metaClass.collectDocuments = { -> return timeSeriesRecordsFromSubQuery }

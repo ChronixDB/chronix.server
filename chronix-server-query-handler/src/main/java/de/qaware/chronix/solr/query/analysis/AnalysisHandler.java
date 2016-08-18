@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * Analysis search handler
@@ -84,7 +83,7 @@ public class AnalysisHandler extends SearchHandler {
         String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
 
         //Do a query and collect them on the join function
-        Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(filterQueries);
+        JoinFunction key = new JoinFunction(filterQueries);
         Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, key);
 
         //If no rows should returned, we only return the num found
@@ -93,7 +92,7 @@ public class AnalysisHandler extends SearchHandler {
         } else {
             //Otherwise return the analyzed time series
             final QueryFunctions<MetricTimeSeries> queryFunctions = QueryEvaluator.extractFunctions(filterQueries);
-            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs, !JoinFunctionEvaluator.isDefaultJoinFunction(key));
+            final List<SolrDocument> resultDocuments = analyze(req, queryFunctions, key, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -116,7 +115,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, Function<SolrDocument, String> key, Map<String, List<SolrDocument>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
+    private List<SolrDocument> analyze(SolrQueryRequest req, QueryFunctions<MetricTimeSeries> functions, JoinFunction key, Map<String, List<SolrDocument>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -213,7 +212,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws ParseException if bad things happen
      * @throws IOException    if bad things happen
      */
-    private void applyAnalyses(SolrQueryRequest req, Iterable<ChronixAnalysis<MetricTimeSeries>> analyses, Function<SolrDocument, String> key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
+    private void applyAnalyses(SolrQueryRequest req, Iterable<ChronixAnalysis<MetricTimeSeries>> analyses, JoinFunction key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) throws ParseException, IOException {
         //That is the time series we operate on
         final MetricTimeSeries transformedTimeSeries = timeSeries;
 
@@ -283,7 +282,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private Map<String, List<SolrDocument>> collectDocuments(SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
+    private Map<String, List<SolrDocument>> collectDocuments(SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
         String query = req.getParams().get(CommonParams.Q);
         //query and collect all documents
         return collectDocuments(query, req, collectionKey);
@@ -298,13 +297,22 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private Map<String, List<SolrDocument>> collectDocuments(String query, SolrQueryRequest req, Function<SolrDocument, String> collectionKey) throws IOException {
+    private Map<String, List<SolrDocument>> collectDocuments(String query, SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
         //query and collect all documents
         Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
         //we need it every time
         if (fields != null && !fields.contains(Schema.DATA)) {
             fields.add(Schema.DATA);
         }
+
+        if (fields == null) {
+            fields = new HashSet<>();
+        }
+        //add the involved fields from in the join key
+        for (String field : collectionKey.involvedFields()) {
+            fields.add(field);
+        }
+
         DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
         SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
         return SolrDocumentBuilder.collect(docs, collectionKey);

@@ -21,18 +21,13 @@ import org.apache.solr.common.SolrDocument;
 import java.util.function.Function;
 
 /**
- * Class to create join function on lucene documents
+ * Class to create join function on solr documents
  *
  * @author f.lautenschlager
  */
-public final class JoinFunctionEvaluator {
+public final class JoinFunction implements Function<SolrDocument, String> {
 
-    private static final Function<SolrDocument, String> DEFAULT_JOIN_FUNCTION = doc -> doc.getFieldValue(ChronixQueryParams.DEFAULT_JOIN_FIELD).toString();
-
-
-    private JoinFunctionEvaluator() {
-        //avoid instances
-    }
+    private String[] involvedFields;
 
     /**
      * The method checks if the filter queries contains a join filter query (join=field1,field2,field3).
@@ -42,20 +37,36 @@ public final class JoinFunctionEvaluator {
      * @param filterQueries - the solr filter queries
      * @return a function to get a unique join key
      */
-    public static Function<SolrDocument, String> joinFunction(String[] filterQueries) {
+    public JoinFunction(String[] filterQueries) {
         if (filterQueries == null || filterQueries.length == 0) {
-            return DEFAULT_JOIN_FUNCTION;
-        }
-
-        for (String filterQuery : filterQueries) {
-            if (filterQuery.startsWith(ChronixQueryParams.JOIN_PARAM)) {
-                final String[] fields = fields(filterQuery);
-                return doc -> joinKey(fields, doc);
+            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD};
+        } else {
+            for (String filterQuery : filterQueries) {
+                if (filterQuery.startsWith(ChronixQueryParams.JOIN_PARAM)) {
+                    involvedFields = fields(filterQuery);
+                    break;
+                }
             }
         }
-
-        return DEFAULT_JOIN_FUNCTION;
+        if (involvedFields == null) {
+            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD};
+        }
     }
+
+
+    @Override
+    public String apply(SolrDocument doc) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < involvedFields.length; i++) {
+            String field = involvedFields[i];
+            sb.append(doc.get(field.trim()));
+            if (i < involvedFields.length - 1) {
+                sb.append('-');
+            }
+        }
+        return sb.toString();
+    }
+
 
     /**
      * Validates if the given join function is (==) the default join function
@@ -63,8 +74,17 @@ public final class JoinFunctionEvaluator {
      * @param joinFunction the join function given by the callee
      * @return true if it is the same as the default join function (default = join on metric field)
      */
-    public static boolean isDefaultJoinFunction(Function<SolrDocument, String> joinFunction) {
-        return DEFAULT_JOIN_FUNCTION.equals(joinFunction);
+    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
+        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
+    }
+
+    /**
+     * Returns the involved fields of the join function
+     *
+     * @return the involved fields for this join
+     */
+    public String[] involvedFields() {
+        return involvedFields;
     }
 
     private static String[] fields(String filterQuery) {
@@ -73,16 +93,5 @@ public final class JoinFunctionEvaluator {
         return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
     }
 
-    private static String joinKey(String[] fields, SolrDocument doc) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < fields.length; i++) {
-            String field = fields[i];
-            sb.append(doc.get(field.trim()));
 
-            if (i < fields.length - 1) {
-                sb.append('-');
-            }
-        }
-        return sb.toString();
-    }
 }
