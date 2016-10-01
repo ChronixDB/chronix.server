@@ -47,7 +47,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)//12
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.000Z"), 99)//13
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
-        timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//14
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//15
 
         def timeSeries = timeSeriesBuilder.build()
         when:
