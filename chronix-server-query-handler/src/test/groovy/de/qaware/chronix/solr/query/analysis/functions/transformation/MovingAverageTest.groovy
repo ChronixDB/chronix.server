@@ -142,6 +142,32 @@ class MovingAverageTest extends Specification {
         timeSeries.getTime(13) == dateOf("2016-05-23T10:51:30.250Z")
     }
 
+    def "test transform with gaps"() {
+        given:
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average")
+        def movAvg = new MovingAverage(5, ChronoUnit.SECONDS)
+
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:51:10.000Z"), 4)//1
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:51:50.000Z"), 3)//2
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.000Z"), 8)//3
+        timeSeriesBuilder.point(dateOf("2016-05-23T10:52:04.000Z"), 4)//4
+
+        def timeSeries = timeSeriesBuilder.build()
+        when:
+        movAvg.transform(timeSeries)
+        then:
+        timeSeries.size() ==4
+        timeSeries.getValue(0) == 5.0d
+        timeSeries.getTime(0) == dateOf("2016-05-23T10:51:00.000Z")
+        timeSeries.getValue(1) == 4.0d
+        timeSeries.getTime(1) == dateOf("2016-05-23T10:51:10.000Z")
+        timeSeries.getValue(2) == 3.0d
+        timeSeries.getTime(2) == dateOf("2016-05-23T10:51:50.000Z")
+        timeSeries.getValue(3) == 6.0d
+        timeSeries.getTime(3) == dateOf("2016-05-23T10:52:02.000Z")
+    }
+
 
     def long dateOf(def format) {
         Instant.parse(format as String).toEpochMilli()
