@@ -15,8 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
-import de.qaware.chronix.converter.common.DoubleList;
-import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -50,17 +48,15 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
     }
 
     /**
-     * Calculates the moving average of the time series using the following algorithm:
-     * <p>
-     * 1) Get all points within the defined time window
-     * -> Calculate the time and value average sum(values)/#points
-     * <p>
-     * 2) If the distance of two timestamps (i, j) is larger than the time window
-     * -> Ignore the emtpy window
-     * -> Use the j as start of the window and continue with step 1)
+     * Calculates the moving average by sliding a window (timeSpan * unit, set in the constructor) over the time series.
+     * First the window is filled with points whose timestamps are within the window and the averages of the window
+     * are evaluated. Then the window slides over the next point, calculates the end and evaluates the averages and so on.
+     * If the next point is not within the window, it slides anyway. The first point is dropped and the averages
+     * of the remaining points are evaluated. If the next point also not within the window, again the first point is
+     * dropped and so on until the end of the window is greater equals the time series end.
+     * We do this as time series can have gaps that are larger than the defined window.
      *
      * @param timeSeries the time series that is transformed
-     * @return the transformed time series
      */
     @Override
     public void transform(MetricTimeSeries timeSeries) {
@@ -72,87 +68,82 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
 
-        LongList timesMovAvg = new LongList(times.length);
-        DoubleList valuesMovAvg = new DoubleList(values.length);
-
-        long start = times[0];
-        int startIdx = 0;
-
         int timeSeriesSize = timeSeries.size();
         //remove the old values
         timeSeries.clear();
 
-        //the start is already set
-        for (int i = 1; i < timeSeriesSize; i++) {
-            long current = times[i];
-            long currentWindowEnd = start + windowTime;
+        int startIdx = 0;
+        long current = times[0];
+        long currentWindowEnd = current + windowTime;
+        long last = times[timeSeriesSize - 1];
 
-            //If we are inside the window
-            if (outsideWindow(currentWindowEnd, current)) {
-                startIdx = i;
-                start = times[startIdx];
+        boolean lastWindowOnlyOnePoint = true;
+
+        //the start is already set
+        for (int i = 0; i < timeSeriesSize; i++) {
+
+            //fill window
+            while (i < timeSeriesSize && !outsideWindow(currentWindowEnd, current)) {
+                current = times[i++];
             }
+            //decrement counter to mark the last index position that is within the window
+            i -= 1;
 
             //calculate the average of the values and the time
-            double movAvg = calcAvg(values, startIdx, i);
-            long timeAvg = calcAvg(times, startIdx, i);
+            evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, i);
 
-            timesMovAvg.add(timeAvg);
-            valuesMovAvg.add(movAvg);
+            //slide the window
+            startIdx++;
+            currentWindowEnd = times[startIdx] + windowTime;
+
+            //check if the current window end is larger equals the end timestamp
+            if (currentWindowEnd >= last) {
+                //break and add the last window
+                lastWindowOnlyOnePoint = false;
+                break;
+            }
         }
 
-        //add them to clean time series
-        timeSeries.addAll(timesMovAvg.toArray(), valuesMovAvg.toArray());
+        if (lastWindowOnlyOnePoint) {
+            timeSeries.add(times[timeSeriesSize - 1], values[timeSeriesSize - 1]);
+        } else {
+            //add the last window
+            evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
+        }
+    }
+
+    /**
+     * Calculates the average time stamp and value for the given window (start, end) and adds it to the given time series
+     *
+     * @param timeSeries the time series to add the moving averages
+     * @param values     the values
+     * @param times      the time stamps
+     * @param startIdx   the start index of the window
+     * @param end        the end index of the window
+     */
+    private void evaluteAveragesAndAddToTimeSeries(MetricTimeSeries timeSeries, double[] values, long[] times, int startIdx, int end) {
+
+        //If the indices are equals, just return the value at the index position
+        if (startIdx == end) {
+            timeSeries.add(times[startIdx], values[startIdx]);
+        }
+
+        double valueSum = 0;
+        long timeSum = 0;
+
+
+        for (int i = startIdx; i < end; i++) {
+            valueSum += values[i];
+            timeSum += times[i];
+        }
+        int amount = end - startIdx;
+
+
+        timeSeries.add(timeSum / amount, valueSum / amount);
     }
 
     private boolean outsideWindow(long currentWindow, long windowTime) {
         return currentWindow < windowTime;
-    }
-
-    /**
-     * Calculates the average of the given values
-     *
-     * @param values   the values for the time range
-     * @param startIdx the start of the values
-     * @param end      end of the values
-     * @return the average of the values
-     */
-    private double calcAvg(double[] values, int startIdx, int end) {
-        double sum = 0;
-
-        //If the indices are equals, just return the value at the index position
-        if (startIdx == end) {
-            return values[startIdx];
-        }
-
-        for (int i = startIdx; i <= end; i++) {
-            double value = values[i];
-            sum += value;
-        }
-        // +1 as we run to <= end
-        return sum / (end - startIdx + 1);
-    }
-
-    /**
-     * Calculates the average of the given timestamps
-     *
-     * @param times the timestamps of the time range
-     * @return the average of the values
-     */
-    private long calcAvg(long[] times, int startIdx, int end) {
-        long sum = 0;
-
-        //If the indices are equals, just return the value at the index position
-        if (startIdx == end) {
-            return times[startIdx];
-        }
-
-        for (int i = startIdx; i <= end; i++) {
-            long value = times[i];
-            sum += value;
-        }
-        // +1 as we run to <= end
-        return sum / (end - startIdx + 1);
     }
 
     @Override
@@ -164,8 +155,6 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
     public String[] getArguments() {
         return new String[]{"timeSpan=" + timeSpan, "unit=" + unit.name()};
     }
-
-
 
 
     @Override
