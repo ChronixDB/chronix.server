@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -50,8 +51,10 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//15
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        movAvg.transform(timeSeries)
+        movAvg.execute(timeSeries, analysisResult)
         then:
         timeSeries.size() == 15
         timeSeries.getValue(0) == 5.0d
@@ -108,8 +111,10 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        movAvg.transform(timeSeries)
+        movAvg.execute(timeSeries, analysisResult)
         then:
         timeSeries.size() == 14
         timeSeries.getValue(0) == 5.0d
@@ -154,10 +159,12 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:04.000Z"), 4)//4
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        movAvg.transform(timeSeries)
+        movAvg.execute(timeSeries, analysisResult)
         then:
-        timeSeries.size() ==4
+        timeSeries.size() == 4
         timeSeries.getValue(0) == 5.0d
         timeSeries.getTime(0) == dateOf("2016-05-23T10:51:00.000Z")
         timeSeries.getValue(1) == 4.0d

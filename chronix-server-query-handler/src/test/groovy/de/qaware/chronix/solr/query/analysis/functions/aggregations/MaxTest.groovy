@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -34,33 +35,24 @@ class MaxTest extends Specification {
         timeSeries.point(12, -10)
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Max().execute(ts)
+        new Max().execute(ts, analysisResult)
         then:
-        result == 9999.0
+        analysisResult.getAggregationValue(0) == 9999.0d
     }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        def result = new Max().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Max().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
-
-    def "test exception behaviour"() {
-        when:
-        new Max().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
-
-    def "test subquery"() {
-        expect:
-        !new Max().needSubquery()
-        new Max().getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -34,32 +35,23 @@ class AvgTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Avg().execute(ts)
+        new Avg().execute(ts, analysisResult)
         then:
-        result == 949.9090909090909
-    }
-
-    def "test exception behaviour"() {
-        when:
-        new Avg().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
+        analysisResult.getAggregationValue(0) == 949.9090909090909d
     }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Avg().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Avg().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
+        analysisResult.getAggregationValue(0) == Double.NaN;
     }
 
-    def "test subquery"() {
-        expect:
-        !new Avg().needSubquery()
-        new Avg().getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.LinearRegression;
@@ -28,26 +29,24 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * @author f.lautenschlager
  */
 public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
+
     /**
      * Detects trends in time series using a linear regression.
      *
-     * @param args the time series
+     * @param analysisAndValues
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public boolean execute(MetricTimeSeries... args) {
-        if (args.length <= 0) {
-            throw new IllegalArgumentException("Trend detection needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+
         //We need to sort the time series for this analysis
         timeSeries.sort();
         //Calculate the linear regression
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
         //If we have a positive slope, we return 1 otherwise -1
-        return slope > 0;
+        analysisAndValues.add(this, slope > 0, null);
+
     }
 
     @Override
@@ -59,17 +58,6 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.TREND;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

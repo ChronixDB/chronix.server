@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -52,24 +53,17 @@ class FrequencyTest extends Specification {
         timeSeries.point(startOfHighFrequency.plus(60, ChronoUnit.SECONDS).toEpochMilli(), 12)
 
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Frequency(windowSize, windowThreshold).execute(ts)
+        new Frequency(windowSize, windowThreshold).execute(ts, analysisResult)
         then:
-        result == detected
+        analysisResult.getAnalysisValue(0) == detected
 
         where:
         windowSize << [20, 5]
         windowThreshold << [6, 6]
         detected << [false, true]
-    }
-
-    def "test exception behaviour"() {
-        when:
-        new Frequency(10, 6).execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
     }
 
     def "test subquery"() {

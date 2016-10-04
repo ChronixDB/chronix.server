@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -39,8 +40,10 @@ class ScaleTest extends Specification {
 
         def scale = new Scale(2);
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        scale.transform(timeSeries)
+        scale.execute(timeSeries, analysisResult)
 
         then:
         100.times {

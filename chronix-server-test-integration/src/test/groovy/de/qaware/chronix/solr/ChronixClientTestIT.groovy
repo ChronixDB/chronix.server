@@ -273,7 +273,7 @@ class ChronixClientTestIT extends Specification {
         attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
                             "value=4.0", "value=4.0",
                             "amount=10"]
-        points << [7074, 9693, 9693, 9692, 10, 10, 9693, 9693, 9693]
+        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693]
     }
 
     @Unroll

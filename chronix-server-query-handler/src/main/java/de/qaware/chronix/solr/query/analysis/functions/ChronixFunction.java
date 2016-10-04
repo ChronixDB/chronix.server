@@ -15,23 +15,22 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
+
 /**
- * @param <T> the type to apply the analysis on
- * @author f.lautenschlager
+ * Created by f.lautenschlager on 04.10.2016.
  */
-public interface ChronixAnalysis<T> extends ChronixFunction<T> {
+public interface ChronixFunction<T> {
+
+    void execute(T timeSeries, FunctionValueMap analysisAndValues);
 
     /**
-     * @return if the analysis needs a sub query. Default is false
+     * @return the arguments
      */
-    default boolean needSubquery() {
-        return false;
-    }
+    String[] getArguments();
 
     /**
-     * @return the sub query of the analysis. Default is null.
+     * @return the type of the analysis
      */
-    default String getSubquery() {
-        return null;
-    }
+    FunctionType getType();
 }

@@ -39,6 +39,12 @@ public enum FunctionType {
     RANGE,
     DIFF,
     SDIFF,
+    //Pre-Aggregations
+    PRE_AVG,
+    PRE_MIN,
+    PRE_MAX,
+    PRE_SUM,
+    PRE_COUNT,
     //Analysis
     TREND,
     OUTLIER,
@@ -55,18 +61,26 @@ public enum FunctionType {
     NNDERIVATIVE,
     ADD,
     SUB,
-    TIMESHIFT;
+    TIMESHIFT,
+    //Strace
+    SPLIT,
+    //LSOF
+    GROUP;
 
     //Sets to hold the aggregations, analyses and transformations.
     //Otherwise the complexity of if(type == X || type == X ...) is to high
     private static final Set<FunctionType> AGGREGATIONS = new HashSet<>();
     private static final Set<FunctionType> ANALYSES = new HashSet<>();
     private static final Set<FunctionType> TRANSFORMATIONS = new HashSet<>();
+    private static final Set<FunctionType> STRACE = new HashSet<>();
+    private static final Set<FunctionType> LSOF = new HashSet<>();
 
     static {
         Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF);
         Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
         Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT);
+        Collections.addAll(STRACE, SPLIT);
+        Collections.addAll(LSOF, GROUP);
     }
 
     /**
@@ -99,4 +113,11 @@ public enum FunctionType {
         return TRANSFORMATIONS.contains(type);
     }
 
+    public static boolean isLsof(FunctionType type) {
+        return LSOF.contains(type);
+    }
+
+    public static boolean isStrace(FunctionType type) {
+        return STRACE.contains(type);
+    }
 }

@@ -10,6 +10,9 @@ dependencies {
     testCompile 'org.apache.solr:solr-solrj:6.2.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
 
 
     testCompile project(':chronix-server-client')
@@ -141,7 +144,7 @@ pluginBundle {
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.2.0"
+def solrVersion = "6.2.1"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"

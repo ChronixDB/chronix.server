@@ -20,19 +20,21 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixPairAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.solr.common.util.Pair;
 
 /**
  * The analysis implementation of the Fast DTW analysis
  *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
+public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> {
 
     private final DistanceFunction distanceFunction;
     private final int searchRadius;
@@ -52,18 +54,17 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public boolean execute(MetricTimeSeries... args) {
-        //We need two time series
-        if (args.length < 2) {
-            throw new IllegalArgumentException("Fast DTW needs at least two time series");
-        }
+    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionValueMap analysisAndValues) {
         //We have to build a multivariate time series
-        MultivariateTimeSeries origin = buildMultiVariateTimeSeries(args[0]);
-        MultivariateTimeSeries other = buildMultiVariateTimeSeries(args[1]);
+        MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
+        MultivariateTimeSeries other = buildMultiVariateTimeSeries(timeSeriesPair.second());
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        return result.getNormalizedDistance() <= maxNormalizedWarpingCost;
+        //TODO: Add the result to the time series
+
+        analysisAndValues.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getMetric());
+
     }
 
     /**

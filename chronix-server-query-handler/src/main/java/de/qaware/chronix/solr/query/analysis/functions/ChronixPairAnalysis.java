@@ -19,19 +19,6 @@ package de.qaware.chronix.solr.query.analysis.functions;
  * @param <T> the type to apply the analysis on
  * @author f.lautenschlager
  */
-public interface ChronixAnalysis<T> extends ChronixFunction<T> {
+public interface ChronixPairAnalysis<T> extends ChronixAnalysis<T> {
 
-    /**
-     * @return if the analysis needs a sub query. Default is false
-     */
-    default boolean needSubquery() {
-        return false;
-    }
-
-    /**
-     * @return the sub query of the analysis. Default is null.
-     */
-    default String getSubquery() {
-        return null;
-    }
 }

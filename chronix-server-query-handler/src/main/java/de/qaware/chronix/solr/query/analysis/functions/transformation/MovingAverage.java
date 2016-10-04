@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -59,7 +60,7 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -110,6 +111,8 @@ public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
             //add the last window
             evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
         }
+
+        analysisAndValues.add(this);
     }
 
     /**

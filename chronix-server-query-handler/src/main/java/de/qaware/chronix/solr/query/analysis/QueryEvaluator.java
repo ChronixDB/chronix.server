@@ -23,7 +23,6 @@ import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
 import de.qaware.chronix.solr.query.analysis.functions.transformation.*;
-import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,10 +52,10 @@ public final class QueryEvaluator {
      * @param filterQueries the filter queries (solr api)
      * @return a set of chronix analyses asked in the filter queries
      */
-    public static QueryFunctions<MetricTimeSeries> extractFunctions(String[] filterQueries) {
+    public static QueryFunctions extractFunctions(String[] filterQueries) {
 
         //The result that contains the asked analyses
-        final QueryFunctions<MetricTimeSeries> result = new QueryFunctions<>();
+        final QueryFunctions result = new QueryFunctions();
         //Check if there are filter queries with functions
         if (isEmpty(filterQueries)) {
             //return a empty result
@@ -117,7 +116,7 @@ public final class QueryEvaluator {
         return true;
     }
 
-    private static void addFunction(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+    private static void addFunction(QueryFunctions result, FunctionType type, String[] arguments) {
 
         if (FunctionType.isTransformation(type)) {
             //Check if the type is a transformation and add it
@@ -128,12 +127,34 @@ public final class QueryEvaluator {
         } else if (FunctionType.isAggregation(type)) {
             //Check if the type is an aggregation and add it
             addAggregation(result, type, arguments);
+        } else if (FunctionType.isLsof(type)) {
+            addLsof(result, type, arguments);
+        } else if (FunctionType.isStrace(type)) {
+            addStrace(result, type, arguments);
         } else {
             LOGGER.info("{} is unknown. {} is ignored", type, type);
         }
     }
 
-    private static void addAggregation(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+    private static void addStrace(QueryFunctions result, FunctionType type, String[] arguments) {
+        switch (type) {
+            case SPLIT:
+                result.addTransformation(new Split());
+                break;
+        }
+    }
+
+    private static void addLsof(QueryFunctions result, FunctionType type, String[] arguments) {
+        switch (type) {
+            case GROUP:
+                String[] filters = new String[arguments.length - 1];
+                System.arraycopy(arguments, 1, filters, 0, filters.length);
+                result.addTransformation(new Group(arguments[0], filters));
+                break;
+        }
+    }
+
+    private static void addAggregation(QueryFunctions result, FunctionType type, String[] arguments) {
         switch (type) {
             //Aggregations
             case AVG:
@@ -178,7 +199,7 @@ public final class QueryEvaluator {
         }
     }
 
-    private static void addAnalysis(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+    private static void addAnalysis(QueryFunctions result, FunctionType type, String[] arguments) {
         switch (type) {
             //Analyses
             case TREND:
@@ -203,7 +224,7 @@ public final class QueryEvaluator {
         }
     }
 
-    private static void addTransformation(QueryFunctions<MetricTimeSeries> result, FunctionType type, String[] arguments) {
+    private static void addTransformation(QueryFunctions result, FunctionType type, String[] arguments) {
         switch (type) {
             //Transformations
             case ADD:
@@ -248,7 +269,7 @@ public final class QueryEvaluator {
             case TIMESHIFT:
                 long shiftAmount = Long.parseLong(arguments[0]);
                 ChronoUnit shiftUnit = ChronoUnit.valueOf(arguments[1].toUpperCase());
-                result.addTransformation(new Timeshift(shiftAmount,shiftUnit));
+                result.addTransformation(new Timeshift(shiftAmount, shiftUnit));
                 break;
             default:
                 LOGGER.warn("Ignoring {} as a transformation. {} is unknown", type, type);

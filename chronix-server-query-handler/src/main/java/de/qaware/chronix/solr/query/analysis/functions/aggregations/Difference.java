@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -31,22 +32,15 @@ public class Difference implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculate the difference between the first and the last value of a given time series
      *
-     * @param args the time series
+     * @param timeSeries the time series
      * @return the average or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Difference function needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            analysisAndValues.add(this,Double.NaN);
+            return;
         }
 
         //we need to sort the time series
@@ -55,8 +49,8 @@ public class Difference implements ChronixAggregation<MetricTimeSeries> {
         double firstValue = timeSeries.getValue(0);
         double lastValue = timeSeries.getValue(timeSeries.size() - 1);
 
-        //return the difference
-        return Math.abs(firstValue - lastValue);
+        analysisAndValues.add(this,Math.abs(firstValue - lastValue));
+
     }
 
     @Override
@@ -67,16 +61,6 @@ public class Difference implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public FunctionType getType() {
         return FunctionType.DIFF;
-    }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
     }
 
 

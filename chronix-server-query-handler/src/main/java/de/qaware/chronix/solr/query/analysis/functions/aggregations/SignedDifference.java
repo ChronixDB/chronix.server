@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -32,22 +33,15 @@ public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculate the difference between the first and the last value of a given time series
      *
-     * @param args the time series
+     * @param timeSeries the time series
      * @return the average or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Signed difference function needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            analysisAndValues.add(this, Double.NaN);
+            return;
         }
 
         //we need to sort the time series
@@ -58,21 +52,24 @@ public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
 
         //both values are negative
         if (first < 0 && last < 0) {
-            return last - first;
+            analysisAndValues.add(this, last - first);
+            return;
         }
 
         //both value are positive
         if (first > 0 && last > 0) {
-            return last - first;
+            analysisAndValues.add(this, last - first);
+            return;
         }
 
         //start is negative and end is positive
         if (first < 0 && last > 0) {
-            return last - first;
+            analysisAndValues.add(this, last - first);
+            return;
         }
 
         //start is positive and end is negative
-        return last - first;
+        analysisAndValues.add(this, last - first);
     }
 
     @Override
@@ -84,17 +81,6 @@ public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.SDIFF;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -31,6 +32,7 @@ class DerivativeTest extends Specification {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series")
         def derivative = new Derivative()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)
@@ -46,7 +48,7 @@ class DerivativeTest extends Specification {
 
         def timeSeries = timeSeriesBuilder.build()
         when:
-        derivative.transform(timeSeries)
+        derivative.execute(timeSeries, analysisResult)
 
         then:
         timeSeries.size() == 7

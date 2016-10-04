@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -37,8 +38,10 @@ class TopTest extends Specification {
         timeSeriesBuilder.point(6, 23d)
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        top.transform(timeSeries)
+        top.execute(timeSeries, analysisResult)
 
 
         then:

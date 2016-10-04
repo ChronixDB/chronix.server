@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -30,27 +31,20 @@ public final class Last implements ChronixAggregation<MetricTimeSeries> {
      * Gets the last value in the time series.
      * It first orders the time series.
      *
-     * @param args the time series
+     * @param timeSeries the time series
      * @return the average or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Last function needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            analysisAndValues.add(this, Double.NaN);
+            return;
         }
 
         //We need to sort the time series
         timeSeries.sort();
-        return timeSeries.getValue(timeSeries.size() - 1);
+        analysisAndValues.add(this, timeSeries.getValue(timeSeries.size() - 1));
     }
 
     @Override
@@ -61,16 +55,6 @@ public final class Last implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public FunctionType getType() {
         return FunctionType.LAST;
-    }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
     }
 
 

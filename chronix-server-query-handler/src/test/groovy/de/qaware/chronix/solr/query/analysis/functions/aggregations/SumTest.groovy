@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -25,7 +26,6 @@ import spock.lang.Specification
  */
 class SumTest extends Specification {
 
-
     def "test execute"() {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Sum");
@@ -34,32 +34,22 @@ class SumTest extends Specification {
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Sum().execute(ts)
+        new Sum().execute(ts, analysisResult)
         then:
-        result == 10449.0d
+        analysisResult.getAggregationValue(0) == 10449.0d
     }
 
-    def "test exception behaviour"() {
-        when:
-        new Sum().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Sum().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Sum().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
-    }
-
-    def "test subquery"() {
-        expect:
-        !new Sum().needSubquery()
-        new Sum().getSubquery() == null
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
     def "test arguments"() {

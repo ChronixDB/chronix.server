@@ -15,9 +15,8 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixFunction;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,14 +29,13 @@ import java.util.Set;
  * - analyses
  * - transformations
  *
- * @param <T> the type to apply the function to
  * @author f.lautenschlager
  */
-class QueryFunctions<T> {
+class QueryFunctions {
 
-    private Set<ChronixAnalysis<T>> analyses;
-    private Set<ChronixAggregation<T>> aggregations;
-    private List<ChronixTransformation<T>> transformations;
+    private Set<ChronixAnalysis> analyses;
+    private Set<ChronixFunction> aggregations;
+    private List<ChronixFunction> transformations;
 
     QueryFunctions() {
         analyses = new HashSet<>();
@@ -48,21 +46,21 @@ class QueryFunctions<T> {
     /**
      * @return the analyses in the query
      */
-    public Set<ChronixAnalysis<T>> getAnalyses() {
+    public Set<ChronixAnalysis> getAnalyses() {
         return analyses;
     }
 
     /**
      * @return the aggregations in the query
      */
-    public Set<ChronixAggregation<T>> getAggregations() {
+    public Set<ChronixFunction> getAggregations() {
         return aggregations;
     }
 
     /**
      * @return the transformations in the query
      */
-    public List<ChronixTransformation<T>> getTransformations() {
+    public List<ChronixFunction> getTransformations() {
         return transformations;
     }
 
@@ -71,7 +69,7 @@ class QueryFunctions<T> {
      *
      * @param analysis the analysis
      */
-    public void addAnalysis(ChronixAnalysis<T> analysis) {
+    public void addAnalysis(ChronixAnalysis analysis) {
         this.analyses.add(analysis);
     }
 
@@ -80,7 +78,7 @@ class QueryFunctions<T> {
      *
      * @param aggregation the aggregation
      */
-    public void addAggregation(ChronixAggregation<T> aggregation) {
+    public void addAggregation(ChronixFunction aggregation) {
         this.aggregations.add(aggregation);
     }
 
@@ -89,7 +87,7 @@ class QueryFunctions<T> {
      *
      * @param transformation the transformation
      */
-    public void addTransformation(ChronixTransformation<T> transformation) {
+    public void addTransformation(ChronixFunction transformation) {
         this.transformations.add(transformation);
     }
 

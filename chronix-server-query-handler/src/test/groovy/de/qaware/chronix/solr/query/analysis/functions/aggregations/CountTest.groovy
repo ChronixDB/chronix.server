@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -34,32 +35,24 @@ class CountTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Count().execute(ts)
+        new Count().execute(ts, analysisResult)
         then:
-        result == 11d
+        analysisResult.getAggregationValue(0) == 11d
     }
 
-    def "test exception behaviour"() {
-        when:
-        new Count().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Count().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Count().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == 0.0d
+        analysisResult.getAggregationValue(0) == 0.0d
     }
 
-    def "test subquery"() {
-        expect:
-        !new Count().needSubquery()
-        new Count().getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

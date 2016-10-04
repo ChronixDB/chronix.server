@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -29,22 +30,16 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the average value of the first time series.
      *
-     * @param args the time series
+     * @param analysisAndValues
      * @return the average or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Avg aggregation needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
 
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            analysisAndValues.add(this,Double.NaN);
+            return;
         }
 
         //Else calculate the analysis value
@@ -53,8 +48,7 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
         for (int i = 0; i < size; i++) {
             current += timeSeries.getValue(i);
         }
-
-        return current / timeSeries.size();
+        analysisAndValues.add(this, current / timeSeries.size());
     }
 
     @Override
@@ -66,17 +60,6 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.AVG;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {
@@ -98,4 +81,5 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
         return new HashCodeBuilder()
                 .toHashCode();
     }
+
 }

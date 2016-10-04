@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -44,8 +45,10 @@ class NonNegativeDerivativeTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        derivative.transform(timeSeries)
+        derivative.execute(timeSeries,analysisResult)
 
         then:
         timeSeries.size() == 4

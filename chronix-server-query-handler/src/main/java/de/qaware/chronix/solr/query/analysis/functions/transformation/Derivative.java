@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
@@ -35,7 +36,7 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -60,6 +61,7 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
 
             timeSeries.add(derivativeTime, derivativeValue);
         }
+        analysisAndValues.add(this);
     }
 
 

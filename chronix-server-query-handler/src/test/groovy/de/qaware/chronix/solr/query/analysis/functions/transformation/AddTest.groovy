@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -32,10 +33,11 @@ class AddTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         def add = new Add(4);
         when:
-        add.transform(timeSeries)
+        add.execute(timeSeries,analysisResult)
         then:
         timeSeries.size() == 11
         timeSeries.getValue(1) == 1 + 10 + 4

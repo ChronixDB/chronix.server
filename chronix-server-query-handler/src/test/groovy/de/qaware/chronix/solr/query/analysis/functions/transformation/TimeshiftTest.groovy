@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -34,11 +35,13 @@ class TimeshiftTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
 
         def timeshift = new Timeshift(4, ChronoUnit.MILLIS);
 
         when:
-        timeshift.transform(timeSeries)
+        timeshift.execute(timeSeries, analysisResult)
         then:
         timeSeries.size() == 11
         timeSeries.getTime(0) == 4
@@ -56,11 +59,12 @@ class TimeshiftTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         def timeshift = new Timeshift(-4, ChronoUnit.MILLIS);
 
         when:
-        timeshift.transform(timeSeries)
+        timeshift.execute(timeSeries,analysisResult)
         then:
         timeSeries.size() == 11
         timeSeries.getTime(0) == -4

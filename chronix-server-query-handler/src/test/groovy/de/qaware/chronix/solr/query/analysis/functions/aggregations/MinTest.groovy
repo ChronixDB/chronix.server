@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -32,12 +33,11 @@ class MinTest extends Specification {
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Min().execute(ts)
+        new Min().execute(ts, analysisResult)
         then:
-        result == -90.0
+        analysisResult.getAggregationValue(0) == -90.0d
     }
 
     def "test execute with positive number"() {
@@ -48,33 +48,23 @@ class MinTest extends Specification {
         }
         timeSeries.point(11, 0)
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Min().execute(ts)
+        new Min().execute(ts, analysisResult)
         then:
-        result == 0.0
+        analysisResult.getAggregationValue(0) == 0.0d
     }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Min().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Min().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
-    def "test exception behaviour"() {
-        when:
-        new Min().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
-
-    def "test subquery"() {
-        expect:
-        !new Min().needSubquery()
-        new Min().getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

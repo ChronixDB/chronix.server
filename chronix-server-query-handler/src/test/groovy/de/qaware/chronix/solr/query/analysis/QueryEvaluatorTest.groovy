@@ -96,6 +96,36 @@ class QueryEvaluatorTest extends Specification {
         needSubQuery << [false, false, false, true, true]
     }
 
+    def "test strace query"() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(fqs)
+        then:
+        def aggregation = functions.getTransformations().getAt(0)
+        aggregation.getType() == expectedType
+        aggregation.getArguments() == expectedArguments
+
+        where:
+        fqs << [["function=split"] as String[]]
+
+        expectedType << [FunctionType.SPLIT]
+        expectedArguments << [new String[0]]
+    }
+
+    def "test lsof query"() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(fqs)
+        then:
+        def aggregation = functions.getTransformations().getAt(0)
+        aggregation.getType() == expectedType
+        aggregation.getArguments() == expectedArguments
+
+        where:
+        fqs << [["function=group:node,anon_inode,pipe"] as String[]]
+
+        expectedType << [FunctionType.GROUP]
+        expectedArguments << [["field=node", "filters=[pipe, anon_inode]"] as String[]]
+    }
+
     @Unroll
     def "test transformation query #fqs"() {
         when:
