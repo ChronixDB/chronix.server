@@ -25,13 +25,12 @@ plugins {
 apply plugin: 'org.sonarqube'
 
 
-
 allprojects {
 
     apply plugin: 'jacoco'
     apply plugin: 'com.github.kt3k.coveralls'
 
-    version '0.3'
+    version '0.3.1'
     group 'de.qaware.chronix'
 
     repositories {
