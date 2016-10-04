@@ -134,7 +134,6 @@ public class AnalysisHandler extends SearchHandler {
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
                 FunctionValueMap functionValues = new FunctionValueMap(functions.sizeOfAggregations(), functions.sizeOfAnalyses(), functions.sizeOfTransformations());
-                ;
 
                 MetricTimeSeries timeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, docs.getValue(), decompressDataAsItIsRequested);
 
