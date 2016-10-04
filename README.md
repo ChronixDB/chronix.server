@@ -326,7 +326,7 @@ The following snippet of Solr config.xml shows the configuration:
 ```
 
 ## Usage
-All libraries are available in the [Chronix Bintary Maven](https://bintray.com/chronix/maven) repository.
+All libraries are available in the [Chronix Bintray Maven](https://bintray.com/chronix/maven) repository.
 A build script snippet for use in all Gradle versions, using the Chronix Bintray Maven repository:
 ```groovy
 repositories {
