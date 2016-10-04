@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis
 
+import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
 import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
@@ -110,7 +111,7 @@ class AnalysisHandlerTest extends Specification {
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         function()
 
-        Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
+        Function<SolrDocument, String> key = new JoinFunction(null);
 
 
         when:
@@ -118,7 +119,7 @@ class AnalysisHandlerTest extends Specification {
 
         then:
         result.size() == 1
-        result.get(0).get(resultKey) == expectredResult
+        result.get(0).get(resultKey) == expectedResult
 
         where:
         queryFunction << ["function=max",
@@ -132,7 +133,7 @@ class AnalysisHandlerTest extends Specification {
                       "0_function_trend",
                       "0_function_add"]
 
-        expectredResult << [4713, null, ["value=5.0"]]
+        expectedResult << [4713, null, ["value=5.0"]]
     }
 
     def "test function with multiple time series"() {
@@ -154,7 +155,7 @@ class AnalysisHandlerTest extends Specification {
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         def analyses = new QueryFunctions<>()
         analyses.addAnalysis(new FastDtw("ignored", 1, 0.8))
-        Function<SolrDocument, String> key = JoinFunctionEvaluator.joinFunction(null);
+        Function<SolrDocument, String> key = new JoinFunction(null);
 
         when:
         analysisHandler.metaClass.collectDocuments = { -> return timeSeriesRecordsFromSubQuery }
@@ -200,7 +201,8 @@ class AnalysisHandlerTest extends Specification {
         doc.put("end", start.plusSeconds(10).toEpochMilli())
         doc.put("metric", "test")
         def data = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator())
-        doc.put("data", ByteBuffer.wrap(data))
+        def compressed = Compression.compress(data)
+        doc.put("data", ByteBuffer.wrap(compressed))
 
         result.add(doc)
         return result

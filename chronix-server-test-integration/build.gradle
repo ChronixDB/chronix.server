@@ -7,18 +7,20 @@ sonarqube {
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
     testCompile 'commons-codec:commons-codec:1.10'
-    testCompile 'org.apache.solr:solr-solrj:6.1.0'
+    testCompile 'org.apache.solr:solr-solrj:6.2.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.2'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.2'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.2'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
+    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
 
+    testCompile 'org.apache.commons:commons-math3:3.6.1'
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
 
     testCompile project(':chronix-server-query-handler')
+    testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-retention')
 }
 task copyTestResources(type: Copy) {
@@ -144,7 +146,7 @@ pluginBundle {
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.1.0"
+def solrVersion = "6.2.1"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
@@ -191,9 +193,11 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
     include("*chronix-server-query*.jar")
+    include("*chronix-server-ingestion*.jar")
     include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
+    include("*commons-math3-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")
@@ -237,11 +241,11 @@ class ExecWait extends DefaultTask {
 String osName = System.getProperty("os.name").toLowerCase();
 task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
-        command 'cmd.exe /C solr.cmd start -p 8913'
+        command 'cmd.exe /C solr.cmd start -m 512m -p 8913'
         ready "Started Solr server on port 8913. Happy searching!"
         directory "$buildDir/solr-${solrVersion}/bin/"
     } else {
-        command 'bash solr start -p 8913'
+        command 'bash solr start -m 512m -p 8913'
         ready "Started Solr server on port 8913. Happy searching!"
         directory "$buildDir/solr-${solrVersion}/bin/"
     }

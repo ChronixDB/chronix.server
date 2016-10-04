@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -27,7 +28,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public class Subtract implements ChronixTransformation<MetricTimeSeries> {
+public final class Subtract implements ChronixTransformation<MetricTimeSeries> {
 
     private final double value;
 
@@ -48,7 +49,7 @@ public class Subtract implements ChronixTransformation<MetricTimeSeries> {
      * @return the transformed time series
      */
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         long[] timestamps = timeSeries.getTimestampsAsArray();
         double[] values = timeSeries.getValuesAsArray();
 
@@ -59,6 +60,7 @@ public class Subtract implements ChronixTransformation<MetricTimeSeries> {
         }
 
         timeSeries.addAll(timestamps, values);
+        functionValueMap.add(this);
     }
 
     @Override
@@ -70,7 +72,6 @@ public class Subtract implements ChronixTransformation<MetricTimeSeries> {
     public String[] getArguments() {
         return new String[]{"value=" + value};
     }
-
 
 
     @Override

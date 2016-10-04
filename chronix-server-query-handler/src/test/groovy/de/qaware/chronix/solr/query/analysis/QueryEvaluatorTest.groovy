@@ -58,14 +58,15 @@ class QueryEvaluatorTest extends Specification {
                 ["function=range"] as String[],
                 ["function=diff"] as String[],
                 ["function=sdiff"] as String[],
-                ["function=p:0.4"] as String[]
+                ["function=p:0.4"] as String[],
+                ["function=integral"] as String[]
         ]
 
         expectedType << [FunctionType.MIN, FunctionType.MAX, FunctionType.AVG, FunctionType.DEV, FunctionType.SUM,
                          FunctionType.COUNT, FunctionType.FIRST, FunctionType.LAST, FunctionType.RANGE,
-                         FunctionType.DIFF, FunctionType.SDIFF, FunctionType.P]
+                         FunctionType.DIFF, FunctionType.SDIFF, FunctionType.P, FunctionType.INTEGRAL]
         expectedArguments << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
-                              new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[]]
+                              new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[], new String[0]]
     }
 
     def "test analysis query"() {
@@ -96,6 +97,36 @@ class QueryEvaluatorTest extends Specification {
         needSubQuery << [false, false, false, true, true]
     }
 
+    def "test strace query"() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(fqs)
+        then:
+        def aggregation = functions.getTransformations().getAt(0)
+        aggregation.getType() == expectedType
+        aggregation.getArguments() == expectedArguments
+
+        where:
+        fqs << [["function=split"] as String[]]
+
+        expectedType << [FunctionType.SPLIT]
+        expectedArguments << [new String[0]]
+    }
+
+    def "test lsof query"() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(fqs)
+        then:
+        def aggregation = functions.getTransformations().getAt(0)
+        aggregation.getType() == expectedType
+        aggregation.getArguments() == expectedArguments
+
+        where:
+        fqs << [["function=group:node,anon_inode,pipe"] as String[]]
+
+        expectedType << [FunctionType.GROUP]
+        expectedArguments << [["field=node", "filters=[pipe, anon_inode]"] as String[]]
+    }
+
     @Unroll
     def "test transformation query #fqs"() {
         when:
@@ -114,7 +145,8 @@ class QueryEvaluatorTest extends Specification {
                 ["function=movavg:10,MINUTES"] as String[],
                 ["function=add:10"] as String[],
                 ["function=sub:10"] as String[],
-                ["function=timeshift:10,SECONDS"] as String[]]
+                ["function=timeshift:10,SECONDS"] as String[]
+        ]
 
         expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP,
                          FunctionType.BOTTOM, FunctionType.MOVAVG, FunctionType.ADD, FunctionType.SUB,
@@ -134,9 +166,10 @@ class QueryEvaluatorTest extends Specification {
 
         where:
         fqs << [["function=derivative"] as String[],
-                ["function=nnderivative"] as String[]]
+                ["function=nnderivative"] as String[],
+                ["function=distinct"] as String[]]
 
-        expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE]
+        expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE, FunctionType.DISTINCT]
     }
 
     def "test filter query strings that produce exceptions"() {

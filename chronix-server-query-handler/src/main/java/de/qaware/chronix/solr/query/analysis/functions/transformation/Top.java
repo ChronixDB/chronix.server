@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.NElements;
@@ -28,7 +29,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public class Top implements ChronixTransformation<MetricTimeSeries> {
+public final class Top implements ChronixTransformation<MetricTimeSeries> {
 
     private final int value;
 
@@ -42,7 +43,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //Calculate the largest values
         NElements.NElementsResult result = NElements.calc(
@@ -55,6 +56,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         timeSeries.clear();
         //set the new top largest values
         timeSeries.addAll(result.getNTimes(), result.getNValues());
+        functionValueMap.add(this);
     }
 
     @Override

@@ -21,33 +21,7 @@ package de.qaware.chronix.solr.query.analysis.functions;
  * @param <T> the type on which the aggregation is applied
  * @author f.lautenschlager
  */
-public interface ChronixAggregation<T> {
+public interface ChronixAggregation<T> extends ChronixFunction<T> {
 
-    /**
-     * Executes the analysis
-     *
-     * @param args the time series
-     * @return the value of the analysis
-     */
-    double execute(T... args);
 
-    /**
-     * @return the arguments
-     */
-    String[] getArguments();
-
-    /**
-     * @return the type of the analysis
-     */
-    FunctionType getType();
-
-    /**
-     * @return if the analysis needs a getSubquery
-     */
-    boolean needSubquery();
-
-    /**
-     * @return the getSubquery of the analysis
-     */
-    String getSubquery();
 }

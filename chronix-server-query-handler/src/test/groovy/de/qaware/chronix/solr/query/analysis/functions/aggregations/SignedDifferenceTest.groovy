@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -24,32 +25,32 @@ import spock.lang.Specification
  * @author f.lautenschlager
  */
 class SignedDifferenceTest extends Specification {
-    def "test execute with negative values"(){
+    def "test execute with negative values"() {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Signed Difference");
         timeSeries.point(0, -1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new SignedDifference().execute(ts)
+        new SignedDifference().execute(ts, analysisResult)
         then:
-        result == -9d
+        analysisResult.getAggregationValue(0) == -9d
     }
 
-    def "test execute with positive values"(){
+    def "test execute with positive values"() {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Signed Difference");
         timeSeries.point(0, 1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new SignedDifference().execute(ts)
+        new SignedDifference().execute(ts, analysisResult)
         then:
-        result == 9d
+        analysisResult.getAggregationValue(0) == 9d
     }
 
     def "test execute with negative start and positive end"() {
@@ -58,12 +59,12 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, -1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new SignedDifference().execute(ts)
+        new SignedDifference().execute(ts, analysisResult)
         then:
-        result == 11d
+        analysisResult.getAggregationValue(0) == 11d
     }
 
     def "test execute with positive start and negative end"() {
@@ -72,34 +73,23 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, 1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new SignedDifference().execute(ts)
+        new SignedDifference().execute(ts, analysisResult)
         then:
-        result == -11d
+        analysisResult.getAggregationValue(0) == -11d
     }
 
-
-    def "test exception behaviour"() {
-        when:
-        new SignedDifference().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new SignedDifference().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new SignedDifference().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
-    def "test subquery"() {
-        expect:
-        !new SignedDifference().needSubquery()
-        new SignedDifference().getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -32,10 +33,12 @@ class SubtractTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
 
         def sub = new Subtract(4);
         when:
-        sub.transform(timeSeries)
+        sub.execute(timeSeries, analysisResult)
 
         then:
         timeSeries.size() == 11

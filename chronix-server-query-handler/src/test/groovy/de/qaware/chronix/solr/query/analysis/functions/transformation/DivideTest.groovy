@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -39,9 +40,10 @@ class DivideTest extends Specification {
 
         def divide = new Divide(2);
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        divide.transform(timeSeries)
+        divide.execute(timeSeries, analysisResult)
 
         then:
         100.times {
@@ -62,6 +64,7 @@ class DivideTest extends Specification {
         then:
         divide.getArguments()[0] == "value=2.0"
     }
+
     def "test equals and hash code"() {
         expect:
         def function = new Divide(4);

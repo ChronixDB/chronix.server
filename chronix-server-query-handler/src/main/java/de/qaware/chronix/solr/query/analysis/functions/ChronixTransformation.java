@@ -21,23 +21,7 @@ package de.qaware.chronix.solr.query.analysis.functions;
  * @param <T> defines the type of the time series
  * @author f.lautenschlager
  */
-public interface ChronixTransformation<T> {
+public interface ChronixTransformation<T> extends ChronixFunction<T> {
 
-    /**
-     * Transforms a time series by changing it inital values
-     *
-     * @param timeSeries the time series that is transformed
-     */
-    void transform(T timeSeries);
-
-    /**
-     * @return the type of the transformation
-     */
-    FunctionType getType();
-
-    /**
-     * @return the arguments
-     */
-    String[] getArguments();
 
 }

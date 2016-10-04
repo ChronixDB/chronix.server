@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -32,22 +33,15 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
      * Gets difference between the maximum and the minimum value.
      * It is always a positive value.
      *
-     * @param args the time series
+     * @param timeSeries the time series
      * @return the average or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Range function needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            functionValueMap.add(this, Double.NaN);
+            return;
         }
 
         //the values to iterate
@@ -69,7 +63,7 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
             }
         }
         //return the absolute difference
-        return Math.abs(max - min);
+        functionValueMap.add(this, Math.abs(max - min));
     }
 
     @Override
@@ -81,17 +75,6 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.RANGE;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

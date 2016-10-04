@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
@@ -28,14 +29,14 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSeries> {
+public final class NonNegativeDerivative implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Calculates the derivative of the time series
      *
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //we need a sorted time series
         timeSeries.sort();
 
@@ -61,6 +62,7 @@ public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSe
                 timeSeries.add(derivativeTime, derivativeValue);
             }
         }
+        functionValueMap.add(this);
     }
 
     @Override

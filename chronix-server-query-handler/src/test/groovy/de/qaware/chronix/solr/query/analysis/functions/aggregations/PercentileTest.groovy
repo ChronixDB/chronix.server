@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -32,33 +33,22 @@ class PercentileTest extends Specification {
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Percentile(0.5).execute(ts)
+        new Percentile(0.5).execute(ts, analysisResult)
         then:
-        result == 50.0d
-    }
-
-    def "test exception behaviour"() {
-        when:
-        new Percentile(0.5).execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
+        analysisResult.getAggregationValue(0) == 50.0d
     }
 
     def "test for empty time series"() {
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
         when:
-        def result = new Percentile(0.5).execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
+        new Percentile(0.5).execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
         then:
-        result == Double.NaN
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
-    def "test subquery"() {
-        expect:
-        !new Percentile(0.5).needSubquery()
-        new Percentile(0.5).getSubquery() == null
-    }
 
     def "test arguments"() {
         expect:

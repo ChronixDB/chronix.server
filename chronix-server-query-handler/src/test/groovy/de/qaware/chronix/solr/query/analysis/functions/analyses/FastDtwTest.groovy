@@ -15,8 +15,10 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
+import org.apache.solr.common.util.Pair
 import spock.lang.Specification
 
 /**
@@ -33,12 +35,12 @@ class FastDtwTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts1 = timeSeries.build()
         MetricTimeSeries ts2 = timeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new FastDtw("", 5, 20).execute(ts1, ts2)
+        new FastDtw("", 5, 20).execute(new Pair(ts1, ts2), analysisResult)
         then:
-        result
+        analysisResult.getAnalysisValue(0)
     }
 
     def "test time series with equal timestamps"() {
@@ -50,15 +52,17 @@ class FastDtwTest extends Specification {
         timeSeries.point(2, 2)
 
         def ts1 = timeSeries.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new FastDtw("", 5, 0).execute(ts1, ts1)
+        new FastDtw("", 5, 0).execute(new Pair(ts1, ts1), analysisResult)
 
         then:
-        result
+        analysisResult.getAnalysisValue(0)
+
     }
 
-    def "test execute for with -1 as result"() {
+    def "test execute for -1 as result"() {
         given:
         MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1");
         MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2");
@@ -68,21 +72,14 @@ class FastDtwTest extends Specification {
         }
         def ts1 = timeSeries.build()
         def ts2 = secondTimeSeries.build()
-
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new FastDtw("", 5, 0).execute(ts1, ts2)
+        new FastDtw("", 5, 0).execute(new Pair(ts1, ts2), analysisResult)
         then:
-        !result
-
+        !analysisResult.getAnalysisValue(0)
     }
 
-    def "test exception behaviour"() {
-        when:
-        new FastDtw("", 5, 20).execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
 
     def "test subquery"() {
         expect:

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Shared
@@ -43,8 +44,10 @@ class VectorizationTest extends Specification {
         }
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        vectorization.transform(timeSeries)
+        vectorization.execute(timeSeries, analysisResult)
 
         then:
         timeSeries.size() == 2
@@ -55,8 +58,10 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector")
 
         def timeSeries = timeSeriesBuilder.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
+
         when:
-        vectorization.transform(timeSeries)
+        vectorization.execute(timeSeries, analysisResult)
 
         then:
         timeSeries.size() == 0
@@ -69,6 +74,7 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder3 = new MetricTimeSeries.Builder("Vector")
 
         def now = Instant.now()
+        def analysisResult = new FunctionValueMap(1, 1, 3);
 
         when:
         1.times {
@@ -86,9 +92,9 @@ class VectorizationTest extends Specification {
         def ts2 = timeSeriesBuilder2.build()
         def ts3 = timeSeriesBuilder3.build()
 
-        vectorization.transform(ts1)
-        vectorization.transform(ts2)
-        vectorization.transform(ts3)
+        vectorization.execute(ts1, analysisResult)
+        vectorization.execute(ts2, analysisResult)
+        vectorization.execute(ts3, analysisResult)
 
         then:
         ts1.size() == 1

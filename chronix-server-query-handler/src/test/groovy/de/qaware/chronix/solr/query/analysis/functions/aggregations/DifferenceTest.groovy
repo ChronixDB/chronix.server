@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -33,11 +34,12 @@ class DifferenceTest extends Specification {
         timeSeries.point(0, -1)
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Difference().execute(ts)
+        new Difference().execute(ts, analysisResult)
         then:
-        result == 91d
+        analysisResult.getAggregationValue(0) == 91d
     }
 
     def "test execute with negative values"() {
@@ -48,32 +50,23 @@ class DifferenceTest extends Specification {
         }
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Difference().execute(ts)
+        new Difference().execute(ts, analysisResult)
         then:
-        result == 90d
+        analysisResult.getAggregationValue(0) == 90d
     }
 
-
-    def "test exception behaviour"() {
-        when:
-        new Difference().execute(new MetricTimeSeries[0])
-        then:
-        thrown IllegalArgumentException.class
-    }
 
     def "test for empty time series"() {
-        when:
-        def result = new Difference().execute([new MetricTimeSeries.Builder("Empty").build()] as MetricTimeSeries[])
-        then:
-        result == Double.NaN
-    }
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
-    def "test subquery"() {
-        expect:
-        !new Difference().needSubquery()
-        new Difference().getSubquery() == null
+        when:
+        new Difference().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        then:
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
     def "test arguments"() {

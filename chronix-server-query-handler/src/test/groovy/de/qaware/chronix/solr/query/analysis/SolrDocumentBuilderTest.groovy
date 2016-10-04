@@ -185,7 +185,7 @@ class SolrDocumentBuilderTest extends Specification {
         }
 
         def fq = ["join=metric,host"] as String[]
-        def joinFunction = JoinFunctionEvaluator.joinFunction(fq)
+        def joinFunction = new JoinFunction(fq)
 
         when:
         def collectedDocs = SolrDocumentBuilder.collect(docs, joinFunction)

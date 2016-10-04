@@ -209,7 +209,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= points
+        selectedTimeSeries.size() <= 0
         selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
         selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
         selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
@@ -221,8 +221,9 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["function=max", "function=min", "function=avg", "function=p:0.25", "function=dev", "function=sum",
-                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range"]
-        points << [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range",
+                          "function=integral"
+        ]
     }
 
     @Unroll
@@ -273,7 +274,7 @@ class ChronixClientTestIT extends Specification {
         attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
                             "value=4.0", "value=4.0",
                             "amount=10"]
-        points << [7074, 9693, 9693, 9692, 10, 10, 9693, 9693, 9693]
+        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693]
     }
 
     @Unroll
@@ -290,10 +291,10 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.size() == points
 
         where:
-        analysisQuery << ["function=derivative", "function=nnderivative"]
-        attributeKeys << ["0_function_derivative", "0_function_nnderivative"]
+        analysisQuery << ["function=derivative", "function=nnderivative", "function=distinct"]
+        attributeKeys << ["0_function_derivative", "0_function_nnderivative", "0_function_distinct"]
 
-        points << [9691, 7302]
+        points << [9691, 7302, 15]
     }
 
     def "Test analysis fastdtw"() {

@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.math.NElements;
@@ -28,7 +29,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public class Bottom implements ChronixTransformation<MetricTimeSeries> {
+public final class Bottom implements ChronixTransformation<MetricTimeSeries> {
 
     private final int value;
 
@@ -42,12 +43,13 @@ public class Bottom implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
 
         //remove old time series
         timeSeries.clear();
         timeSeries.addAll(result.getNTimes(), result.getNValues());
+        functionValueMap.add(this);
     }
 
 

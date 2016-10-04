@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -44,25 +45,19 @@ public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the percentile of the first time series.
      *
-     * @param args the time series
+     * @param timeSeries the time series
      * @return the percentile or 0 if the list is empty
      */
     @Override
-    public double execute(MetricTimeSeries... args) {
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Percentile aggregation needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            functionValueMap.add(this, Double.NaN);
+            return;
         }
 
         //Else calculate the analysis value
-        return de.qaware.chronix.solr.query.analysis.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile);
+        functionValueMap.add(this, de.qaware.chronix.solr.query.analysis.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile));
     }
 
     @Override
@@ -74,17 +69,6 @@ public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.P;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

@@ -35,7 +35,7 @@
          that you fully re-index after changing this setting as it can
          affect both how text is indexed and queried.
     -->
-    <luceneMatchVersion>5.5.0</luceneMatchVersion>
+    <luceneMatchVersion>6.2.1</luceneMatchVersion>
 
     <!-- Data Directory
 
@@ -594,6 +594,9 @@
             <str name="df">metric</str>
         </lst>
     </requestHandler>
+
+    <!-- A request handler to ingest time series to chronix -->
+    <requestHandler name="/ingest" class="de.qaware.chronix.solr.ingestion.ChronixIngestionHandler"/>
 
 
     <!-- Define an update processor chain for uuids -->

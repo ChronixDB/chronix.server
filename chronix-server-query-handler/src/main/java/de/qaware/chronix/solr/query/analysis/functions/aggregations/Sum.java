@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -26,19 +27,19 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class Sum implements ChronixAggregation<MetricTimeSeries> {
+public final class Sum implements ChronixAggregation<MetricTimeSeries> {
+    /**
+     * Calculates the sum of the values of the given time series
+     *
+     * @param timeSeries the time series
+     * @return the sum of the values
+     */
     @Override
-    public double execute(MetricTimeSeries... args) {
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Sum aggregation needs at least one time series");
-        }
-
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            return Double.NaN;
+            functionValueMap.add(this, Double.NaN);
+            return;
         }
 
         //Else calculate the analysis value
@@ -50,7 +51,7 @@ public class Sum implements ChronixAggregation<MetricTimeSeries> {
 
         }
         //return it
-        return sum;
+        functionValueMap.add(this, sum);
     }
 
     @Override
@@ -62,17 +63,6 @@ public class Sum implements ChronixAggregation<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.SUM;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

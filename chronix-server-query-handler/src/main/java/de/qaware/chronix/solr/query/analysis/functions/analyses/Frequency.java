@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.converter.common.LongList;
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -51,17 +52,17 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     /**
-     * Detects if a points occurs multiple times within a defined time range
+     * The frequency detector splits a time series into windows, counts the data points, and checks if the delta
+     * between two windows is above a predefined threshold.
+     * <p>
+     * The frequency detector splits a time series using the constructor argument.
      *
-     * @param args the time series
-     * @return 1 if there are more points than the defined threshold, otherwise -1
+     * @param functionValueMap
+     * @return true if the time series has a pair of windows 1 and 2 where 2 has th
      */
     @Override
-    public boolean execute(MetricTimeSeries... args) {
-        if (args.length <= 0) {
-            throw new IllegalArgumentException("Frequency needs at least one time series");
-        }
-        MetricTimeSeries timeSeries = args[0];
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+
         LongList timestamps = timeSeries.getTimestamps();
 
         final List<Long> currentWindow = new ArrayList<>();
@@ -98,11 +99,13 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
             int result = current - former;
             if (result >= windowThreshold) {
                 //add the time series as there are more points per window than the threshold
-                return true;
+                functionValueMap.add(this, true, null);
+                return;
             }
         }
         //Nothing bad found
-        return false;
+        functionValueMap.add(this, false, null);
+
     }
 
     @Override
@@ -114,17 +117,6 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
     public FunctionType getType() {
         return FunctionType.FREQUENCY;
     }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
-    }
-
 
     @Override
     public String toString() {

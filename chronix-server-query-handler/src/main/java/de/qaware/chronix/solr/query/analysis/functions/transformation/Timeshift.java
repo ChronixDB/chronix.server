@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -29,7 +30,7 @@ import java.time.temporal.ChronoUnit;
  *
  * @author f.lautenschlager
  */
-public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
+public final class Timeshift implements ChronixTransformation<MetricTimeSeries> {
 
     private final ChronoUnit unit;
     private final long amount;
@@ -48,7 +49,7 @@ public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void transform(MetricTimeSeries timeSeries) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
 
@@ -59,6 +60,7 @@ public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
         }
 
         timeSeries.addAll(times, values);
+        functionValueMap.add(this);
     }
 
     @Override

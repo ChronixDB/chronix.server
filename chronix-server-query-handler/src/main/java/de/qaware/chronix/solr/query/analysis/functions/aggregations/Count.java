@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
@@ -26,18 +27,12 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class Count implements ChronixAggregation<MetricTimeSeries> {
-    @Override
-    public double execute(MetricTimeSeries... args) {
+public final class Count implements ChronixAggregation<MetricTimeSeries> {
 
-        //Sum needs at least one time series
-        if (args.length < 1) {
-            throw new IllegalArgumentException("Count aggregation needs at least one time series");
-        }
-        //Took the first time series
-        MetricTimeSeries timeSeries = args[0];
-        //return the size of the time series
-        return timeSeries.size();
+
+    @Override
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+        functionValueMap.add(this, timeSeries.size());
     }
 
     @Override
@@ -48,16 +43,6 @@ public class Count implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public FunctionType getType() {
         return FunctionType.COUNT;
-    }
-
-    @Override
-    public boolean needSubquery() {
-        return false;
-    }
-
-    @Override
-    public String getSubquery() {
-        return null;
     }
 
 

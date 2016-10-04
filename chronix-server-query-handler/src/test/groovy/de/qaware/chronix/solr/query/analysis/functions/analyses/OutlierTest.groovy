@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses
 
+import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
@@ -33,11 +34,12 @@ class OutlierTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Outlier().execute(ts)
+        new Outlier().execute(ts, analysisResult)
         then:
-        result
+        analysisResult.getAnalysisValue(0)
     }
 
     def "test execute with a time series that has no outlier"() {
@@ -47,25 +49,22 @@ class OutlierTest extends Specification {
             timeSeries.point(it, 4711)
         }
         MetricTimeSeries ts = timeSeries.build()
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        def result = new Outlier().execute(ts)
+        new Outlier().execute(ts, analysisResult)
         then:
-        !result
+        !analysisResult.getAggregationValue(0)
     }
 
     def "test execute with empty time series"() {
-        when:
-        def result = new Outlier().execute(new MetricTimeSeries.Builder("Out").build())
-        then:
-        !result
-    }
+        given:
+        def analysisResult = new FunctionValueMap(1, 1, 1);
 
-    def "test exception behaviour"() {
         when:
-        new Outlier().execute(new MetricTimeSeries[0])
+        new Outlier().execute(new MetricTimeSeries.Builder("Out").build(), analysisResult)
         then:
-        thrown IllegalArgumentException.class
+        !analysisResult.getAggregationValue(0)
     }
 
     def "test need subquery"() {
