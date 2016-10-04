@@ -3,6 +3,7 @@ rootProject.name = 'chronix.server'
 include 'chronix-server-client'
 include 'chronix-server-retention'
 include 'chronix-server-query-handler'
+include 'chronix-server-ingestion-handler'
 
 include 'chronix-server-test-extensions'
 include 'chronix-server-test-integration'

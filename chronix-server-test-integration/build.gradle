@@ -20,6 +20,7 @@ dependencies {
     testCompile project(':chronix-server-test-extensions')
 
     testCompile project(':chronix-server-query-handler')
+    testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-retention')
 }
 task copyTestResources(type: Copy) {
@@ -192,6 +193,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     include("*chronix-api*.jar")
     include("*chronix-kassiopeia*.jar")
     include("*chronix-server-query*.jar")
+    include("*chronix-server-ingestion*.jar")
     include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
