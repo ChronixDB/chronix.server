@@ -336,9 +336,9 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.2'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.2'
-   compile 'de.qaware.chronix:chronix-server-retention:0.2'
+   compile 'de.qaware.chronix:chronix-server-client:0.3'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.3'
+   compile 'de.qaware.chronix:chronix-server-retention:0.3'
 }
 ```
 
@@ -348,10 +348,9 @@ your improvements, to the Chronix projects. All you have to do is to fork this r
 improve the code and issue a pull request.
 
 ## Building Chronix from Scratch
-Everything should run out of the box. The only three things that must be available:
+Everything should run out of the box. The only two things that must be available:
 - Git
 - JDK 1.8
-- Gradle
 
 Just do the following steps:
 
@@ -359,7 +358,7 @@ Just do the following steps:
 cd <checkout-dir>
 git clone https://github.com/ChronixDB/chronix.server.git
 cd chronix.server
-gradle clean build
+./gradlew clean build
 ```
 
 ## Maintainer
