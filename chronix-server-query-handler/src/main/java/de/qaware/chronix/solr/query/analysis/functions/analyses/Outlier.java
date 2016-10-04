@@ -36,14 +36,14 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
      * Detects outliers using the default box plot implementation.
      * An outlier every value that is above (q3-q1)*1.5*q3 where qN is the nth percentile
      *
-     * @param analysisAndValues
+     * @param functionValueMap
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         if (timeSeries.isEmpty()) {
             //TODO: Add result
-            analysisAndValues.add(this, false, null);
+            functionValueMap.add(this, false, null);
             return;
         }
 
@@ -57,11 +57,11 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
             if (point > threshold) {
-                analysisAndValues.add(this, true, null);
+                functionValueMap.add(this, true, null);
                 return;
             }
         }
-        analysisAndValues.add(this, false, null);
+        functionValueMap.add(this, false, null);
     }
 
 

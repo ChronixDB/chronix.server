@@ -49,7 +49,7 @@ public class Subtract implements ChronixTransformation<MetricTimeSeries> {
      * @return the transformed time series
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         long[] timestamps = timeSeries.getTimestampsAsArray();
         double[] values = timeSeries.getValuesAsArray();
 
@@ -60,7 +60,7 @@ public class Subtract implements ChronixTransformation<MetricTimeSeries> {
         }
 
         timeSeries.addAll(timestamps, values);
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     @Override

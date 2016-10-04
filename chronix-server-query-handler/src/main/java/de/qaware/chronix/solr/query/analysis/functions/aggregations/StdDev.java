@@ -35,14 +35,14 @@ public final class StdDev implements ChronixAggregation<MetricTimeSeries> {
      * @return the percentile or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this, Double.NaN);
+            functionValueMap.add(this, Double.NaN);
             return;
         }
         //Else calculate the analysis value
-        analysisAndValues.add(this, de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues()));
+        functionValueMap.add(this, de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues()));
     }
 
     @Override

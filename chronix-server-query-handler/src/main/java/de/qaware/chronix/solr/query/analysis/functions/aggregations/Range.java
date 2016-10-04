@@ -37,10 +37,10 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
      * @return the average or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this, Double.NaN);
+            functionValueMap.add(this, Double.NaN);
             return;
         }
 
@@ -63,7 +63,7 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
             }
         }
         //return the absolute difference
-        analysisAndValues.add(this, Math.abs(max - min));
+        functionValueMap.add(this, Math.abs(max - min));
     }
 
     @Override

@@ -54,7 +54,7 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
     }
 
     @Override
-    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionValueMap analysisAndValues) {
+    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionValueMap functionValueMap) {
         //We have to build a multivariate time series
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
         MultivariateTimeSeries other = buildMultiVariateTimeSeries(timeSeriesPair.second());
@@ -63,7 +63,7 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         //Check the result. If it lower equals the threshold, we can return the other time series
         //TODO: Add the result to the time series
 
-        analysisAndValues.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getMetric());
+        functionValueMap.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getMetric());
 
     }
 

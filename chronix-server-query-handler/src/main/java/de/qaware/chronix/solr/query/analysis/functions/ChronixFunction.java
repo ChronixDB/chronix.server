@@ -18,16 +18,27 @@ package de.qaware.chronix.solr.query.analysis.functions;
 import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 
 /**
- * Created by f.lautenschlager on 04.10.2016.
+ * The generic Chronix function interface
+ *
+ * @param <T> the type of the time series
  */
 public interface ChronixFunction<T> {
-
-    void execute(T timeSeries, FunctionValueMap analysisAndValues);
+    /**
+     * Executes a Chronix function on the given time series. The result should be added to the function value map.
+     *
+     * @param timeSeries       the time series as argument for the chronix function
+     * @param functionValueMap the analysis and values result map
+     */
+    void execute(T timeSeries, FunctionValueMap functionValueMap);
 
     /**
+     * Gets the arguments of the function. Default is an empty string array.
+     *
      * @return the arguments
      */
-    String[] getArguments();
+    default String[] getArguments() {
+        return new String[0];
+    }
 
     /**
      * @return the type of the analysis

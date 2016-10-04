@@ -33,11 +33,11 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     /**
      * Detects trends in time series using a linear regression.
      *
-     * @param analysisAndValues
+     * @param functionValueMap
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //We need to sort the time series for this analysis
         timeSeries.sort();
@@ -45,7 +45,7 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
         //If we have a positive slope, we return 1 otherwise -1
-        analysisAndValues.add(this, slope > 0, null);
+        functionValueMap.add(this, slope > 0, null);
 
     }
 

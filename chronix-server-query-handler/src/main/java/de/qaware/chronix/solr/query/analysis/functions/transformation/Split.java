@@ -37,7 +37,7 @@ public class Split implements ChronixListTransformation<StraceTimeSeries> {
     }
 
     @Override
-    public void execute(StraceTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(StraceTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //TODO: How to store this?
     }
 

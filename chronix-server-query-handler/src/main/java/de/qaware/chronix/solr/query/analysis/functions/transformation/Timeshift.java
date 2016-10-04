@@ -49,7 +49,7 @@ public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         double[] values = timeSeries.getValuesAsArray();
         long[] times = timeSeries.getTimestampsAsArray();
 
@@ -60,7 +60,7 @@ public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
         }
 
         timeSeries.addAll(times, values);
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     @Override

@@ -30,15 +30,15 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the average value of the first time series.
      *
-     * @param analysisAndValues
+     * @param functionValueMap
      * @return the average or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this,Double.NaN);
+            functionValueMap.add(this,Double.NaN);
             return;
         }
 
@@ -48,7 +48,7 @@ public final class Avg implements ChronixAggregation<MetricTimeSeries> {
         for (int i = 0; i < size; i++) {
             current += timeSeries.getValue(i);
         }
-        analysisAndValues.add(this, current / timeSeries.size());
+        functionValueMap.add(this, current / timeSeries.size());
     }
 
     @Override

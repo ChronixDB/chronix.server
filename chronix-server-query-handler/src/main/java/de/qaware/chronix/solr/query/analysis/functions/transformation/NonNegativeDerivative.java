@@ -36,7 +36,7 @@ public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSe
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //we need a sorted time series
         timeSeries.sort();
 
@@ -62,7 +62,7 @@ public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSe
                 timeSeries.add(derivativeTime, derivativeValue);
             }
         }
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     @Override

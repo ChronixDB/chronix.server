@@ -36,10 +36,10 @@ public class Min implements ChronixAggregation<MetricTimeSeries> {
      * @return the minimum or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this, Double.NaN);
+            functionValueMap.add(this, Double.NaN);
             return;
         }
 
@@ -53,7 +53,7 @@ public class Min implements ChronixAggregation<MetricTimeSeries> {
                 min = next;
             }
         }
-        analysisAndValues.add(this, min);
+        functionValueMap.add(this, min);
     }
 
     @Override

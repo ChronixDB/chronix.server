@@ -43,7 +43,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //Calculate the largest values
         NElements.NElementsResult result = NElements.calc(
@@ -56,7 +56,7 @@ public class Top implements ChronixTransformation<MetricTimeSeries> {
         timeSeries.clear();
         //set the new top largest values
         timeSeries.addAll(result.getNTimes(), result.getNValues());
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     @Override

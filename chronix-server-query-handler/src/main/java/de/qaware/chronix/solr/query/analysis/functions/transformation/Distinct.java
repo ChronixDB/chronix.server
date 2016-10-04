@@ -15,70 +15,64 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
+import de.qaware.chronix.converter.common.DoubleList;
+import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * The add transformation
+ * The distinct transformation.
  *
  * @author f.lautenschlager
  */
-public class Add implements ChronixTransformation<MetricTimeSeries> {
-
-    private final double value;
-
+public class Distinct implements ChronixTransformation<MetricTimeSeries> {
     /**
-     * Constructs the add transformation
+     * Transforms a time series into a representation with distinct values.
+     * The distinct operation uses the first occurrence of a point.
      *
-     * @param value the value that is added to each measurement
-     */
-    public Add(double value) {
-        this.value = value;
-    }
-
-    /**
-     * Adds the increment to each value of the time series.
-     * <pre>
-     * foreach(value){
-     *     value += increment;
-     * }
-     * </pre>
-     * @param functionValueMap
+     * @param timeSeries        the time series that is transformed
+     * @param functionValueMap the function value map
      */
     @Override
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
-        if(timeSeries.isEmpty()){
+        if (timeSeries.isEmpty()) {
             return;
         }
 
-        long[] timestamps = timeSeries.getTimestampsAsArray();
-        double[] values = timeSeries.getValuesAsArray();
+        timeSeries.sort();
 
-        timeSeries.clear();
+        LongList timeList = new LongList(timeSeries.size());
+        DoubleList valueList = new DoubleList(timeSeries.size());
 
-        for (int i = 0; i < values.length; i++) {
-            values[i] += value;
+        //We should use a other data structure...
+        Set<Double> distinct = new HashSet<>();
+
+        for (int i = 0; i < timeSeries.size(); i++) {
+            double value = timeSeries.getValue(i);
+
+            if (!distinct.contains(value)) {
+                timeList.add(timeSeries.getTime(i));
+                valueList.add(value);
+                distinct.add(value);
+            }
         }
-
-        timeSeries.addAll(timestamps, values);
+        timeSeries.clear();
+        timeSeries.addAll(timeList, valueList);
 
         functionValueMap.add(this);
     }
 
     @Override
     public FunctionType getType() {
-        return FunctionType.ADD;
-    }
-
-    @Override
-    public String[] getArguments() {
-        return new String[]{"value=" + value};
+        return FunctionType.DISTINCT;
     }
 
 
@@ -93,26 +87,13 @@ public class Add implements ChronixTransformation<MetricTimeSeries> {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        Add rhs = (Add) obj;
         return new EqualsBuilder()
-                .append(this.value, rhs.value)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-                .append(value)
                 .toHashCode();
     }
-
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("value", value)
-                .toString();
-    }
-
-
 }

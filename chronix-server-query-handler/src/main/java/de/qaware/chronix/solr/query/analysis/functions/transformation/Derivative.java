@@ -36,7 +36,7 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -61,7 +61,7 @@ public class Derivative implements ChronixTransformation<MetricTimeSeries> {
 
             timeSeries.add(derivativeTime, derivativeValue);
         }
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
 

@@ -31,8 +31,8 @@ public class Count implements ChronixAggregation<MetricTimeSeries> {
 
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
-        analysisAndValues.add(this, timeSeries.size());
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+        functionValueMap.add(this, timeSeries.size());
     }
 
     @Override

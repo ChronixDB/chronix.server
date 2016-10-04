@@ -35,10 +35,10 @@ public class Sum implements ChronixAggregation<MetricTimeSeries> {
      * @return the sum of the values
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this, Double.NaN);
+            functionValueMap.add(this, Double.NaN);
             return;
         }
 
@@ -51,7 +51,7 @@ public class Sum implements ChronixAggregation<MetricTimeSeries> {
 
         }
         //return it
-        analysisAndValues.add(this, sum);
+        functionValueMap.add(this, sum);
     }
 
     @Override

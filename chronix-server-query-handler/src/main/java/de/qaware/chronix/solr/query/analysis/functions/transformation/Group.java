@@ -38,7 +38,7 @@ public class Group implements ChronixTransformation<LsofTimeSeries> {
     }
 
     @Override
-    public void execute(LsofTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(LsofTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         Map<String, List<Lsof>> values = timeSeries.groupBy(field);
 
@@ -51,7 +51,7 @@ public class Group implements ChronixTransformation<LsofTimeSeries> {
                 timeSeries.getAttributesReference().put(entry.getKey(), entry.getValue().size());
             }
         }
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
 
     }
 

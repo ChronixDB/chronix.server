@@ -41,7 +41,7 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //Get a copy of the values
         double[] values = timeSeries.getValuesAsArray();
@@ -55,7 +55,7 @@ public class Divide implements ChronixTransformation<MetricTimeSeries> {
         timeSeries.clear();
         timeSeries.addAll(times, values);
 
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     @Override

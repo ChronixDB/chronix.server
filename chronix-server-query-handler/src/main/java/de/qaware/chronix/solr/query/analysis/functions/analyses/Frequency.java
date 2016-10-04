@@ -57,11 +57,11 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
      * <p>
      * The frequency detector splits a time series using the constructor argument.
      *
-     * @param analysisAndValues
+     * @param functionValueMap
      * @return true if the time series has a pair of windows 1 and 2 where 2 has th
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         LongList timestamps = timeSeries.getTimestamps();
 
@@ -99,12 +99,12 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
             int result = current - former;
             if (result >= windowThreshold) {
                 //add the time series as there are more points per window than the threshold
-                analysisAndValues.add(this, true, null);
+                functionValueMap.add(this, true, null);
                 return;
             }
         }
         //Nothing bad found
-        analysisAndValues.add(this, false, null);
+        functionValueMap.add(this, false, null);
 
     }
 

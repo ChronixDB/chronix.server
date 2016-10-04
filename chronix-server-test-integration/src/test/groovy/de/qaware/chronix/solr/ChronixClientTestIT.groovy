@@ -290,10 +290,10 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.size() == points
 
         where:
-        analysisQuery << ["function=derivative", "function=nnderivative"]
-        attributeKeys << ["0_function_derivative", "0_function_nnderivative"]
+        analysisQuery << ["function=derivative", "function=nnderivative", "function=distinct"]
+        attributeKeys << ["0_function_derivative", "0_function_nnderivative", "0_function_distinct"]
 
-        points << [9691, 7302]
+        points << [9691, 7302, 15]
     }
 
     def "Test analysis fastdtw"() {

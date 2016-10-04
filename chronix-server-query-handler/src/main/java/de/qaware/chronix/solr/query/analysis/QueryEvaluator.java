@@ -271,6 +271,9 @@ public final class QueryEvaluator {
                 ChronoUnit shiftUnit = ChronoUnit.valueOf(arguments[1].toUpperCase());
                 result.addTransformation(new Timeshift(shiftAmount, shiftUnit));
                 break;
+            case DISTINCT:
+                result.addTransformation(new Distinct());
+                break;
             default:
                 LOGGER.warn("Ignoring {} as a transformation. {} is unknown", type, type);
         }

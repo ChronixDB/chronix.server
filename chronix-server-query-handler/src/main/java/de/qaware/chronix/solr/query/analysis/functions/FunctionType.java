@@ -62,6 +62,7 @@ public enum FunctionType {
     ADD,
     SUB,
     TIMESHIFT,
+    DISTINCT,
     //Strace
     SPLIT,
     //LSOF
@@ -78,7 +79,7 @@ public enum FunctionType {
     static {
         Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF);
         Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
-        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT);
+        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT, DISTINCT);
         Collections.addAll(STRACE, SPLIT);
         Collections.addAll(LSOF, GROUP);
     }

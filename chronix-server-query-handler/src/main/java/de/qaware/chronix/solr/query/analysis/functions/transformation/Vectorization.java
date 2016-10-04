@@ -55,7 +55,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -82,7 +82,7 @@ public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
                 timeSeries.add(rawTimeStamps[i], rawValues[i]);
             }
         }
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
     /**

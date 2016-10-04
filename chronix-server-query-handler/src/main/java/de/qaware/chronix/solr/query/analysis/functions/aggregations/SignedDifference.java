@@ -37,10 +37,10 @@ public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
      * @return the average or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            analysisAndValues.add(this, Double.NaN);
+            functionValueMap.add(this, Double.NaN);
             return;
         }
 
@@ -52,24 +52,24 @@ public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
 
         //both values are negative
         if (first < 0 && last < 0) {
-            analysisAndValues.add(this, last - first);
+            functionValueMap.add(this, last - first);
             return;
         }
 
         //both value are positive
         if (first > 0 && last > 0) {
-            analysisAndValues.add(this, last - first);
+            functionValueMap.add(this, last - first);
             return;
         }
 
         //start is negative and end is positive
         if (first < 0 && last > 0) {
-            analysisAndValues.add(this, last - first);
+            functionValueMap.add(this, last - first);
             return;
         }
 
         //start is positive and end is negative
-        analysisAndValues.add(this, last - first);
+        functionValueMap.add(this, last - first);
     }
 
     @Override

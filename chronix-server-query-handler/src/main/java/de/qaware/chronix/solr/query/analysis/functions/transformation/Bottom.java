@@ -43,13 +43,13 @@ public class Bottom implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
         NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
 
         //remove old time series
         timeSeries.clear();
         timeSeries.addAll(result.getNTimes(), result.getNValues());
-        analysisAndValues.add(this);
+        functionValueMap.add(this);
     }
 
 
