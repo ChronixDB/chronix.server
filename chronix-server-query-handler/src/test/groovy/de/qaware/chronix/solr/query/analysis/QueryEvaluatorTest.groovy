@@ -58,14 +58,15 @@ class QueryEvaluatorTest extends Specification {
                 ["function=range"] as String[],
                 ["function=diff"] as String[],
                 ["function=sdiff"] as String[],
-                ["function=p:0.4"] as String[]
+                ["function=p:0.4"] as String[],
+                ["function=integral"] as String[]
         ]
 
         expectedType << [FunctionType.MIN, FunctionType.MAX, FunctionType.AVG, FunctionType.DEV, FunctionType.SUM,
                          FunctionType.COUNT, FunctionType.FIRST, FunctionType.LAST, FunctionType.RANGE,
-                         FunctionType.DIFF, FunctionType.SDIFF, FunctionType.P]
+                         FunctionType.DIFF, FunctionType.SDIFF, FunctionType.P, FunctionType.INTEGRAL]
         expectedArguments << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
-                              new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[]]
+                              new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[], new String[0]]
     }
 
     def "test analysis query"() {

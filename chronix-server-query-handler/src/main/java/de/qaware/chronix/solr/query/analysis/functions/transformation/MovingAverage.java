@@ -30,7 +30,7 @@ import java.time.temporal.ChronoUnit;
  *
  * @author f.lautenschlager
  */
-public class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
+public final class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
 
     private final long timeSpan;
     private final ChronoUnit unit;

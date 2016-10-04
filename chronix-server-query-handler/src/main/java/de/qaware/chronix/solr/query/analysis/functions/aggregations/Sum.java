@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class Sum implements ChronixAggregation<MetricTimeSeries> {
+public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the sum of the values of the given time series
      *

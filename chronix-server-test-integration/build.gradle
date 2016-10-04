@@ -14,6 +14,7 @@ dependencies {
     testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
     testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
 
+    testCompile 'org.apache.commons:commons-math3:3.6.1'
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
@@ -194,6 +195,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
+    include("*commons-math3-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")

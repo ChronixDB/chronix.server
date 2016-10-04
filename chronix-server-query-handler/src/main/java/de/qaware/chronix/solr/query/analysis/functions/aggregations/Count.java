@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class Count implements ChronixAggregation<MetricTimeSeries> {
+public final class Count implements ChronixAggregation<MetricTimeSeries> {
 
 
     @Override

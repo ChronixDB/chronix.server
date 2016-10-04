@@ -194,6 +194,9 @@ public final class QueryEvaluator {
                 double p = Double.parseDouble(arguments[0]);
                 result.addAggregation(new Percentile(p));
                 break;
+            case INTEGRAL:
+                result.addAggregation(new Integral());
+                break;
             default:
                 LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", type, type);
         }

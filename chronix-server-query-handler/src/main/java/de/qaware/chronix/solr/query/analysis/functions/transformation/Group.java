@@ -24,9 +24,11 @@ import de.qaware.chronix.timeseries.LsofTimeSeries;
 import java.util.*;
 
 /**
- * Created by f.lautenschlager on 25.09.2016.
+ * Group transformation for the lsof time series (experimental)
+ *
+ * @author f.lautenschlager
  */
-public class Group implements ChronixTransformation<LsofTimeSeries> {
+public final class Group implements ChronixTransformation<LsofTimeSeries> {
 
 
     private final Set<String> filterValues;

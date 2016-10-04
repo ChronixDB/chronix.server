@@ -32,7 +32,7 @@ import java.util.Set;
  *
  * @author f.lautenschlager
  */
-public class Distinct implements ChronixTransformation<MetricTimeSeries> {
+public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Transforms a time series into a representation with distinct values.
      * The distinct operation uses the first occurrence of a point.

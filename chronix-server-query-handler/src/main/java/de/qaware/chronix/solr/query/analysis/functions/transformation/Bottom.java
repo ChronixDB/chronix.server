@@ -29,7 +29,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public class Bottom implements ChronixTransformation<MetricTimeSeries> {
+public final class Bottom implements ChronixTransformation<MetricTimeSeries> {
 
     private final int value;
 

@@ -28,7 +28,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
+public final class SignedDifference implements ChronixAggregation<MetricTimeSeries> {
 
     /**
      * Calculate the difference between the first and the last value of a given time series

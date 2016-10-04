@@ -29,7 +29,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * @author f.lautenschlager
  */
-public class NonNegativeDerivative implements ChronixTransformation<MetricTimeSeries> {
+public final class NonNegativeDerivative implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Calculates the derivative of the time series
      *

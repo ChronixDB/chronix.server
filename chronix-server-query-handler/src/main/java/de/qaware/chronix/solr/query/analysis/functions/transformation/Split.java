@@ -21,9 +21,11 @@ import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.timeseries.StraceTimeSeries;
 
 /**
- * Created by f.lautenschlager on 25.09.2016.
+ * Split operation for the strace time series (experimental)
+ *
+ * @author f.lautenschlager
  */
-public class Split implements ChronixListTransformation<StraceTimeSeries> {
+public final class Split implements ChronixListTransformation<StraceTimeSeries> {
 
     /*@Override
     public List<StraceTimeSeries> exeute(StraceTimeSeries timeSeries, FunctionValueMap analysisAndValues) {

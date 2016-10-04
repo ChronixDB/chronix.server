@@ -30,7 +30,7 @@ import java.util.Arrays;
  *
  * @author f.lautenschlager
  */
-public class Vectorization implements ChronixTransformation<MetricTimeSeries> {
+public final class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
     private final float tolerance;
 

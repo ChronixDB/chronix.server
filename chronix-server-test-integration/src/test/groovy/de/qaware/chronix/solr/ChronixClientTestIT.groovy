@@ -209,7 +209,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= points
+        selectedTimeSeries.size() <= 0
         selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
         selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
         selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
@@ -221,8 +221,9 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["function=max", "function=min", "function=avg", "function=p:0.25", "function=dev", "function=sum",
-                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range"]
-        points << [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range",
+                          "function=integral"
+        ]
     }
 
     @Unroll

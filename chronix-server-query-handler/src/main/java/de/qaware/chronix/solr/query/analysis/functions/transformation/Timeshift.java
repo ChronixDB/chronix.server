@@ -30,7 +30,7 @@ import java.time.temporal.ChronoUnit;
  *
  * @author f.lautenschlager
  */
-public class Timeshift implements ChronixTransformation<MetricTimeSeries> {
+public final class Timeshift implements ChronixTransformation<MetricTimeSeries> {
 
     private final ChronoUnit unit;
     private final long amount;

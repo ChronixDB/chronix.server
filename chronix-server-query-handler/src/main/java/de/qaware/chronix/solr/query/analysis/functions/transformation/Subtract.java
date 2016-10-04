@@ -28,7 +28,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  *
  * @author f.lautenschlager
  */
-public class Subtract implements ChronixTransformation<MetricTimeSeries> {
+public final class Subtract implements ChronixTransformation<MetricTimeSeries> {
 
     private final double value;
 

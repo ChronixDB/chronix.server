@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  *
  * @author f.lautenschlager
  */
-public class Divide implements ChronixTransformation<MetricTimeSeries> {
+public final class Divide implements ChronixTransformation<MetricTimeSeries> {
 
     private final double value;
 

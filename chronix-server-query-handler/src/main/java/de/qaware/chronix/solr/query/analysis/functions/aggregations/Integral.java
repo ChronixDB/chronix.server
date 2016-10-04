@@ -13,67 +13,46 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis.functions.transformation;
+package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
 import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
+import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
-import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.math3.analysis.integration.SimpsonIntegrator;
 
 /**
- * The derivative transformation
+ * Integral aggregation
  *
  * @author f.lautenschlager
  */
-public final class Derivative implements ChronixTransformation<MetricTimeSeries> {
+public final class Integral implements ChronixAggregation<MetricTimeSeries> {
+
     /**
-     * Calculates the derivative of the values per second.
-     * Returns a time series holding that values.
+     * Calculates the integral of the given time series using the simpson integrator of commons math lib
      *
-     * @param timeSeries the time series that is transformed
+     * @param timeSeries       the time series as argument for the chronix function
+     * @param functionValueMap the analysis and values result map
      */
     @Override
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
-        //we need a sorted time series
-        timeSeries.sort();
-
-        long[] times = timeSeries.getTimestampsAsArray();
-        double[] values = timeSeries.getValuesAsArray();
-
-        //Clear the time series
-        timeSeries.clear();
-
-        for (int i = 1; i < values.length - 1; i++) {
-
-            long yT1 = times[i + 1];
-            long yT0 = times[i - 1];
-
-            double xT1 = values[i + 1];
-            double xT0 = values[i - 1];
-
-            double derivativeValue = DerivativeUtil.derivative(xT1, xT0, yT1, yT0);
-            //We use the average time of
-            long derivativeTime = yT1 + (yT1 - yT0) / 2;
-
-            timeSeries.add(derivativeTime, derivativeValue);
+        if (timeSeries.isEmpty()) {
+            functionValueMap.add(this, Double.NaN);
+            return;
         }
-        functionValueMap.add(this);
-    }
 
+        SimpsonIntegrator simpsonIntegrator = new SimpsonIntegrator();
+        double integral = simpsonIntegrator.integrate(Integer.MAX_VALUE, x -> timeSeries.getValue((int) x), 0, timeSeries.size() - 1);
+
+        functionValueMap.add(this, integral);
+    }
 
     @Override
     public FunctionType getType() {
-        return FunctionType.DERIVATIVE;
-    }
-
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
+        return FunctionType.INTEGRAL;
     }
 
 
@@ -97,5 +76,4 @@ public final class Derivative implements ChronixTransformation<MetricTimeSeries>
         return new HashCodeBuilder()
                 .toHashCode();
     }
-
 }
