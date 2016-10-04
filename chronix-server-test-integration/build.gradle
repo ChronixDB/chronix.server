@@ -7,12 +7,9 @@ sonarqube {
 dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.1'
     testCompile 'commons-codec:commons-codec:1.10'
-    testCompile 'org.apache.solr:solr-solrj:6.1.0'
+    testCompile 'org.apache.solr:solr-solrj:6.2.1'
 
     testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.2'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.2'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.2'
 
 
     testCompile project(':chronix-server-client')
@@ -144,7 +141,7 @@ pluginBundle {
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.1.0"
+def solrVersion = "6.2.0"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
