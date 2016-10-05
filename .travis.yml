@@ -5,7 +5,6 @@ jdk:
 
 before_install:
     - chmod +x gradlew
-    - curl "http://archive.apache.org/dist/lucene/solr/6.2.1/solr-6.2.1.zip" -O solr-6.2.1.zip
 
 script: ./gradlew -d build jacocoTestReport
 
