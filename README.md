@@ -162,6 +162,8 @@ There are three types of functions: Aggregations, Transformations, and High-leve
 
 Currently the following functions are available:
 
+(See the GPL2 branch that has more functions)
+
 - Maximum (function=max)
 - Minimum (function=min)
 - Average (function=avg)
