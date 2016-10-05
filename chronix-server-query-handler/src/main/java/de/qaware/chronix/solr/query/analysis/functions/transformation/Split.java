@@ -19,6 +19,8 @@ import de.qaware.chronix.solr.query.analysis.functions.ChronixListTransformation
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.timeseries.StraceTimeSeries;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Split operation for the strace time series (experimental)
@@ -26,6 +28,8 @@ import de.qaware.chronix.timeseries.StraceTimeSeries;
  * @author f.lautenschlager
  */
 public final class Split implements ChronixListTransformation<StraceTimeSeries> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Split.class);
 
     /*@Override
     public List<StraceTimeSeries> exeute(StraceTimeSeries timeSeries, FunctionValueMap analysisAndValues) {
@@ -40,12 +44,7 @@ public final class Split implements ChronixListTransformation<StraceTimeSeries> 
 
     @Override
     public void execute(StraceTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        //TODO: How to store this?
-    }
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
+        LOGGER.info("Split is currently not implemented");
     }
 
 }

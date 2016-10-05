@@ -51,6 +51,7 @@ public final class CSVImporter {
     public static final List<Long> LIST_LONG_FIELD = Lists.newArrayList(11L, 25L);
     public static final List<Double> LIST_DOUBLE_FIELD = Lists.newArrayList(1.5D, 2.6D);
     public static final byte[] BYTES = "String as byte".getBytes();
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVImporter.class);
 
 
