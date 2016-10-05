@@ -5,16 +5,14 @@ sonarqube {
 }
 
 dependencies {
-    testCompile 'org.apache.commons:commons-lang3:3.1'
-    testCompile 'commons-codec:commons-codec:1.10'
-    testCompile 'org.apache.solr:solr-solrj:6.2.1'
+    compile 'org.apache.commons:commons-lang3:3.1'
+    compile 'commons-codec:commons-codec:1.10'
+    compile 'org.apache.solr:solr-solrj:6.2.1'
 
-    testCompile 'de.qaware.chronix:chronix-api:0.1'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
-    testCompile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
-
-    testCompile 'org.apache.commons:commons-math3:3.6.1'
+    compile 'de.qaware.chronix:chronix-api:0.1'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
