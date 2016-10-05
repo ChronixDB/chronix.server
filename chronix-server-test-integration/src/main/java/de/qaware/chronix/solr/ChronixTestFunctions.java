@@ -29,22 +29,21 @@ import java.util.function.Function;
  */
 public final class ChronixTestFunctions {
 
-    private ChronixTestFunctions() {
-        //avoid instances
-    }
-
-    public static final Function<MetricTimeSeries, String> groupBy = ts -> String.valueOf(ts.attribute("host")) + "-" +
+    public static final Function<MetricTimeSeries, String> GROUP_BY = ts -> String.valueOf(ts.attribute("host")) + "-" +
             ts.attribute("source") + "-" +
             ts.attribute("group") + "-" +
             ts.getMetric();
-
-    public static final BinaryOperator<MetricTimeSeries> reduce = (t1, t2) -> {
+    public static final BinaryOperator<MetricTimeSeries> REDUCE = (t1, t2) -> {
         MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
                 .points(concat(t1.getTimestamps(), t2.getTimestamps()),
                         concat(t1.getValues(), t2.getValues()))
                 .attributes(t1.attributes());
         return reduced.build();
     };
+
+    private ChronixTestFunctions() {
+        //avoid instances
+    }
 
     private static DoubleList concat(DoubleList first, DoubleList second) {
         first.addAll(second);

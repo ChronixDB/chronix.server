@@ -52,7 +52,7 @@ class ChronixClientTestIT extends Specification {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.groupBy, ChronixTestFunctions.reduce))
+        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(30_000)
