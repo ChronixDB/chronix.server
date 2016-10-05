@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
@@ -43,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author f.lautenschlager
  */
-public class CSVImporter {
+public final class CSVImporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVImporter.class);
 
@@ -52,15 +51,7 @@ public class CSVImporter {
     public static final List<Long> LIST_LONG_FIELD = Lists.newArrayList(11L, 25L);
     public static final List<Double> LIST_DOUBLE_FIELD = Lists.newArrayList(1.5D, 2.6D);
 
-    public static byte[] bytes;
-
-    static {
-        try {
-            bytes = "String as byte".getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            //Does not happen
-        }
-    }
+    public static byte[] BYTES = "String as byte".getBytes();
 
     /**
      * Reads csv data from the resources dir 'timeSeries' and imports them to Chronix.
@@ -73,7 +64,12 @@ public class CSVImporter {
         File tsDir = new File(url.toURI());
         File[] files = tsDir.listFiles();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
+        if (files == null) {
+            LOGGER.warn("No files found. Returning");
+            return;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS", Locale.GERMAN);
 
         for (File file : files) {
             LOGGER.info("Processing file {}", file);
@@ -102,7 +98,7 @@ public class CSVImporter {
                                     .attribute("myIntField", 5)
                                     .attribute("myLongField", 8L)
                                     .attribute("myDoubleField", 5.5D)
-                                    .attribute("myByteField", bytes)
+                                    .attribute("myByteField", BYTES)
                                     .attribute("myStringList", LIST_STRING_FIELD)
                                     .attribute("myIntList", LIST_INT_FIELD)
                                     .attribute("myLongList", LIST_LONG_FIELD)

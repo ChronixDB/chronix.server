@@ -27,14 +27,18 @@ import java.util.function.Function;
  *
  * @author f.lautenschlager
  */
-public class ChronixTestFunctions {
+public final class ChronixTestFunctions {
 
-    public static Function<MetricTimeSeries, String> groupBy = ts -> String.valueOf(ts.attribute("host")) + "-" +
+    private ChronixTestFunctions() {
+        //avoid instances
+    }
+
+    public static final Function<MetricTimeSeries, String> groupBy = ts -> String.valueOf(ts.attribute("host")) + "-" +
             ts.attribute("source") + "-" +
             ts.attribute("group") + "-" +
             ts.getMetric();
 
-    public static BinaryOperator<MetricTimeSeries> reduce = (t1, t2) -> {
+    public static final BinaryOperator<MetricTimeSeries> reduce = (t1, t2) -> {
         MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
                 .points(concat(t1.getTimestamps(), t2.getTimestamps()),
                         concat(t1.getValues(), t2.getValues()))

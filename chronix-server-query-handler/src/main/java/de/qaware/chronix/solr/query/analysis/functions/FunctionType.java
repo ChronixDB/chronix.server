@@ -40,12 +40,6 @@ public enum FunctionType {
     DIFF,
     SDIFF,
     INTEGRAL,
-    //Pre-Aggregations
-    PRE_AVG,
-    PRE_MIN,
-    PRE_MAX,
-    PRE_SUM,
-    PRE_COUNT,
     //Analysis
     TREND,
     OUTLIER,
@@ -78,7 +72,7 @@ public enum FunctionType {
     private static final Set<FunctionType> LSOF = new HashSet<>();
 
     static {
-        Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF,INTEGRAL);
+        Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF, INTEGRAL);
         Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
         Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT, DISTINCT);
         Collections.addAll(STRACE, SPLIT);
@@ -115,10 +109,22 @@ public enum FunctionType {
         return TRANSFORMATIONS.contains(type);
     }
 
+    /**
+     * Checks if the given type is a lsof function
+     *
+     * @param type the type
+     * @return true if the type belongs to lsof
+     */
     public static boolean isLsof(FunctionType type) {
         return LSOF.contains(type);
     }
 
+    /**
+     * Checks if the given type is strace function
+     *
+     * @param type the type
+     * @return true if the type belongs to strace
+     */
     public static boolean isStrace(FunctionType type) {
         return STRACE.contains(type);
     }

@@ -22,14 +22,12 @@ import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
-import de.qaware.chronix.converter.serializer.ProtoBufFormatLsofSerializer;
-import de.qaware.chronix.converter.serializer.ProtoBufFormatStraceSerializer;
 import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
-import de.qaware.chronix.timeseries.*;
+import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -73,36 +71,6 @@ public final class SolrDocumentBuilder {
 
 
         return collectedDocs;
-    }
-
-    public static SolrDocument buildDocument(LsofTimeSeries timeSeries, FunctionValueMap functionValues, String key, boolean dataShouldReturned, boolean dataAsJson) {
-
-        //Convert the document
-        SolrDocument doc = convert(timeSeries, dataShouldReturned);
-        //add the join key
-        doc.put(ChronixQueryParams.JOIN_KEY, key);
-        //Only add if we have function values
-        if (functionValues != null) {
-            //Add the function results
-            addAnalysesAndResults(functionValues, doc);
-        }
-
-        return doc;
-    }
-
-    public static SolrDocument buildDocument(StraceTimeSeries timeSeries, FunctionValueMap functionValues, String key, boolean dataShouldReturned, boolean dataAsJson) {
-
-        //Convert the document
-        SolrDocument doc = convert(timeSeries, dataShouldReturned);
-        //add the join key
-        doc.put(ChronixQueryParams.JOIN_KEY, key);
-        //Only add if we have function values
-        if (functionValues != null) {
-            //Add the function results
-            addAnalysesAndResults(functionValues, doc);
-        }
-
-        return doc;
     }
 
     /**
@@ -190,91 +158,6 @@ public final class SolrDocumentBuilder {
             counter++;
         }
     }
-
-    public static LsofTimeSeries reduceDocumentToLSOFTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents, boolean decompress) {
-        //Collect all document of a time series
-
-        LongList timestamps = null;
-        Map<String, Object> attributes = new HashMap<>();
-        String metric = null;
-
-        List<List<Lsof>> values = new ArrayList<>();
-        for (SolrDocument doc : documents) {
-            LsofTimeSeries ts = convertLSOF(doc, queryStart, queryEnd, decompress);
-
-            //only if we decompress the data.
-            if (decompress) {
-                //Performance optimization. Avoiding fine grained growing.
-                if (timestamps == null) {
-                    int size = ts.size();
-                    if (size < 1000) {
-                        //well we have a small time series
-                        size = 1000;
-                    }
-                    int calcAmountOfPoints = documents.size() * size;
-                    timestamps = new LongList(calcAmountOfPoints);
-                }
-
-                timestamps.addAll(ts.getTimestampsAsArray());
-                values.addAll(ts.getValues());
-            }
-
-            //we use the metric of the first time series.
-            //metric is the default join key.
-            if (metric == null) {
-                metric = ts.getMetric();
-            }
-            merge(attributes, ts.getAttributesReference());
-        }
-
-        return new LsofTimeSeries.Builder(metric)
-                .points(timestamps, values)
-                .attributes(attributes)
-                .build();
-    }
-
-
-    public static StraceTimeSeries reduceDocumentToStraceTimeSeries(long queryStart, long queryEnd, List<SolrDocument> documents, boolean decompress) {
-
-        LongList timestamps = null;
-        Map<String, Object> attributes = new HashMap<>();
-        String metric = null;
-
-        List<Strace> values = new ArrayList<>();
-        for (SolrDocument doc : documents) {
-            StraceTimeSeries ts = convertStrace(doc, queryStart, queryEnd, decompress);
-
-            //only if we decompress the data.
-            if (decompress) {
-                //Performance optimization. Avoiding fine grained growing.
-                if (timestamps == null) {
-                    int size = ts.size();
-                    if (size < 1000) {
-                        //well we have a small time series
-                        size = 1000;
-                    }
-                    int calcAmountOfPoints = documents.size() * size;
-                    timestamps = new LongList(calcAmountOfPoints);
-                }
-
-                timestamps.addAll(ts.getTimestampsAsArray());
-                values.addAll(ts.getValues());
-            }
-
-            //we use the metric of the first time series.
-            //metric is the default join key.
-            if (metric == null) {
-                metric = ts.getMetric();
-            }
-            merge(attributes, ts.getAttributesReference());
-        }
-
-        return new StraceTimeSeries.Builder(metric)
-                .points(timestamps, values)
-                .attributes(attributes)
-                .build();
-    }
-
 
     /**
      * Collects the documents into a single time series.
@@ -369,62 +252,6 @@ public final class SolrDocumentBuilder {
         }
     }
 
-    private static LsofTimeSeries convertLSOF(SolrDocument doc, long queryStart, long queryEnd, boolean decompress) {
-
-        String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
-        long tsStart = (long) doc.getFieldValue(Schema.START);
-        long tsEnd = (long) doc.getFieldValue(Schema.END);
-        byte[] data = ((ByteBuffer) doc.getFieldValue(Schema.DATA)).array();
-
-        LsofTimeSeries.Builder ts = new LsofTimeSeries.Builder(metric);
-
-        for (Map.Entry<String, Object> field : doc) {
-            if (MetricTSSchema.isUserDefined(field.getKey())) {
-                if (field.getValue() instanceof ByteBuffer) {
-                    ts.attribute(field.getKey(), ((ByteBuffer) field.getValue()).array());
-                } else {
-                    ts.attribute(field.getKey(), field.getValue());
-                }
-
-            }
-        }
-        //No data is requested, hence we do not decompress it
-        if (decompress) {
-            InputStream decompressed = Compression.decompressToStream(data);
-            ProtoBufFormatLsofSerializer.from(decompressed, tsStart, tsEnd, queryStart, queryEnd, ts);
-            IOUtils.closeQuietly(decompressed);
-        }
-        return ts.build();
-    }
-
-    private static StraceTimeSeries convertStrace(SolrDocument doc, long queryStart, long queryEnd, boolean decompress) {
-        String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
-        long tsStart = (long) doc.getFieldValue(Schema.START);
-        long tsEnd = (long) doc.getFieldValue(Schema.END);
-        byte[] data = ((ByteBuffer) doc.getFieldValue(Schema.DATA)).array();
-
-        StraceTimeSeries.Builder ts = new StraceTimeSeries.Builder(metric);
-
-        for (Map.Entry<String, Object> field : doc) {
-            if (MetricTSSchema.isUserDefined(field.getKey())) {
-                if (field.getValue() instanceof ByteBuffer) {
-                    ts.attribute(field.getKey(), ((ByteBuffer) field.getValue()).array());
-                } else {
-                    ts.attribute(field.getKey(), field.getValue());
-                }
-
-            }
-        }
-        //No data is requested, hence we do not decompress it
-        if (decompress) {
-            InputStream decompressed = Compression.decompressToStream(data);
-            ProtoBufFormatStraceSerializer.from(decompressed, tsStart, tsEnd, queryStart, queryEnd, ts);
-            IOUtils.closeQuietly(decompressed);
-        }
-        return ts.build();
-    }
-
-
     /**
      * Converts the given solr document in a metric time series
      *
@@ -460,65 +287,6 @@ public final class SolrDocumentBuilder {
             IOUtils.closeQuietly(decompressed);
         }
         return ts.build();
-    }
-
-    /**
-     * Converts the given time series in a solr document
-     *
-     * @param timeSeries the time series
-     * @param withData   flag to indicate if with data or without
-     * @return the filled solr document
-     */
-    private static SolrDocument convert(LsofTimeSeries timeSeries, boolean withData) {
-
-        SolrDocument doc = new SolrDocument();
-
-        if (withData) {
-            byte[] data;
-            //ensure that the returned data is sorted
-            timeSeries.sort();
-            //data should returned serialized as json
-
-            data = ProtoBufFormatLsofSerializer.to(timeSeries.points().iterator());
-            //compress data
-            data = Compression.compress(data);
-            doc.addField(Schema.DATA, data);
-        }
-
-
-        timeSeries.attributes().forEach(doc::addField);
-        //add the metric field as it is not stored in the attributes
-        doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
-        doc.addField(Schema.START, timeSeries.getStart());
-        doc.addField(Schema.END, timeSeries.getEnd());
-
-        return doc;
-    }
-
-    private static SolrDocument convert(StraceTimeSeries timeSeries, boolean withData) {
-
-        SolrDocument doc = new SolrDocument();
-
-        if (withData) {
-            byte[] data;
-            //ensure that the returned data is sorted
-            timeSeries.sort();
-            //data should returned serialized as json
-
-            data = ProtoBufFormatStraceSerializer.to(timeSeries.points().iterator());
-            //compress data
-            data = Compression.compress(data);
-            doc.addField(Schema.DATA, data);
-        }
-
-
-        timeSeries.attributes().forEach(doc::addField);
-        //add the metric field as it is not stored in the attributes
-        doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
-        doc.addField(Schema.START, timeSeries.getStart());
-        doc.addField(Schema.END, timeSeries.getEnd());
-
-        return doc;
     }
 
     /**
