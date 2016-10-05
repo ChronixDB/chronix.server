@@ -52,7 +52,7 @@ class ChronixClientTestIT extends Specification {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.groupBy, ChronixTestFunctions.reduce))
+        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(30_000)
@@ -85,7 +85,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == CSVImporter.bytes
+        selectedTimeSeries.attribute("myByteField") == CSVImporter.BYTES
         selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
         selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
         selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
@@ -274,7 +274,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myIntField")[0] == 5
         selectedTimeSeries.attribute("myLongField")[0] == 8L
         selectedTimeSeries.attribute("myDoubleField")[0] == 5.5d
-        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.bytes
+        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.BYTES
         selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
         selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
         selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD

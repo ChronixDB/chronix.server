@@ -71,12 +71,6 @@ public final class NonNegativeDerivative implements ChronixTransformation<Metric
     }
 
     @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-
-    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

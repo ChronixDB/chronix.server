@@ -34,6 +34,12 @@ public final class Group implements ChronixTransformation<LsofTimeSeries> {
     private final Set<String> filterValues;
     private final String field;
 
+    /**
+     * Groups a time series on a given field and returns only values that are defined int he values field
+     *
+     * @param field  the field that is grouped
+     * @param values the values are returned
+     */
     public Group(String field, String[] values) {
         this.field = field;
         this.filterValues = new HashSet<>(Arrays.asList(values));

@@ -70,13 +70,6 @@ public final class Derivative implements ChronixTransformation<MetricTimeSeries>
         return FunctionType.DERIVATIVE;
     }
 
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

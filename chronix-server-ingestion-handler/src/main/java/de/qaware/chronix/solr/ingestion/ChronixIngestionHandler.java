@@ -46,6 +46,7 @@ public class ChronixIngestionHandler extends RequestHandlerBase implements SolrC
     }
 
     @Override
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         //Check: https://cwiki.apache.org/confluence/display/solr/Uploading+Data+with+Index+Handlers
         //TODO: Handle the request
@@ -58,8 +59,8 @@ public class ChronixIngestionHandler extends RequestHandlerBase implements SolrC
 
         //2) Converter to time series
         MetricTimeSeries ts = new MetricTimeSeries.Builder("cpu_load_short")
-                .attribute("host","server02")
-                .attribute("region","us-west")
+                .attribute("host", "server02")
+                .attribute("region", "us-west")
                 .point(Instant.now().toEpochMilli(), 2061d)
                 .build();
 
