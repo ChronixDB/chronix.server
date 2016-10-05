@@ -172,7 +172,7 @@ tasks.coveralls {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
+    gradleVersion = '3.1'
 }
 
 sonarqube {
