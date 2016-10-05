@@ -5,6 +5,7 @@ jdk:
 
 before_install:
     - chmod +x gradlew
+    - curl https://archive.apache.org/dist/lucene/solr/6.2.1/solr-6.2.1.zip -O /home/travis/build/ChronixDB/chronix.server/chronix-server-test-integration/build/solr-6.2.1.zip
 
 script: ./gradlew -d build jacocoTestReport
 
