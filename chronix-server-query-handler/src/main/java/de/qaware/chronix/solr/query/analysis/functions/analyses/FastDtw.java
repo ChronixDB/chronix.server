@@ -20,9 +20,9 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixPairAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -61,8 +61,6 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        //TODO: Add the result to the time series
-
         functionValueMap.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getMetric());
 
     }

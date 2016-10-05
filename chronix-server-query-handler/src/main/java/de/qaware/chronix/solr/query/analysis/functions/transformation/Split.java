@@ -15,9 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixListTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.timeseries.StraceTimeSeries;
 
 /**

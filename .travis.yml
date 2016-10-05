@@ -5,9 +5,10 @@ jdk:
 
 before_install:
     - chmod +x gradlew
+    - curl "http://archive.apache.org/dist/lucene/solr/6.2.1/solr-6.2.1.zip" -O solr-6.2.1.zip
 
-script: ./gradlew build jacocoTestReport
+script: ./gradlew -d build jacocoTestReport
 
 after_success: 
-    - ./gradlew jacocoRootReport coveralls
+    - ./gradlew -d jacocoRootReport coveralls
     - python <(curl -s https://raw.githubusercontent.com/TouK/sputnik-ci/master/sputnik-ci.py)

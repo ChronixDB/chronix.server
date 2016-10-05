@@ -19,6 +19,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixFunction;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
@@ -45,12 +46,9 @@ import java.util.*;
 public class AnalysisHandler extends SearchHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalysisHandler.class);
-
-    private final DocListProvider docListProvider;
-
-    private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
-
     private static final String DATA_WITH_LEADING_AND_TRAILING_COMMA = "," + Schema.DATA + ",";
+    private final DocListProvider docListProvider;
+    private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
     /**
      * Constructs an isAggregation handler
@@ -59,6 +57,30 @@ public class AnalysisHandler extends SearchHandler {
      */
     public AnalysisHandler(DocListProvider docListProvider) {
         this.docListProvider = docListProvider;
+    }
+
+    private static boolean hasMatchingAnalyses(FunctionValueMap functionValueMap) {
+        if (functionValueMap == null || functionValueMap.sizeOfAnalyses() == 0) {
+            return false;
+        } else {
+            //Analyses
+            //-> return the document if the value is true
+            for (int i = 0; i < functionValueMap.sizeOfAnalyses(); i++) {
+                //we have found a positive analysis, lets return the document
+                if (functionValueMap.getAnalysisValue(i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * @param functionValueMap the function value map
+     * @return false if the the function value map is null or if there are no transformations and aggregations
+     */
+    private static boolean hasTransformationsOrAggregations(FunctionValueMap functionValueMap) {
+        return functionValueMap != null && functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
     }
 
     /**
@@ -171,31 +193,6 @@ public class AnalysisHandler extends SearchHandler {
             }
         });
         return resultDocuments;
-    }
-
-
-    private static boolean hasMatchingAnalyses(FunctionValueMap functionValueMap) {
-        if (functionValueMap == null || functionValueMap.sizeOfAnalyses() == 0) {
-            return false;
-        } else {
-            //Analyses
-            //-> return the document if the value is true
-            for (int i = 0; i < functionValueMap.sizeOfAnalyses(); i++) {
-                //we have found a positive analysis, lets return the document
-                if (functionValueMap.getAnalysisValue(i)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * @param functionValueMap the function value map
-     * @return false if the the function value map is null or if there are no transformations and aggregations
-     */
-    private static boolean hasTransformationsOrAggregations(FunctionValueMap functionValueMap) {
-        return functionValueMap != null && functionValueMap.sizeOfTransformations() + functionValueMap.sizeOfAggregations() > 0;
     }
 
     /**

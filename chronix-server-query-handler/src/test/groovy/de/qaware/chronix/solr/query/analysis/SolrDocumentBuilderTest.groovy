@@ -22,6 +22,7 @@ import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.converter.common.DoubleList
 import de.qaware.chronix.converter.common.LongList
 import de.qaware.chronix.solr.query.ChronixQueryParams
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Percentile
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
