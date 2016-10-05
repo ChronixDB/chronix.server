@@ -16,9 +16,9 @@
 package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.converter.common.DoubleList;
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;

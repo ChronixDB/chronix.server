@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis
+package de.qaware.chronix.solr.query.analysis.functions
 
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
@@ -21,7 +21,6 @@ import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorizat
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /**
  * Unit test for the analysis value map
  * @author f.lautenschlager
