@@ -113,7 +113,7 @@ Hence there is no need to build a custom modified Solr.
 We just plug the Chronix server parts into a standard Solr.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
-The latest release of Chronix server is based on Apache Solr version 6.0.1
+The latest release of Chronix server is based on Apache Solr version 6.2.1
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
