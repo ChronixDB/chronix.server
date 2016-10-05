@@ -85,7 +85,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == CSVImporter.BYTES
+        selectedTimeSeries.attribute("myByteField") == CSVImporter.BYTES.getBytes()
         selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
         selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
         selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
@@ -274,7 +274,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myIntField")[0] == 5
         selectedTimeSeries.attribute("myLongField")[0] == 8L
         selectedTimeSeries.attribute("myDoubleField")[0] == 5.5d
-        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.BYTES
+        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.BYTES.getBytes()
         selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
         selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
         selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
