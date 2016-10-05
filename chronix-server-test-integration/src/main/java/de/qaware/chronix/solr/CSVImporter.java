@@ -44,14 +44,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class CSVImporter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CSVImporter.class);
-
     public static final List<String> LIST_STRING_FIELD = Lists.newArrayList("List first part", "List second part");
     public static final List<Integer> LIST_INT_FIELD = Lists.newArrayList(1, 2);
     public static final List<Long> LIST_LONG_FIELD = Lists.newArrayList(11L, 25L);
     public static final List<Double> LIST_DOUBLE_FIELD = Lists.newArrayList(1.5D, 2.6D);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(CSVImporter.class);
     public static byte[] BYTES = "String as byte".getBytes();
+
+
+    private CSVImporter() {
+        //avoid instances
+    }
 
     /**
      * Reads csv data from the resources dir 'timeSeries' and imports them to Chronix.
