@@ -74,7 +74,7 @@ public class ChronixSolrStorage<T> implements StorageService<T, SolrClient, Solr
 
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(solrStreamingService, Spliterator.SIZED), false)
                 .filter(t -> t != null)//Remove empty results
-                .collect(groupingBy((Function<T, String>) groupBy::apply)).values().stream()
+                .collect(groupingBy(groupBy::apply)).values().stream()
                 .map(ts -> ts.stream().reduce(reduce).get());
 
 

@@ -1,9 +1,11 @@
 [![Build Status](https://travis-ci.org/ChronixDB/chronix.server.svg)](https://travis-ci.org/ChronixDB/chronix.server)
 [![Coverage Status](https://coveralls.io/repos/ChronixDB/chronix.server/badge.svg?branch=master&service=github)](https://coveralls.io/github/ChronixDB/chronix.server?branch=master)
+[![Sputnik](https://sputnik.ci/conf/badge)](https://sputnik.ci/app#/builds/ChronixDB/chronix.server)
 [![Stories in Ready](https://badge.waffle.io/ChronixDB/chronix.server.png?label=ready&title=Ready)](https://waffle.io/ChronixDB/chronix.server)
-[![GPL 2](https://img.shields.io/badge/license-GPL2-blue.svg)](https://github.com/ChronixDB/chronix.server/blob/master/LICENSE)
+[![Apache License 2](http://img.shields.io/badge/license-ASF2-blue.svg)](https://github.com/ChronixDB/chronix.server/blob/master/LICENSE)
 [![Join the chat at https://gitter.im/ChronixDB/chronix.server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ChronixDB/chronix.server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [ ![Download](https://api.bintray.com/packages/chronix/maven/chronix-server-client/images/download.svg) ](https://bintray.com/chronix/maven/chronix-server-client/_latestVersion)
+[![Dependency Status](https://dependencyci.com/github/ChronixDB/chronix.server/badge)](https://dependencyci.com/github/ChronixDB/chronix.server)
 
 # Chronix Server
 The Chronix Server is an implementation of the Chronix API that stores time series in [Apache Solr](http://lucene.apache.org/solr/).
@@ -67,7 +69,7 @@ A time series has at least the following required fields:
 | data       | Byte[]  |
 
 The data field contains json serialized and gzip compressed points of time stamp (long) and numeric value (double).
-Furthermore a time series can have an arbitrary user-defined attributes. 
+Furthermore a time series can have arbitrary user-defined attributes. 
 The type of an attribute is restricted by the available [fields](https://cwiki.apache.org/confluence/display/solr/Solr+Field+Types) of Apache Solr.
 
 ## Chronix Server Client ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-client))
@@ -99,7 +101,7 @@ ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix =
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
 SolrQuery query = new SolrQuery("metric:*load*");
-query.addFilterQuery("ag=max");
+query.addFilterQuery("function=max");
 
 //The result is a Java Stream. We simply collect the result into a list.
 List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.toList());
@@ -108,16 +110,16 @@ List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.to
 ## Chronix Server Parts
 The Chronix server parts are Solr extensions (e.g. a custom query handler).
 Hence there is no need to build a custom modified Solr.
-We just plug the Chronix server parts into a standard Solr release.
+We just plug the Chronix server parts into a standard Solr.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
-The latest release of Chronix server is based on Apache Solr version 5.5.0
+The latest release of Chronix server is based on Apache Solr version 6.0.1
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
-It splits a request based on the filter queries up in range or analysis queries:
+It splits a request based on the filter queries up in range or function queries:
 
-- fq=(ag | analysis) (for aggregations or analyses)
+- fq=function=* (for aggregations, analyses, or transformations)
 - fq='' (empty, for range queries)
 
 But before the Chronix Query Handler delegates a request, it modifies the user query string.
@@ -153,45 +155,92 @@ Example Result:
 }
 ```
 
-### Analysis Query
-A custom query handler answers an analysis query.
-Chronix determines if a query is an analysis query by using the filter query mechanism of Apache Solr.
-There are two types of analysis queries: Aggregations and High-level Analyses.
+### Function Query
+A custom query handler answers function queries.
+Chronix determines if a query is a function query by using the filter query mechanism of Apache Solr.
+There are three types of functions: Aggregations, Transformations, and High-level Analyses.
 
-- fq=ag marks an aggregation
-- fq=analysis marks an high-level analysis
+Currently the following functions are available:
 
-Currently the following analyses are available:
+- Maximum (function=max)
+- Minimum (function=min)
+- Average (function=avg)
+- Standard Deviation (function=dev)
+- Percentiles (function=p:[0.1,...,1.0])
+- Count (function=count) (*Release 0.2*)
+- Sum (function=sum) (*Release 0.2*)
+- Range (function=range) (*Release 0.2*)
+- First/Last (function=first/last) (*Release 0.2*)
+- Bottom/Top (function=bottom/top:10) (*Release 0.2*)
+- Derivative (function=derivative) (*Release 0.2*)
+- Non Negative Derivative (function=nnderivative) (*Release 0.2*)
+- Difference (function=diff) (*Release 0.2*)
+- Signed Difference (function=sdiff) (*Release 0.2*)
+- Scale (function=scale:0.5) (*Release 0.2*)
+- Divide (function=divide:4) (*Release 0.2*)
+- Moving Average (function=movavg:10,MINUTES) (*Release 0.2*)
+- Add (function=add:4) (*Release 0.2*)
+- Subtract (function=sub:4) (*Release 0.2*)
+- A linear trend detection (function=trend)
+- Outlier detection (function=outlier)
+- Frequency detection (function=frequency:10,6)
+- Time series similarity search (function=fastdtw:(metric:\*Load\*),1,0.8)
+- Timeshift (function=timeshift:[+/-]10,DAYS) (*Release 0.3*)
+- Distinct (function=distinct) (*Release 0.4*)
+- Integral (function=integral) (*Release 0.4*)
+- SAX (function=sax:\*af\*,10,60,0.01)
 
-- Maximum (ag=max)
-- Minimum (ag=min)
-- Average (ag=avg)
-- Standard Deviation (ag=dev)
-- Percentiles (ag=p:[0.1,...,1.0])
-- A linear trend detection (analysis=trend)
-- Outlier detection (analysis=outlier)
-- Frequency detection (analysis=frequency:10,6)
-- Time series similarity search (analysis=fastdtw(metric:\*Load\*),1,0.8)
-- Symbolic Aggregate Approximation (analysis=sax:\*af\*,7,10,0.01)
+Multiple analyses, aggregations, and transformations are allowed per query.
+If so, Chronix will first execute the transformations in the order they occur.
+Then it executes the analyses and aggregations on the result of the chained transformations.
+For example the query:
+
+```
+fq=function=max;min;trend;movavg:10,minutes;scale:4
+```
+
+is executed as follows:
+
+1. Calculate the moving average
+2. Scale the result of the moving average by 4
+3. Calculate the max, min, and the trend based on the prior result.
  
-Only one analysis is allowed per query.
-If a query contains multiple analyses, Chronix prefer an aggregation over a high-level analyses.
-An analysis query does not return the raw time series data.
+A function query does not return the raw time series data by default.
 It returns all requested time series attributes, the analysis and its result.
+With the enabled option ```fl=+data``` Chronix will return the data for the analyses.
+The attributes are merged using a set to avoid duplicates.
+For example a query for a metric that is collected on several hosts might return the following result:
+```
+{
+  "responseHeader":{
+    "query_start_long":0,
+    "query_end_long":9223372036854775807,
+    "status":0,
+    "QTime":3},
+  "response":{"numFound":21,"start":0,"docs":[
+      {
+        "start":1377468017361,
+        "metric":"\\Load\\max",
+        "end":1377554376850,
+        "host:"["host-1","host-2", ...]
+       }...
+   ]
+}
+```
 
 A few example analyses:
 ```
 q=metric:*load* // Get all time series that metric name matches *load*
 
-+ fq=ag=max //Get the maximum of 
-+ fq=ag=p:0.25 //To get the 25% percentile of the time series data
-+ fq=analysis=trend //Returns all time series that have a positive trend
-+ fq=analysis=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
-+ fq=analysis=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
++ fq=function=max //Get the maximum of 
++ fq=function=p:0.25 //To get the 25% percentile of the time series data
++ fq=function=trend //Returns all time series that have a positive trend
++ fq=function=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
++ fq=function=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
 ```
 
-#### Join Time Series Records
-An analysis query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
+### Join Time Series Records
+An query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
 For example we want to join all records that have the same attribute values for host, process, and metric:
 ```
@@ -199,21 +248,42 @@ fq=join=host,process,metric
 ```
 If no join function is defined Chronix applies a default join function that uses the metric name.
 
-### Chronix Response Writer ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-response-writer))
-This allows one to query raw (uncompressed) data from Chronix in JSON or SAX.
-It is implemented as a Solr [document transformer](https://cwiki.apache.org/confluence/display/solr/Transforming+Result+Documents).
-Hence the transformer is defined in the config.xml: 
+### Modify Chronix' response
+Per default Chronix returns (as Solr does) all defined fields in the *schema.xml*.
+One has three ways to modify the response using the *fl* parameter:
 
-```XML
-<transformer name="dataAsJson" class="de.qaware.chronix.solr.response.ChronixTransformer" />
-
+#### One specific user defined field
+If only a specific user defined field is needed, e.g. the host field, one can set:
 ```
+fl=host
+```
+Then Chronix will return the *host* field and the required fields (start,end,data,id).
+
+#### Exclude a specific field
+If one do not need a specific field, such as the data field, one can pass *-data* in the *fl* parameter.
+```
+fl=-data
+``` 
+In that case all fields, expect the data field, are returned.
+Even when the excluded field is a required field.
+
+#### Explicit return of a field
+This is useful in combination with an analysis. 
+Analyses per default do not return the raw data for performance reasons.
+But if the raw data is needed, one can pass
+```
+fl=+data
+```
+
+### Chronix Response Writer
+This allows one to query raw (uncompressed) data from Chronix in JSON format.
 To execute the transformer you have to add it to the *fl* parameter:
 ```
-q=metric:*load*&fl=dataAsJson:[dataAsJson]
+q=metric:*load*&fl=+dataAsJson //to get all fields and the dataAsJson field
+q=metric:*load*&fl=dataAsJson //to get only the required fields (except the data field) and dataAsJson
 ```
 The records in the result contains a field called *dataAsJson* that holds the raw time series data as json.
-Note: The transformer removes the data field that normally ship the compressed data.
+Note: The data field that normally ship the compressed data is not included in the result.
 
 Example Result:
 ```
@@ -257,7 +327,7 @@ The following snippet of Solr config.xml shows the configuration:
 ```
 
 ## Usage
-All libraries are available in the [Chronix Bintary Maven](https://bintray.com/chronix/maven) repository.
+All libraries are available in the [Chronix Bintray Maven](https://bintray.com/chronix/maven) repository.
 A build script snippet for use in all Gradle versions, using the Chronix Bintray Maven repository:
 ```groovy
 repositories {
@@ -267,10 +337,9 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-retention:0.1.2'
-   compile 'de.qaware.chronix:chronix-server-response-writer:0.1.2'
+   compile 'de.qaware.chronix:chronix-server-client:0.3'
+   compile 'de.qaware.chronix:chronix-server-query-handler:0.3'
+   compile 'de.qaware.chronix:chronix-server-retention:0.3'
 }
 ```
 
@@ -280,10 +349,9 @@ your improvements, to the Chronix projects. All you have to do is to fork this r
 improve the code and issue a pull request.
 
 ## Building Chronix from Scratch
-Everything should run out of the box. The only three things that must be available:
+Everything should run out of the box. The only two things that must be available:
 - Git
 - JDK 1.8
-- Gradle
 
 Just do the following steps:
 
@@ -291,7 +359,7 @@ Just do the following steps:
 cd <checkout-dir>
 git clone https://github.com/ChronixDB/chronix.server.git
 cd chronix.server
-gradle clean build
+./gradlew clean build
 ```
 
 ## Maintainer

@@ -9,40 +9,23 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions;
 
-import de.qaware.chronix.timeseries.MetricTimeSeries;
-
-/***
- * A class holding the parsed analysis with its arguments
- *
+/**
+ * @param <T> the type to apply the analysis on
  * @author f.lautenschlager
  */
-public interface ChronixAnalysis {
+public interface ChronixAnalysis<T> extends ChronixFunction<T> {
 
     /**
-     * Executes the analysis
-     *
-     * @param args the time series
-     * @return the value of the analysis
+     * @return if the analysis needs a sub query. Default is false
      */
-    double execute(MetricTimeSeries... args);
+    default boolean needSubquery() {
+        return false;
+    }
 
     /**
-     * @return the arguments
+     * @return the sub query of the analysis. Default is null.
      */
-    String[] getArguments();
-
-    /**
-     * @return the type of the analysis
-     */
-    AnalysisType getType();
-
-    /**
-     * @return if the analysis needs a getSubquery
-     */
-    boolean needSubquery();
-
-    /**
-     * @return the getSubquery of the analysis
-     */
-    String getSubquery();
+    default String getSubquery() {
+        return null;
+    }
 }

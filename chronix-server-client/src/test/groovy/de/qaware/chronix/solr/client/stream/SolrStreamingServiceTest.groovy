@@ -118,6 +118,7 @@ class SolrStreamingServiceTest extends Specification {
         given:
         def connection = Mock(SolrClient.class)
         def streamingService = new SolrStreamingService<>(converter, solrQuery, connection, 2)
+        streamingService.solrStreamingHandler.init(1, 0)
 
         when:
         streamingService.currentDocumentCount = 1

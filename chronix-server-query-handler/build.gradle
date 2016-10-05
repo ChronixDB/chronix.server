@@ -10,22 +10,22 @@ repositories {
 }
 
 dependencies {
-    compile "org.apache.solr:solr-core:5.5.0"
+    compile "org.apache.solr:solr-core:6.2.1"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.1.4'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.1.4'
-    compile 'de.qaware.chronix:chronix-kassiopeia-converter-common:0.1.4'
-
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
     //Chronix FastDTW for time series similarity
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'
     //Sax - GPL2
-    compile name: 'jmotif-sax-1.0.7-SNAPSHOT'
+    compile 'net.seninp:jmotif-sax:1.1.1'
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
     testCompile project(':chronix-server-test-extensions')
 
+    compile 'org.apache.commons:commons-math3:3.6.1'
 }
 task copyTestResources(type: Copy) {
     from "${projectDir}/src/test/resources"
@@ -85,7 +85,7 @@ def pomConfig = {
 
 publishing {
     publications {
-        chronixServerRangeQuery(MavenPublication) {
+        chronixServerQueryHandler(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
@@ -104,7 +104,7 @@ publishing {
 bintray {
     user = project.hasProperty('bintrayUsername') ? project.bintrayUsername : 'unknown'
     key = project.hasProperty('bintrayApiKey') ? project.bintrayApiKey : 'unknown'
-    publications = ['chronixServerRangeQuery']
+    publications = ['chronixServerQueryHandler']
     dryRun = false
     publish = true
     pkg {
@@ -123,7 +123,7 @@ bintray {
             released = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
             vcsTag = "v${project.version}"
             attributes = [
-                    'chronix-server-range-query': ['de.qaware.chronix', project.group, project.name].join(':')
+                    'chronix-server-query-handler': ['de.qaware.chronix', project.group, project.name].join(':')
             ]
             mavenCentralSync {
                 sync = false

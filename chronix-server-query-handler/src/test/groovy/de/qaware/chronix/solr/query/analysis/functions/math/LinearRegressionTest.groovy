@@ -9,8 +9,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.math
 
-import de.qaware.chronix.timeseries.dt.DoubleList
-import de.qaware.chronix.timeseries.dt.LongList
+import de.qaware.chronix.converter.common.DoubleList
+import de.qaware.chronix.converter.common.LongList
 import spock.lang.Specification
 
 /**

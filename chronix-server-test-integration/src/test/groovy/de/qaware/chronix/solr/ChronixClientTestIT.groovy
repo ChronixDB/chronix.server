@@ -11,13 +11,11 @@ package de.qaware.chronix.solr
 
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
+import de.qaware.chronix.converter.common.Compression
+import de.qaware.chronix.converter.common.DoubleList
+import de.qaware.chronix.converter.common.LongList
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import de.qaware.chronix.timeseries.dt.DoubleList
-import de.qaware.chronix.timeseries.dt.LongList
-import net.seninp.jmotif.sax.SAXException
-import net.seninp.jmotif.sax.SAXProcessor
-import net.seninp.jmotif.sax.alphabet.NormalAlphabet
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
@@ -45,7 +43,7 @@ class ChronixClientTestIT extends Specification {
 
     //Test subjects
     @Shared
-    SolrClient solr
+    HttpSolrClient solr
     @Shared
     ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix
 
@@ -126,7 +124,7 @@ class ChronixClientTestIT extends Specification {
 
         tsDir.listFiles().each { File file ->
             LOGGER.info("Processing file {}", file)
-            def documents = new HashMap<Integer, MetricTimeSeries.Builder>()
+            def documents = new HashMap<Integer, MetricTimeSeries>()
 
             def attributes = file.name.split("_")
             def onlyOnce = true
@@ -153,6 +151,7 @@ class ChronixClientTestIT extends Specification {
                                     .attribute("myIntList", listIntField)
                                     .attribute("myLongList", listLongField)
                                     .attribute("myDoubleList", listDoubleField)
+                                    .build()
                             documents.put(i, ts)
 
                         }
@@ -161,32 +160,16 @@ class ChronixClientTestIT extends Specification {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
                     def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
                     fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
-                        documents.get(i).point(date.getTime(), nf.parse(value).doubleValue())
+                        documents.get(i).add(date.getTime(), nf.parse(value).doubleValue())
                         filePoints = i
+
                     }
                 }
                 onlyOnce = false
             }
-            def buildedTimeSeries = new ArrayList<MetricTimeSeries>()
-            documents.each { doc ->
-                def saxString = sax(doc.value.metricTimeSeries.values.toArray())
-                doc.value.attribute("sax", saxString)
-                buildedTimeSeries.add(doc.value.build())
-            }
-
-            chronix.add(buildedTimeSeries, solr)
+            chronix.add(documents.values(), solr)
             def updateResponse = solr.commit(true, true)
             LOGGER.info("Update Response of Commit is {}", updateResponse)
-        }
-    }
-
-    def sax(double[] values) {
-        def sp = new SAXProcessor();
-        def na = new NormalAlphabet();
-        try {
-            return String.valueOf(sp.ts2string(values, 9, na.getCuts(7), 0.01));
-        } catch (SAXException e) {
-            LOGGER.error("Could not convert time series to sax representation. Returning default", e);
         }
     }
 
@@ -211,7 +194,7 @@ class ChronixClientTestIT extends Specification {
     }
 
     @Unroll
-    def "Test analysis query #analysisQuery"() {
+    def "Test aggregation query #analysisQuery"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\avg")
         query.addFilterQuery(analysisQuery)
@@ -220,72 +203,167 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= points
-        selectedTimeSeries.attribute("myIntField") == 5
-        selectedTimeSeries.attribute("myLongField") == 8L
-        selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") == listStringField
-        selectedTimeSeries.attribute("myIntList") == listIntField
-        selectedTimeSeries.attribute("myLongList") == listLongField
-        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.size() <= 0
+        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
+        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
+        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
+        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
+        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
+        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
+        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
+        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
 
         where:
-        analysisQuery << ["ag=max", "ag=min", "ag=avg", "ag=p:0.25", "ag=dev",
-                          "analysis=trend", "analysis=outlier", "analysis=frequency:10,1",
-                          "analysis=fastdtw:(metric:*Load*max),5,0.8", "analysis=sax:*,9,7,0.01"]
-        points << [1, 1, 1, 1, 1, 7000, 7000, 7000, 7000, 7000]
+        analysisQuery << ["function=max", "function=min", "function=avg", "function=p:0.25", "function=dev", "function=sum",
+                          "function=count", "function=diff", "function=sdiff", "function=first", "function=last", "function=range",
+                          "function=integral"
+        ]
+    }
+
+    @Unroll
+    def "Test analysis query #analysisQuery"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Load\\\\avg")
+        query.addFilterQuery(analysisQuery)
+        query.setFields("+data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= points
+        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
+        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
+        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
+        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
+        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
+        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
+        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
+        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
+
+        where:
+        analysisQuery << ["function=trend", "function=outlier", "function=frequency:10,1", "function=fastdtw:(metric:*Load*max),5,0.8"]
+        points << [7000, 7000, 7000, 7000]
+    }
+
+    @Unroll
+    def "test transformation query: #analysisQuery"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
+        query.addFilterQuery(analysisQuery)
+        query.setFields("+data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() == points
+        selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
+
+        where:
+        analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes",
+                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4", "function=timeshift:10,DAYS"]
+        attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
+                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift"]
+        attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
+                            "value=4.0", "value=4.0",
+                            "amount=10"]
+        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693]
+    }
+
+    @Unroll
+    def "test transformation query #analysisQuery with empty arguments"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
+        query.addFilterQuery(analysisQuery)
+        query.setFields("+data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() == points
+
+        where:
+        analysisQuery << ["function=derivative", "function=nnderivative", "function=distinct"]
+        attributeKeys << ["0_function_derivative", "0_function_nnderivative", "0_function_distinct"]
+
+        points << [9691, 7302, 15]
     }
 
     def "Test analysis fastdtw"() {
         when:
         def query = new SolrQuery("metric:*Load*min")
-        query.addFilterQuery("analysis=fastdtw:(metric:*Load*max),5,0.8")
-        query.setFields("metric")
+        query.addFilterQuery("function=fastdtw:(metric:*Load*max),5,0.8")
+        query.setFields("metric", "data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size()
-        selectedTimeSeries.getMetric() == "\\Load\\max"
-        selectedTimeSeries.attribute("analysis") == "FASTDTW"
-        selectedTimeSeries.attribute("joinKey") == "\\Load\\max"
-        selectedTimeSeries.attribute("value") == 0.056865779428449705
-        selectedTimeSeries.attribute("analysisParam") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+        selectedTimeSeries.getMetric() == "\\Load\\min"
+        selectedTimeSeries.attribute("join_key") == "\\Load\\min"
+        selectedTimeSeries.attribute("0_function_fastdtw_\\Load\\max") == true
+        selectedTimeSeries.attribute("0_function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+
     }
 
-    def "Test analysis sax"() {
+    def "test function query with data as json"() {
         when:
-        def query = new SolrQuery("metric:\\\\Tasks\\\\total")
-        query.addFilterQuery("analysis=sax:*df*,9,7,0.01")
-        query.setFields("metric")
+        def query = new SolrQuery("metric:\\\\Cpu\\\\sy")
+        query.addFilterQuery("function=vector:0.1")
+        query.setFields("dataAsJson")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
-        def selectedTimeSeries = timeSeries.get(0)
+        timeSeries.get(0).size() == 2
+    }
 
-        selectedTimeSeries.size()
-        selectedTimeSeries.getMetric() == "\\Tasks\\total"
-        selectedTimeSeries.attribute("analysis") == "SAX"
-        selectedTimeSeries.attribute("joinKey") == "\\Tasks\\total"
-        selectedTimeSeries.attribute("value") == 1
-        selectedTimeSeries.attribute("analysisParam") == ["pattern = .*df.*", "paaSize = 9", "alphabetSize = 7", "threshold = 0.01"]
+    def "test function query with dataAsJson and join"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu*")
+        query.addFilterQuery("join=group")
+        query.setFields("dataAsJson")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == 77544
+    }
+
+    @Unroll
+    def "test join documents with data: #ifData"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu*")
+        query.addFilterQuery("join=group")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        if (ifData) {
+            timeSeries.get(0).size() == 77544
+        } else {
+            timeSeries.get(0).size() == 0
+        }
+
+        where:
+        data << ["", "+data"]
+        ifData << [false, true]
     }
 
     def "test analysis with empty result"() {
         when:
         def query = new SolrQuery("metric:\\\\Load\\\\min")
-        query.addFilterQuery("analysis=frequency:10,2")
+        query.addFilterQuery("function=frequency:10,9")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 0
     }
 
+
     def "Test query raw time series"() {
         when:
         def query = new SolrQuery("*:*")
-        query.addField("dataAsJson:[dataAsJson],myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
+        query.addField("dataAsJson,myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
         //query all documents
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
 
@@ -294,13 +372,62 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attribute("myIntField") == 5
-        selectedTimeSeries.attribute("myLongField") == 8L
-        selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") == listStringField
-        selectedTimeSeries.attribute("myIntList") == listIntField
-        selectedTimeSeries.attribute("myLongList") == listLongField
-        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.attribute("myIntField")[0] == 5
+        selectedTimeSeries.attribute("myLongField")[0] == 8L
+        selectedTimeSeries.attribute("myDoubleField")[0] == 5.5D
+        selectedTimeSeries.attribute("myByteField")[0] == "String as byte".getBytes("UTF-8")
+        selectedTimeSeries.attribute("myStringList") as List<String> == listStringField
+        selectedTimeSeries.attribute("myIntList") as List<Integer> == listIntField
+        selectedTimeSeries.attribute("myLongList") as List<Long> == listLongField
+        selectedTimeSeries.attribute("myDoubleList") as List<Double> == listDoubleField
+    }
+
+    def "Test query raw time series with +dataAsJson"() {
+        when:
+        def query = new SolrQuery("*:*")
+        query.addField("+dataAsJson")
+        //query all documents
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 26i
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.attributes().size() == 13
+    }
+
+    def "Test query with compression result"() {
+        when:
+        def query = new SolrQuery("*:*")
+        //Enable serverside compression
+        solr.setAllowCompression(true)
+        //query all documents
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 26i
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.attributes().size() == 12
+    }
+
+    @Unroll
+    def "Test raw query with compression activated: #withCompression"() {
+        when:
+        def connection = "http://localhost:8913/solr/chronix/select?indent=on&q=*:*&wt=json".toURL().openConnection()
+        connection.setRequestProperty("Accept-Encoding", "gzip");
+        def result = Compression.decompress(connection.getInputStream().bytes)
+
+        then:
+        if (withCompression) {
+            result.length > 0
+        } else {
+            result.length == 0
+        }
+
+        where:
+        withCompression << [true, false]
     }
 }

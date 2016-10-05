@@ -17,6 +17,9 @@ import org.apache.solr.core.PluginInfo
 import org.apache.solr.handler.component.SearchHandler
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
+import org.apache.solr.schema.IndexSchema
+import org.apache.solr.schema.SchemaField
+import org.apache.solr.schema.TextField
 import spock.lang.Specification
 
 /**
@@ -78,18 +81,21 @@ class ChronixQueryHandlerTest extends Specification {
     def "test handle default request"() {
         given:
         def defaultHandler = Mock(SearchHandler)
-        def aggregationHandler = Mock(AnalysisHandler.class)
+        def analysisHandler = Mock(AnalysisHandler.class)
 
         def chronixQueryHandler = new ChronixQueryHandler()
 
         ReflectionHelper.setValueToFieldOfObject(defaultHandler, "searchHandler", chronixQueryHandler)
-        ReflectionHelper.setValueToFieldOfObject(aggregationHandler, "analysisHandler", chronixQueryHandler)
+        ReflectionHelper.setValueToFieldOfObject(analysisHandler, "analysisHandler", chronixQueryHandler)
 
 
         def request = Mock(SolrQueryRequest)
         def response = Mock(SolrQueryResponse)
         def responseHeader = new NamedList<Object>()
+        def indexSchema = Mock(IndexSchema)
 
+        indexSchema.getFields() >> ["data": new SchemaField("data", new TextField()), "metric": new SchemaField("metric", new TextField())]
+        request.getSchema() >> indexSchema
         request.getParams() >> modifiableSolrParams
         response.getResponseHeader() >> responseHeader
 
@@ -97,8 +103,8 @@ class ChronixQueryHandlerTest extends Specification {
         chronixQueryHandler.handleRequestBody(request, response)
 
         then:
-        1 * defaultHandler.handleRequestBody(request, response)
-        0 * aggregationHandler.handleRequestBody(request, response)
+        defaultHandlerCount * defaultHandler.handleRequestBody(request, response)
+        analysisHandlerCount * analysisHandler.handleRequestBody(request, response)
 
         where:
         modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW"),
@@ -107,6 +113,9 @@ class ChronixQueryHandlerTest extends Specification {
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", null),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", ""),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric")]
+
+        defaultHandlerCount << [1,1,1,1,1,0]
+        analysisHandlerCount << [0,0,0,0,0,1]
     }
 
     def "test handle aggregation request"() {
@@ -122,6 +131,10 @@ class ChronixQueryHandlerTest extends Specification {
         def request = Mock(SolrQueryRequest)
         def response = Mock(SolrQueryResponse)
         def responseHeader = new NamedList<Object>()
+        def indexSchema = Mock(IndexSchema)
+
+        indexSchema.getFields() >> ["data": new SchemaField("data", new TextField()), "metric": new SchemaField("metric", new TextField())]
+        request.getSchema() >> indexSchema
 
         request.getParams() >> modifiableSolrParams
         response.getResponseHeader() >> responseHeader
@@ -139,23 +152,8 @@ class ChronixQueryHandlerTest extends Specification {
         queryEnd > 0
 
         where:
-        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "ag=max")]
+        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "function=max")]
 
-    }
-
-    def "min required fields"() {
-        given:
-        def chronixQueryHandler = new ChronixQueryHandler()
-
-        when:
-        def fields = chronixQueryHandler.minRequiredFields(fl)
-
-        then:
-        fields == expected
-
-        where:
-        fl << [null, "", "myField"]
-        expected << [null, null, "myField" + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, ChronixQueryHandler.REQUIRED_FIELDS)]
     }
 
     def "test exception cases"() {
