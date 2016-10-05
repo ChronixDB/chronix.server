@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
@@ -56,12 +58,16 @@ public final class CSVImporter {
         //avoid instances
     }
 
-    /**
+    /***
+     * /**
      * Reads csv data from the resources dir 'timeSeries' and imports them to Chronix.
      *
-     * @throws Exception if bad things happen
+     * @param chronix the chronix client
+     * @param solr    the solr connection
+     * @throws URISyntaxException if the file could not converted to a uri
+     * @throws IOException        if the time series could not added to solr
      */
-    public static void readAndImportCSV(ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix, HttpSolrClient solr) throws Exception {
+    public static void readAndImportCSV(ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix, HttpSolrClient solr) throws URISyntaxException, IOException {
         URL url = CSVImporter.class.getResource("/timeSeries");
 
         File tsDir = new File(url.toURI());

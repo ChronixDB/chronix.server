@@ -42,7 +42,6 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         if (timeSeries.isEmpty()) {
-            //TODO: Add result
             functionValueMap.add(this, false, null);
             return;
         }

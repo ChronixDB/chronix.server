@@ -29,7 +29,7 @@ import java.util.function.Function;
  */
 public final class ChronixTestFunctions {
 
-    public static final Function<MetricTimeSeries, String> GROUP_BY = ts -> String.valueOf(ts.attribute("host")) + "-" +
+    public static final Function<MetricTimeSeries, String> GROUP_BY = ts -> ts.attribute("host") + "-" +
             ts.attribute("source") + "-" +
             ts.attribute("group") + "-" +
             ts.getMetric();

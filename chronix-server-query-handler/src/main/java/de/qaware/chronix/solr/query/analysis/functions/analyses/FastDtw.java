@@ -61,8 +61,6 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        //TODO: Add the result to the time series
-
         functionValueMap.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getMetric());
 
     }
