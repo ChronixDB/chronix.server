@@ -73,11 +73,6 @@ public final class SignedDifference implements ChronixAggregation<MetricTimeSeri
     }
 
     @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-    @Override
     public FunctionType getType() {
         return FunctionType.SDIFF;
     }

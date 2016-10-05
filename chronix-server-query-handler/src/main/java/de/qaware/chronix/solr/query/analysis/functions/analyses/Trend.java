@@ -50,11 +50,6 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-    @Override
     public FunctionType getType() {
         return FunctionType.TREND;
     }

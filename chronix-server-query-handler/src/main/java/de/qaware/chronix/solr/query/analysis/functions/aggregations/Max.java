@@ -57,11 +57,6 @@ public final class Max implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-    @Override
     public FunctionType getType() {
         return FunctionType.MAX;
     }

@@ -48,11 +48,6 @@ public final class First implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
-    @Override
     public FunctionType getType() {
         return FunctionType.FIRST;
     }
