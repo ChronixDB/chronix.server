@@ -9,8 +9,6 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions;
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
-
 /**
  * The generic Chronix function interface
  *

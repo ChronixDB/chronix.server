@@ -10,9 +10,9 @@
 package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
 import de.qaware.chronix.converter.common.DoubleList;
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -36,7 +36,6 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 
         if (timeSeries.isEmpty()) {
-            //TODO: Add result
             functionValueMap.add(this, false, null);
             return;
         }
@@ -58,11 +57,6 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         functionValueMap.add(this, false, null);
     }
 
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
 
     @Override
     public FunctionType getType() {

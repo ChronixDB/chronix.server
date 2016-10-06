@@ -7,11 +7,7 @@
  *  Everyone is permitted to copy and distribute verbatim copies
  *  of this license document, but changing it is not allowed.
  */
-package de.qaware.chronix.solr.query.analysis;
-
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
+package de.qaware.chronix.solr.query.analysis.functions;
 
 import java.util.Arrays;
 

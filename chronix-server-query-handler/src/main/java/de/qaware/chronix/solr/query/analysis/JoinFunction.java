@@ -12,6 +12,7 @@ package de.qaware.chronix.solr.query.analysis;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import org.apache.solr.common.SolrDocument;
 
+import java.util.Arrays;
 import java.util.function.Function;
 
 /**
@@ -29,7 +30,6 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      * Otherwise it uses the defined fields to build a join key field1-field2-field-3.
      *
      * @param filterQueries - the solr filter queries
-     * @return a function to get a unique join key
      */
     public JoinFunction(String[] filterQueries) {
         if (filterQueries == null || filterQueries.length == 0) {
@@ -78,7 +78,7 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      * @return the involved fields for this join
      */
     public String[] involvedFields() {
-        return involvedFields;
+        return Arrays.copyOf(involvedFields, involvedFields.length);
     }
 
     private static String[] fields(String filterQuery) {

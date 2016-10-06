@@ -9,9 +9,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.aggregations;
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -37,11 +37,6 @@ public final class StdDev implements ChronixAggregation<MetricTimeSeries> {
         }
         //Else calculate the analysis value
         functionValueMap.add(this, de.qaware.chronix.solr.query.analysis.functions.math.StdDev.dev(timeSeries.getValues()));
-    }
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
     }
 
     @Override

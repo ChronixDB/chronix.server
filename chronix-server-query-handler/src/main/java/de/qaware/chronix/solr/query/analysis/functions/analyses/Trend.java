@@ -9,9 +9,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses;
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.math.LinearRegression;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -41,11 +41,6 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
         //If we have a positive slope, we return 1 otherwise -1
         functionValueMap.add(this, slope > 0, null);
 
-    }
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
     }
 
     @Override

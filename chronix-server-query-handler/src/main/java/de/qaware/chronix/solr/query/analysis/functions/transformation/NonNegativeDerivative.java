@@ -9,9 +9,9 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.transformation;
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixTransformation;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap;
 import de.qaware.chronix.solr.query.analysis.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -63,12 +63,6 @@ public final class NonNegativeDerivative implements ChronixTransformation<Metric
     public FunctionType getType() {
         return FunctionType.NNDERIVATIVE;
     }
-
-    @Override
-    public String[] getArguments() {
-        return new String[0];
-    }
-
 
     @Override
     public boolean equals(Object obj) {

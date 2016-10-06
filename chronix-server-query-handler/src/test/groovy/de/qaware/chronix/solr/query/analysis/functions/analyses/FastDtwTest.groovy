@@ -9,8 +9,8 @@
  */
 package de.qaware.chronix.solr.query.analysis.functions.analyses
 
-import de.qaware.chronix.solr.query.analysis.FunctionValueMap
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType
+import de.qaware.chronix.solr.query.analysis.functions.FunctionValueMap
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.common.util.Pair
 import spock.lang.Specification

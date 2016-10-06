@@ -12,8 +12,6 @@ package de.qaware.chronix.solr
 import de.qaware.chronix.ChronixClient
 import de.qaware.chronix.converter.KassiopeiaSimpleConverter
 import de.qaware.chronix.converter.common.Compression
-import de.qaware.chronix.converter.common.DoubleList
-import de.qaware.chronix.converter.common.LongList
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.client.solrj.SolrClient
@@ -25,9 +23,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.text.DecimalFormat
-import java.util.function.BinaryOperator
-import java.util.function.Function
 import java.util.stream.Collectors
 
 /**
@@ -47,58 +42,11 @@ class ChronixClientTestIT extends Specification {
     @Shared
     ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix
 
-    @Shared
-    def listStringField = ["List first part", "List second part"]
-    @Shared
-    def listIntField = [1I, 2I]
-    @Shared
-    def listLongField = [11L, 25L]
-    @Shared
-    def listDoubleField = [1.5D, 2.6D]
-
-
-    @Shared
-    Function<MetricTimeSeries, String> groupBy = new Function<MetricTimeSeries, String>() {
-        @Override
-        String apply(MetricTimeSeries ts) {
-            StringBuilder metricKey = new StringBuilder();
-
-            metricKey.append(ts.attribute("host")).append("-")
-                    .append(ts.attribute("source")).append("-")
-                    .append(ts.attribute("group")).append("-")
-                    .append(ts.getMetric());
-
-            return metricKey.toString();
-        }
-    }
-
-    @Shared
-    BinaryOperator<MetricTimeSeries> reduce = new BinaryOperator<MetricTimeSeries>() {
-        @Override
-        MetricTimeSeries apply(MetricTimeSeries t1, MetricTimeSeries t2) {
-            MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
-                    .points(concat(t1.getTimestamps(), t2.getTimestamps()),
-                    concat(t1.getValues(), t2.getValues()))
-                    .attributes(t1.attributes());
-            return reduced.build();
-        }
-    }
-
-    def DoubleList concat(DoubleList first, DoubleList second) {
-        first.addAll(second)
-        first
-    }
-
-    def LongList concat(LongList first, LongList second) {
-        first.addAll(second)
-        first
-    }
-
     def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, groupBy, reduce))
+        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(30_000)
@@ -108,7 +56,7 @@ class ChronixClientTestIT extends Specification {
         and: "We add new data"
 
         LOGGER.info("Adding data to Chronix.")
-        importTimeSeriesData();
+        CSVImporter.readAndImportCSV(chronix, solr);
         //we do a hart commit - only for testing purposes
         def updateResponse = solr.commit(true, true)
         LOGGER.info("Update Response of Commit is {}", updateResponse)
@@ -116,61 +64,6 @@ class ChronixClientTestIT extends Specification {
         then:
         result.status == 0
 
-    }
-
-    def importTimeSeriesData() {
-        def url = ChronixClientTestIT.getResource("/timeSeries");
-        def tsDir = new File(url.toURI())
-
-        tsDir.listFiles().each { File file ->
-            LOGGER.info("Processing file {}", file)
-            def documents = new HashMap<Integer, MetricTimeSeries>()
-
-            def attributes = file.name.split("_")
-            def onlyOnce = true
-            def nf = DecimalFormat.getInstance(Locale.ENGLISH);
-
-            def filePoints = 0
-
-            file.splitEachLine(";") { fields ->
-                //Its the first line of a csv file
-                if ("Date" == fields[0]) {
-                    if (onlyOnce) {
-                        fields.subList(1, fields.size()).eachWithIndex { String field, int i ->
-                            def ts = new MetricTimeSeries.Builder(field)
-                                    .attribute("host", attributes[0])
-                                    .attribute("source", attributes[1])
-                                    .attribute("group", attributes[2])
-
-                            //Add some generic fields an values
-                                    .attribute("myIntField", 5I)
-                                    .attribute("myLongField", 8L)
-                                    .attribute("myDoubleField", 5.5D)
-                                    .attribute("myByteField", "String as byte".getBytes("UTF-8"))
-                                    .attribute("myStringList", listStringField)
-                                    .attribute("myIntList", listIntField)
-                                    .attribute("myLongList", listLongField)
-                                    .attribute("myDoubleList", listDoubleField)
-                                    .build()
-                            documents.put(i, ts)
-
-                        }
-                    }
-                } else {
-                    //First field is the timestamp: 26.08.2013 00:00:17.361
-                    def date = Date.parse("dd.MM.yyyy HH:mm:ss.SSS", fields[0])
-                    fields.subList(1, fields.size()).eachWithIndex { String value, int i ->
-                        documents.get(i).add(date.getTime(), nf.parse(value).doubleValue())
-                        filePoints = i
-
-                    }
-                }
-                onlyOnce = false
-            }
-            chronix.add(documents.values(), solr)
-            def updateResponse = solr.commit(true, true)
-            LOGGER.info("Update Response of Commit is {}", updateResponse)
-        }
     }
 
     def "Test add and query time series to Chronix with Solr"() {
@@ -186,11 +79,11 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myIntField") == 5
         selectedTimeSeries.attribute("myLongField") == 8L
         selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") == listStringField
-        selectedTimeSeries.attribute("myIntList") == listIntField
-        selectedTimeSeries.attribute("myLongList") == listLongField
-        selectedTimeSeries.attribute("myDoubleList") == listDoubleField
+        selectedTimeSeries.attribute("myByteField") == CSVImporter.BYTES.getBytes()
+        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
+        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
+        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
+        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
     }
 
     @Unroll
@@ -208,10 +101,10 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
         selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
         (selectedTimeSeries.attribute("myByteField") as List).size() == 7
-        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
-        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
-        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
-        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
+        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
+        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
+        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
+        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
 
         where:
         analysisQuery << ["function=max", "function=min", "function=avg", "function=p:0.25", "function=dev", "function=sum",
@@ -236,10 +129,10 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
         selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
         (selectedTimeSeries.attribute("myByteField") as List).size() == 7
-        (selectedTimeSeries.attribute("myStringList") as Set) == listStringField as Set
-        selectedTimeSeries.attribute("myIntList") as Set == listIntField as Set
-        selectedTimeSeries.attribute("myLongList") as Set == listLongField as Set
-        selectedTimeSeries.attribute("myDoubleList") as Set == listDoubleField as Set
+        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
+        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
+        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
+        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
 
         where:
         analysisQuery << ["function=trend", "function=outlier", "function=frequency:10,1", "function=fastdtw:(metric:*Load*max),5,0.8"]
@@ -374,12 +267,12 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.size() >= 7000
         selectedTimeSeries.attribute("myIntField")[0] == 5
         selectedTimeSeries.attribute("myLongField")[0] == 8L
-        selectedTimeSeries.attribute("myDoubleField")[0] == 5.5D
-        selectedTimeSeries.attribute("myByteField")[0] == "String as byte".getBytes("UTF-8")
-        selectedTimeSeries.attribute("myStringList") as List<String> == listStringField
-        selectedTimeSeries.attribute("myIntList") as List<Integer> == listIntField
-        selectedTimeSeries.attribute("myLongList") as List<Long> == listLongField
-        selectedTimeSeries.attribute("myDoubleList") as List<Double> == listDoubleField
+        selectedTimeSeries.attribute("myDoubleField")[0] == 5.5d
+        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.BYTES.getBytes()
+        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
+        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
+        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
+        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
     }
 
     def "Test query raw time series with +dataAsJson"() {

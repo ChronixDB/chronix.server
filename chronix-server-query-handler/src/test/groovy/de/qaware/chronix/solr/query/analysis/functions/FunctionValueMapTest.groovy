@@ -7,7 +7,7 @@
  *  Everyone is permitted to copy and distribute verbatim copies
  *  of this license document, but changing it is not allowed.
  */
-package de.qaware.chronix.solr.query.analysis
+package de.qaware.chronix.solr.query.analysis.functions
 
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
 import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
@@ -15,7 +15,6 @@ import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorizat
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
 /**
  * Unit test for the analysis value map
  * @author f.lautenschlager

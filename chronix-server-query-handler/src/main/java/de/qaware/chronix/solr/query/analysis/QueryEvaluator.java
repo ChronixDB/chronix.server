@@ -121,17 +121,20 @@ public final class QueryEvaluator {
         } else if (FunctionType.isLsof(type)) {
             addLsof(result, type, arguments);
         } else if (FunctionType.isStrace(type)) {
-            addStrace(result, type, arguments);
+            addStrace(result, type);
         } else {
             LOGGER.info("{} is unknown. {} is ignored", type, type);
         }
     }
 
-    private static void addStrace(QueryFunctions result, FunctionType type, String[] arguments) {
+    private static void addStrace(QueryFunctions result, FunctionType type) {
         switch (type) {
             case SPLIT:
                 result.addTransformation(new Split());
                 break;
+            default:
+                LOGGER.info("{} is unknown. {} is ignored", type, type);
+
         }
     }
 
@@ -142,6 +145,8 @@ public final class QueryEvaluator {
                 System.arraycopy(arguments, 1, filters, 0, filters.length);
                 result.addTransformation(new Group(arguments[0], filters));
                 break;
+            default:
+                LOGGER.info("{} is unknown. {} is ignored", type, type);
         }
     }
 
