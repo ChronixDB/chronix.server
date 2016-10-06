@@ -15,8 +15,8 @@
  */
 package de.qaware.chronix.solr.ingestion.format;
 
-import com.google.common.base.Splitter;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -49,9 +48,9 @@ public class GraphiteFormatParser implements FormatParser {
         try {
             while ((line = reader.readLine()) != null) {
                 // Format is: <metric path> <metric value> <metric timestamp>
-                List<String> parts = Splitter.on(' ').splitToList(line);
-                if (parts.size() != 3) {
-                    throw new FormatParseException("Expected 3 parts, found " + parts.size() + " in line '" + line + "'");
+                String[] parts = StringUtils.split(line, ' ');
+                if (parts.length != 3) {
+                    throw new FormatParseException("Expected 3 parts, found " + parts.length + " in line '" + line + "'");
                 }
 
                 String metricName = getMetricName(parts);
@@ -80,8 +79,8 @@ public class GraphiteFormatParser implements FormatParser {
      * @return Metric timestamp.
      * @throws FormatParseException If something went wrong while extracting.
      */
-    private Instant getMetricTimestamp(List<String> parts) throws FormatParseException {
-        String value = parts.get(2);
+    private Instant getMetricTimestamp(String[] parts) throws FormatParseException {
+        String value = parts[2];
         try {
             long epochTime = Long.parseLong(value);
             return Instant.ofEpochSecond(epochTime);
@@ -97,8 +96,8 @@ public class GraphiteFormatParser implements FormatParser {
      * @return Metric value.
      * @throws FormatParseException If something went wrong while extracting.
      */
-    private double getMetricValue(List<String> parts) throws FormatParseException {
-        String value = parts.get(1);
+    private double getMetricValue(String[] parts) throws FormatParseException {
+        String value = parts[1];
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
@@ -112,7 +111,7 @@ public class GraphiteFormatParser implements FormatParser {
      * @param parts Parts.
      * @return Metric name.
      */
-    private String getMetricName(List<String> parts) {
-        return parts.get(0);
+    private String getMetricName(String[] parts) {
+        return parts[0];
     }
 }
