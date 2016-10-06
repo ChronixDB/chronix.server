@@ -19,8 +19,6 @@ import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.solr.ingestion.format.FormatParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.core.PluginInfo;
-import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
@@ -28,8 +26,6 @@ import org.apache.solr.update.AddUpdateCommand;
 import org.apache.solr.update.CommitUpdateCommand;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorChain;
-import org.apache.solr.util.plugin.PluginInfoInitialized;
-import org.apache.solr.util.plugin.SolrCoreAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +37,7 @@ import java.io.InputStream;
  * <p>
  * The concrete class only has to provide a suitable {@link FormatParser} instance.
  */
-public abstract class AbstractIngestionHandler extends RequestHandlerBase implements SolrCoreAware, PluginInfoInitialized {
+public abstract class AbstractIngestionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIngestionHandler.class);
 
     private final FormatParser formatParser;
@@ -53,11 +49,6 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase implem
      */
     public AbstractIngestionHandler(FormatParser formatParser) {
         this.formatParser = formatParser;
-    }
-
-    @Override
-    public void init(PluginInfo info) {
-
     }
 
     @Override
@@ -96,10 +87,5 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase implem
         cmd.solrDoc = document;
         processor.processAdd(cmd);
         LOGGER.debug("Added Solr document");
-    }
-
-    @Override
-    public void inform(SolrCore core) {
-
     }
 }
