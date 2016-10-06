@@ -30,6 +30,8 @@ import org.apache.solr.update.processor.UpdateRequestProcessor;
 import org.apache.solr.update.processor.UpdateRequestProcessorChain;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +42,8 @@ import java.io.InputStream;
  * The concrete class only has to provide a suitable {@link FormatParser} instance.
  */
 public abstract class AbstractIngestionHandler extends RequestHandlerBase implements SolrCoreAware, PluginInfoInitialized {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIngestionHandler.class);
+
     private final FormatParser formatParser;
 
     /**
@@ -59,6 +63,12 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase implem
     @Override
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        if (req.getContentStreams() == null) {
+            LOGGER.warn("no content stream");
+            rsp.add("error", "No content stream");
+            return;
+        }
+
         InputStream stream = req.getContentStreams().iterator().next().getStream();
 
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
