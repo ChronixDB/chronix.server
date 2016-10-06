@@ -146,7 +146,6 @@ task stopSolr(type: ExecWait) {
 
 task deleteUnusedDirs(type: Delete) {
 
-    sleep(30_000)
     //delete the following dirs
     def solrDir = "$buildDir/solr-${solrVersion}/"
 

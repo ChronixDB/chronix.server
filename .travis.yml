@@ -9,5 +9,5 @@ before_install:
 script: ./gradlew build jacocoTestReport
 
 after_success: 
-    - ./gradlew -d jacocoRootReport coveralls
+    - ./gradlew jacocoRootReport coveralls
     - python <(curl -s https://raw.githubusercontent.com/TouK/sputnik-ci/master/sputnik-ci.py)
