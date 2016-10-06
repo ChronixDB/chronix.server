@@ -73,23 +73,30 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase implem
 
         KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
 
-        for (MetricTimeSeries series : formatParser.parse(stream)) {
-            SolrInputDocument document = new SolrInputDocument();
-            converter.to(series).getFields().forEach(document::addField);
-            storeDocument(document, req, rsp);
+        UpdateRequestProcessorChain processorChain = req.getCore().getUpdateProcessorChain(req.getParams());
+        UpdateRequestProcessor processor = processorChain.createProcessor(req, rsp);
+        try {
+            for (MetricTimeSeries series : formatParser.parse(stream)) {
+                SolrInputDocument document = new SolrInputDocument();
+                converter.to(series).getFields().forEach(document::addField);
+                storeDocument(document, processor, req);
+            }
+
+            LOGGER.debug("Committing transaction...");
+            processor.processCommit(new CommitUpdateCommand(req, false));
+            LOGGER.debug("Committed transaction");
+        } finally {
+            processor.finish();
         }
     }
 
-    private void storeDocument(SolrInputDocument document, SolrQueryRequest req, SolrQueryResponse rsp) throws IOException {
-        UpdateRequestProcessorChain processorChain = req.getCore().getUpdateProcessorChain(req.getParams());
-        UpdateRequestProcessor processor = processorChain.createProcessor(req, rsp);
+    private void storeDocument(SolrInputDocument document, UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {
+        LOGGER.debug("Adding Solr document...");
         AddUpdateCommand cmd = new AddUpdateCommand(req);
         cmd.solrDoc = document;
         processor.processAdd(cmd);
-        processor.processCommit(new CommitUpdateCommand(req, false));
-        processor.finish();
+        LOGGER.debug("Added Solr document");
     }
-
 
     @Override
     public void inform(SolrCore core) {
