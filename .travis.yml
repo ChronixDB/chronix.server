@@ -6,7 +6,7 @@ jdk:
 before_install:
     - chmod +x gradlew
 
-script: ./gradlew -d build jacocoTestReport
+script: ./gradlew build jacocoTestReport
 
 after_success: 
     - ./gradlew -d jacocoRootReport coveralls

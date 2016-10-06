@@ -1,0 +1,200 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'de.undercouch:gradle-download-task:3.1.1'
+    }
+}
+
+apply plugin: 'de.undercouch.download'
+
+sourceSets {
+    intTest {
+        java.srcDir 'src/inttest/java'
+        resources.srcDir 'src/inttest/resources'
+    }
+}
+
+dependencies {
+    intTestCompile sourceSets.main.output
+    intTestCompile sourceSets.test.output
+
+    intTestCompile configurations.compile
+    intTestCompile configurations.testCompile
+
+    intTestRuntime configurations.runtime
+    intTestRuntime configurations.testRuntime
+}
+
+import de.undercouch.gradle.tasks.download.Download
+
+def solrVersion = "6.2.1"
+
+//Apache archive
+//"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+task downloadZipFile(type: Download) {
+    onlyIfNewer true
+    src "https://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    dest new File(buildDir, "solr-${solrVersion}.zip")
+}
+
+task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
+    from zipTree(downloadZipFile.dest)
+    into buildDir
+}
+task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr"
+}
+/**
+ * Enable CORS per default otherwise Grafana won't work.
+ */
+task copyWEBXMLToSolr(dependsOn: copyCoreToSolr, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/WEB-INF/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/WEB-INF/"
+}
+/**
+ * Copy the modified contexts to activate gzip
+ */
+task copyContextsWithGZIP(dependsOn: copyWEBXMLToSolr, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/contexts/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/contexts/"
+}
+/**
+ * Copy the related jetty ssl with the gzip stuff
+ */
+task copyJettySSL(dependsOn: copyContextsWithGZIP, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/etc/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/etc/"
+}
+
+
+task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
+    from(configurations)
+    include("*chronix-api*.jar")
+    include("*chronix-kassiopeia*.jar")
+    include("*chronix-server-query*.jar")
+    include("*chronix-server-ingestion*.jar")
+    include("*chronix-server-retention.jar")
+    include("*chronix.fastdtw-*.jar")
+    include("*commons-lang3-*.jar")
+    include("*commons-math3-*.jar")
+    include("*quartz*.jar")
+    include("*gson*.jar")
+    include("*proto*.jar")
+}
+
+/**
+ * Helper task
+ */
+class ExecWait extends DefaultTask {
+    String command
+    String ready
+    String directory
+
+    @TaskAction
+    def spawnProcess() {
+
+        ProcessBuilder builder = new ProcessBuilder(command.split(' '))
+        builder.redirectErrorStream(true)
+        builder.directory(new File(directory))
+        Process process = builder.start()
+
+        InputStream stdout = process.getInputStream()
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stdout))
+
+        def line
+        while ((line = reader.readLine()) != null) {
+            println line
+            if (line.contains(ready)) {
+                println "$command is ready"
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * Tasks to start and stop solr
+ */
+String osName = System.getProperty("os.name").toLowerCase();
+task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
+    if (osName.contains("windows")) {
+        command 'cmd.exe /C solr.cmd start -m 512m -p 8913'
+        ready "Started Solr server on port 8913. Happy searching!"
+        directory "$buildDir/solr-${solrVersion}/bin/"
+    } else {
+        command 'bash solr start -m 512m -p 8913'
+        ready "Started Solr server on port 8913. Happy searching!"
+        directory "$buildDir/solr-${solrVersion}/bin/"
+    }
+}
+
+task stopSolr(type: ExecWait) {
+    if (osName.contains("windows")) {
+        command 'cmd.exe /C solr.cmd stop -p 8913'
+        ready ""
+        directory "$buildDir/solr-${solrVersion}/bin/"
+    } else {
+        command 'bash solr stop -p 8913'
+        ready ""
+        directory "$buildDir/solr-${solrVersion}/bin/"
+    }
+}
+
+task deleteUnusedDirs(type: Delete) {
+
+    sleep(30_000)
+    //delete the following dirs
+    def solrDir = "$buildDir/solr-${solrVersion}/"
+
+    delete "$solrDir/docs"
+    delete "$solrDir/example"
+    delete "$solrDir/dist/solrj-lib"
+    delete "$solrDir/dist/test-framework"
+    delete "$solrDir/dist/solr-solrj-${solrVersion}.jar"
+    delete "$solrDir/dist/solr-test-framework-${solrVersion}.jar"
+
+    delete fileTree("$solrDir/server/logs").include("**/*")
+    delete "$solrDir/server/solr/configsets"
+    delete fileTree("$solrDir/server/solr").include("hsperfdata*")
+}
+
+
+
+task intTest(dependsOn: copyIntegrationRuntimeLibs, type: Test) {
+    //group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
+
+    maxHeapSize = '512m'
+
+    testClassesDir = sourceSets.intTest.output.classesDir
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    binResultsDir = file("$buildDir/integration-test-results/binary/inttest")
+
+    reports {
+        html.destination = "$buildDir/reports/integration-test"
+        junitXml.destination = "$buildDir/integration-test-results"
+    }
+}
+
+gradle.projectsEvaluated {
+    def quickTasks = []
+
+    gradle.rootProject.allprojects.each { project ->
+        quickTasks.addAll(project.tasks.findAll { it.name == 'test' })
+        quickTasks.addAll(project.tasks.withType(FindBugs))
+        quickTasks.addAll(project.tasks.withType(Pmd))
+    }
+
+    quickTasks.each { task ->
+        project.tasks.intTest.mustRunAfter task
+    }
+}
+
+intTest.dependsOn startSolr
+
+intTest.finalizedBy stopSolr
