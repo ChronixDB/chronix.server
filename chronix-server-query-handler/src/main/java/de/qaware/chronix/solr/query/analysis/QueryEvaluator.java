@@ -260,6 +260,10 @@ public final class QueryEvaluator {
                 ChronoUnit unit = ChronoUnit.valueOf(arguments[1].toUpperCase());
                 result.addTransformation(new MovingAverage(timeSpan, unit));
                 break;
+            case SMOVAVG:
+                int samples = Integer.parseInt(arguments[0]);
+                result.addTransformation(new SampleMovingAverage(samples));
+                break;
             case SCALE:
                 double scale = Double.parseDouble(arguments[0]);
                 result.addTransformation(new Scale(scale));
