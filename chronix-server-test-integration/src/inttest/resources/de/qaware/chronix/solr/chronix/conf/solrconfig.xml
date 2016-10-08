@@ -596,11 +596,10 @@
     </requestHandler>
 
     <!-- A request handler to ingest time series to chronix -->
-    <requestHandler name="/ingest" class="de.qaware.chronix.solr.ingestion.ChronixIngestionHandler"/>
-
+    <requestHandler name="/ingest/graphite" class="de.qaware.chronix.solr.ingestion.GraphiteIngestionHandler"/>
 
     <!-- Define an update processor chain for uuids -->
-    <initParams path="/update/**">
+    <initParams path="/update/**,/ingest/**">
         <lst name="defaults">
             <str name="update.chain">update-processor-chain</str>
         </lst>
