@@ -1,0 +1,4 @@
+put sys.cpu.user 1356998400 1.0 host=webserver01 cpu=0
+put sys.cpu.user 1356998400 2.0 host=webserver01 cpu=1
+put sys.cpu.user 1356998400 3.0 host=webserver01 cpu=2
+put sys.cpu.user 1356998401 1.1 host=webserver01 cpu=0
