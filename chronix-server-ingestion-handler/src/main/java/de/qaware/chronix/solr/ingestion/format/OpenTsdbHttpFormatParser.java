@@ -40,35 +40,6 @@ public class OpenTsdbHttpFormatParser implements FormatParser {
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
 
-    /**
-     * DTO for a metric.
-     * <p>
-     * A metric is unique on its name and tags.
-     */
-    private static class Metric {
-        private final String name;
-        private final Map<String, String> tags;
-
-        public Metric(String name, Map<String, String> tags) {
-            this.name = name;
-            this.tags = tags;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Metric metric = (Metric) o;
-            return Objects.equals(name, metric.name) &&
-                    Objects.equals(tags, metric.tags);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, tags);
-        }
-    }
-
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
         Map<Metric, MetricTimeSeries.Builder> metrics = new HashMap<>();
@@ -159,6 +130,39 @@ public class OpenTsdbHttpFormatParser implements FormatParser {
             return firstChar == '{';
         } catch (IOException e) {
             throw new FormatParseException("IOException while determining if single or multiple metrics ", e);
+        }
+    }
+
+    /**
+     * DTO for a metric.
+     * <p>
+     * A metric is unique on its name and tags.
+     */
+    private static class Metric {
+        private final String name;
+        private final Map<String, String> tags;
+
+        public Metric(String name, Map<String, String> tags) {
+            this.name = name;
+            this.tags = tags;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Metric metric = (Metric) o;
+            return Objects.equals(name, metric.name) &&
+                    Objects.equals(tags, metric.tags);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, tags);
         }
     }
 }
