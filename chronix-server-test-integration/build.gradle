@@ -18,10 +18,6 @@ dependencies {
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
-
-    testCompile project(':chronix-server-query-handler')
-    testCompile project(':chronix-server-ingestion-handler')
-    testCompile project(':chronix-server-retention')
 }
 task copyTestResources(type: Copy) {
     from "${projectDir}/src/test/resources"

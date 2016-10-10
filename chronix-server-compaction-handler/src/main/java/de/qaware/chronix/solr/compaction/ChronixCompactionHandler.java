@@ -43,6 +43,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase implements Solr
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         //Idea: We can call the handler for statistics (last compaction run, etc.)
         //The compaction runs timed or on a hard trigger
+        LOGGER.info("I was called");
     }
 
     @Override
