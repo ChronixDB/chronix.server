@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -24,9 +25,38 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
 
+    /**
+     * DTO for a metric.
+     * <p>
+     * A metric is unique on its name and tags.
+     */
+    private static class Metric {
+        private final String name;
+        private final Map<String, String> tags;
+
+        public Metric(String name, Map<String, String> tags) {
+            this.name = name;
+            this.tags = tags;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Metric metric = (Metric) o;
+            return Objects.equals(name, metric.name) &&
+                    Objects.equals(tags, metric.tags);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, tags);
+        }
+    }
+
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
-        Map<String, MetricTimeSeries.Builder> metrics = new HashMap<>();
+        Map<Metric, MetricTimeSeries.Builder> metrics = new HashMap<>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, UTF_8));
         String line;
@@ -41,25 +71,30 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
                     throw new FormatParseException("Expected at least 5 parts, found " + parts.length + " in line '" + line + "'");
                 }
 
+                if (!parts[0].equals("put")) {
+                    throw new FormatParseException("Expected first segment to be 'put', but was '" + parts[0] + "'");
+                }
+
                 String metricName = getMetricName(parts);
                 Instant timestamp = getMetricTimestamp(parts);
                 double value = getMetricValue(parts);
                 Map<String, String> tags = getMetricTags(parts);
 
                 // If the metric is already known, add a point. Otherwise create the metric and add the point.
-                MetricTimeSeries.Builder metricBuilder = metrics.get(metricName);
+                Metric metric = new Metric(metricName, tags);
+                MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
                 if (metricBuilder == null) {
                     metricBuilder = new MetricTimeSeries.Builder(metricName);
-                    metrics.put(metricName, metricBuilder);
-                }
-                for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
-                    metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
+                    for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
+                        metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
+                    }
+                    metrics.put(metric, metricBuilder);
                 }
 
                 metricBuilder.point(timestamp.toEpochMilli(), value);
             }
         } catch (IOException e) {
-            throw new FormatParseException("IO exception while parsing Graphite format", e);
+            throw new FormatParseException("IO exception while parsing OpenTSDB telnet format", e);
         }
 
         return metrics.values().stream().map(MetricTimeSeries.Builder::build).collect(Collectors.toList());
@@ -97,7 +132,7 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
     private Instant getMetricTimestamp(String[] parts) throws FormatParseException {
         String value = parts[2];
         try {
-            if (value.length() != 10 || value.length() != 13) {
+            if (value.length() != 10 && value.length() != 13) {
                 throw new FormatParseException("Expected a timestamp length of 10 or 13, found " + value.length() + " ('" + value + "')");
             }
 
