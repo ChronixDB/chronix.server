@@ -52,12 +52,15 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
                     metricBuilder = new MetricTimeSeries.Builder(metricName);
                     metrics.put(metricName, metricBuilder);
                 }
+                for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
+                    metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
+                }
+
                 metricBuilder.point(timestamp.toEpochMilli(), value);
             }
         } catch (IOException e) {
             throw new FormatParseException("IO exception while parsing Graphite format", e);
         }
-
 
         return metrics.values().stream().map(MetricTimeSeries.Builder::build).collect(Collectors.toList());
     }
@@ -68,10 +71,18 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
      * @param parts Parts.
      * @return Metric tags.
      */
-    private Map<String, String> getMetricTags(String[] parts) {
+    private Map<String, String> getMetricTags(String[] parts) throws FormatParseException {
         Map<String, String> tags = new HashMap<>();
 
-        // TODO: Parse the tags
+        for (int i = 4; i < parts.length; i++) {
+            String tag = parts[i];
+            String[] tagParts = StringUtils.split(tag, "=", 2);
+            if (tagParts.length != 2) {
+                throw new FormatParseException("Expected 2 tag parts, found " + tagParts.length + " in tag '" + tag + "'");
+            }
+
+            tags.put(tagParts[0], tagParts[1]);
+        }
 
         return tags;
     }
