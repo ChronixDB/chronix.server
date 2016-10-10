@@ -613,6 +613,8 @@
         <processor class="solr.RunUpdateProcessorFactory"/>
     </updateRequestProcessorChain>
 
+    <requestHandler name="/compact" class="de.qaware.chronix.solr.compaction.ChronixCompactionHandler"/>
+
     <!-- Uncomment to activate the rentetion handler.
     <requestHandler name="/retention"
                     class="de.qaware.chronix.solr.retention.ChronixRetentionHandler">

@@ -52,6 +52,7 @@ public enum FunctionType {
     BOTTOM,
     TOP,
     MOVAVG,
+    SMOVAVG,
     DERIVATIVE,
     NNDERIVATIVE,
     ADD,
@@ -74,7 +75,7 @@ public enum FunctionType {
     static {
         Collections.addAll(AGGREGATIONS, AVG, MIN, MAX, DEV, P, SUM, COUNT, FIRST, LAST, RANGE, DIFF, SDIFF, INTEGRAL);
         Collections.addAll(ANALYSES, TREND, OUTLIER, FREQUENCY, FASTDTW);
-        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT, DISTINCT);
+        Collections.addAll(TRANSFORMATIONS, VECTOR, DIVIDE, SCALE, BOTTOM, TOP, MOVAVG, SMOVAVG, DERIVATIVE, NNDERIVATIVE, ADD, SUB, TIMESHIFT, DISTINCT);
         Collections.addAll(STRACE, SPLIT);
         Collections.addAll(LSOF, GROUP);
     }
