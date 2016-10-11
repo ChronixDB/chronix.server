@@ -595,10 +595,12 @@
         </lst>
     </requestHandler>
 
-    <!-- A request handler to ingest time series to chronix -->
+    <!-- Ingestion handler -->
     <requestHandler name="/ingest/graphite" class="de.qaware.chronix.solr.ingestion.GraphiteIngestionHandler"/>
     <requestHandler name="/ingest/opentsdb/http"
                     class="de.qaware.chronix.solr.ingestion.OpenTsdbHttpApiIngestionHandler"/>
+    <requestHandler name="/ingest/opentsdb/telnet"
+                    class="de.qaware.chronix.solr.ingestion.OpenTsdbTelnetIngestionHandler"/>
 
     <!-- Define an update processor chain for uuids -->
     <initParams path="/update/**,/ingest/**">
@@ -614,6 +616,8 @@
         <processor class="solr.LogUpdateProcessorFactory"/>
         <processor class="solr.RunUpdateProcessorFactory"/>
     </updateRequestProcessorChain>
+
+    <requestHandler name="/compact" class="de.qaware.chronix.solr.compaction.ChronixCompactionHandler"/>
 
     <!-- Uncomment to activate the rentetion handler.
     <requestHandler name="/retention"

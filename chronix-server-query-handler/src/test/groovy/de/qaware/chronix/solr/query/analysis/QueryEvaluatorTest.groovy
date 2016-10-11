@@ -145,15 +145,16 @@ class QueryEvaluatorTest extends Specification {
                 ["function=movavg:10,MINUTES"] as String[],
                 ["function=add:10"] as String[],
                 ["function=sub:10"] as String[],
-                ["function=timeshift:10,SECONDS"] as String[]
+                ["function=timeshift:10,SECONDS"] as String[],
+                ["function=smovavg:10"] as String[]
         ]
 
         expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP,
                          FunctionType.BOTTOM, FunctionType.MOVAVG, FunctionType.ADD, FunctionType.SUB,
-                         FunctionType.TIMESHIFT]
+                         FunctionType.TIMESHIFT, FunctionType.SMOVAVG]
         expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
                          "value=10", "timeSpan=10", "value=10.0", "value=10.0",
-                         "amount=10"]
+                         "amount=10", "samples=10"]
     }
 
     @Unroll
