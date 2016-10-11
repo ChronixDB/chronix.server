@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.ingestion.format.opentsdb;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A DTO of a TSDB metric. Uses for GSON deserializing.
@@ -24,7 +24,7 @@ public class TsdbMetric {
     private String metric;
     private long timestamp;
     private double value;
-    private HashMap<String, String> tags;
+    private Map<String, String> tags;
 
     public String getMetric() {
         return metric;
@@ -50,11 +50,11 @@ public class TsdbMetric {
         this.value = value;
     }
 
-    public HashMap<String, String> getTags() {
+    public Map<String, String> getTags() {
         return tags;
     }
 
-    public void setTags(HashMap<String, String> tags) {
+    public void setTags(Map<String, String> tags) {
         this.tags = tags;
     }
 }
