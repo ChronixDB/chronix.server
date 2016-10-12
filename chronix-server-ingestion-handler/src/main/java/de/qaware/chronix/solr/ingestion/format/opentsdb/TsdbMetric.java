@@ -18,7 +18,7 @@ package de.qaware.chronix.solr.ingestion.format.opentsdb;
 import java.util.Map;
 
 /**
- * A DTO of a TSDB metric. Uses for GSON deserializing.
+ * A DTO of a TSDB metric. Used for GSON deserializing.
  */
 public class TsdbMetric {
     private String metric;
