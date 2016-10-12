@@ -601,6 +601,8 @@
                     class="de.qaware.chronix.solr.ingestion.OpenTsdbHttpApiIngestionHandler"/>
     <requestHandler name="/ingest/opentsdb/telnet"
                     class="de.qaware.chronix.solr.ingestion.OpenTsdbTelnetIngestionHandler"/>
+    <requestHandler name="/ingest/influxdb/write"
+                    class="de.qaware.chronix.solr.ingestion.InfluxDbIngestionHandler"/>
 
     <!-- Define an update processor chain for uuids -->
     <initParams path="/update/**,/ingest/**">
