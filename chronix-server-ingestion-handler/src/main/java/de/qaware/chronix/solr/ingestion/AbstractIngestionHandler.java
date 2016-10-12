@@ -19,6 +19,7 @@ import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
 import de.qaware.chronix.solr.ingestion.format.FormatParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
@@ -79,6 +80,11 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
         } finally {
             processor.finish();
         }
+
+        // Return the result as JSON
+        ModifiableSolrParams params = new ModifiableSolrParams(req.getParams());
+        params.set("wt", "json");
+        req.setParams(params);
     }
 
     private void storeDocument(SolrInputDocument document, UpdateRequestProcessor processor, SolrQueryRequest req) throws IOException {

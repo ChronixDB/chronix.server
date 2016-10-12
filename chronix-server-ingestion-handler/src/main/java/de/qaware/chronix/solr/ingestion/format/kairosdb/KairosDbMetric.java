@@ -13,25 +13,25 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.ingestion.format.opentsdb;
+package de.qaware.chronix.solr.ingestion.format.kairosdb;
 
 import java.util.Map;
 
 /**
- * A DTO of a TSDB metric. Used for GSON deserializing.
+ * A DTO of a KairosDB metric. Used for GSON deserializing.
  */
-public class TsdbMetric {
-    private String metric;
+public class KairosDbMetric {
+    private String name;
     private long timestamp;
     private double value;
     private Map<String, String> tags;
 
-    public String getMetric() {
-        return metric;
+    public String getName() {
+        return name;
     }
 
-    public void setMetric(String metric) {
-        this.metric = metric;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getTimestamp() {
