@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.ingestion;
 
 import de.qaware.chronix.solr.ingestion.format.KairosDbFormatParser;
+import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.response.SolrQueryResponse;
 
 /**
  * Handler to ingest the KairosDB format.
@@ -28,5 +30,13 @@ public class KairosDbIngestionHandler extends AbstractIngestionHandler {
     @Override
     public String getDescription() {
         return "The Chronix KairosDB ingestion handler.";
+    }
+
+    @Override
+    public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        super.handleRequestBody(req, rsp);
+
+        // Add empty 'errors' field, otherwise the KairosDB client crashes.
+        rsp.add("errors", new String[0]);
     }
 }
