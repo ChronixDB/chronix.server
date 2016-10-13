@@ -597,7 +597,7 @@
 
     <!-- Ingestion handler -->
     <requestHandler name="/ingest/graphite" class="de.qaware.chronix.solr.ingestion.GraphiteIngestionHandler"/>
-    <requestHandler name="/ingest/opentsdb/http"
+    <requestHandler name="/ingest/opentsdb/http/api/put"
                     class="de.qaware.chronix.solr.ingestion.OpenTsdbHttpApiIngestionHandler"/>
     <requestHandler name="/ingest/opentsdb/telnet"
                     class="de.qaware.chronix.solr.ingestion.OpenTsdbTelnetIngestionHandler"/>
