@@ -55,6 +55,8 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
     @Override
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        formatResponseAsJson(req);
+
         if (req.getContentStreams() == null) {
             LOGGER.warn("no content stream");
             rsp.add("error", "No content stream");
@@ -80,7 +82,14 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
         } finally {
             processor.finish();
         }
+    }
 
+    /**
+     * Sets the response format to JSON.
+     *
+     * @param req Original Solr request.
+     */
+    private void formatResponseAsJson(SolrQueryRequest req) {
         // Return the result as JSON
         ModifiableSolrParams params = new ModifiableSolrParams(req.getParams());
         params.set("wt", "json");
