@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.ingestion;
 
-import de.qaware.chronix.converter.KassiopeiaSimpleConverter;
+import de.qaware.chronix.converter.MetricTimeSeriesConverter;
 import de.qaware.chronix.solr.ingestion.format.FormatParser;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrInputDocument;
@@ -65,7 +65,7 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
 
         InputStream stream = req.getContentStreams().iterator().next().getStream();
 
-        KassiopeiaSimpleConverter converter = new KassiopeiaSimpleConverter();
+        MetricTimeSeriesConverter converter = new MetricTimeSeriesConverter();
 
         UpdateRequestProcessorChain processorChain = req.getCore().getUpdateProcessorChain(req.getParams());
         UpdateRequestProcessor processor = processorChain.createProcessor(req, rsp);

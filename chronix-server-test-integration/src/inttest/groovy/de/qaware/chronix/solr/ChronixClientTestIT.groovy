@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr
 
 import de.qaware.chronix.ChronixClient
-import de.qaware.chronix.converter.KassiopeiaSimpleConverter
+import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -52,7 +52,7 @@ class ChronixClientTestIT extends Specification {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
+        chronix = new ChronixClient(new MetricTimeSeriesConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(30_000)

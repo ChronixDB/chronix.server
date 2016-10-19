@@ -76,3 +76,4 @@ gradle-app.setting
 
 bintrayUpload.bat
 bintrayUpload.sh
+classes/
