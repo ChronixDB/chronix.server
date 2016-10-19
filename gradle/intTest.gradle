@@ -79,7 +79,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
-    include("*chronix-kassiopeia*.jar")
+    include("*chronix-timeseries*.jar")
     include("*chronix-server-query*.jar")
     include("*chronix-server-ingestion*.jar")
     include("*chronix-server-compaction*.jar")
