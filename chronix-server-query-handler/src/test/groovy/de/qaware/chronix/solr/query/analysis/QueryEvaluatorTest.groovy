@@ -93,35 +93,6 @@ class QueryEvaluatorTest extends Specification {
         needSubQuery << [false, false, false, true, true, false]
     }
 
-    def "test strace query"() {
-        when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
-        then:
-        def aggregation = functions.getTransformations().getAt(0)
-        aggregation.getType() == expectedType
-        aggregation.getArguments() == expectedArguments
-
-        where:
-        fqs << [["function=split"] as String[]]
-
-        expectedType << [FunctionType.SPLIT]
-        expectedArguments << [new String[0]]
-    }
-
-    def "test lsof query"() {
-        when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
-        then:
-        def aggregation = functions.getTransformations().getAt(0)
-        aggregation.getType() == expectedType
-        aggregation.getArguments() == expectedArguments
-
-        where:
-        fqs << [["function=group:node,anon_inode,pipe"] as String[]]
-
-        expectedType << [FunctionType.GROUP]
-        expectedArguments << [["field=node", "filters=[pipe, anon_inode]"] as String[]]
-    }
 
     @Unroll
     def "test transformation query #fqs"() {
@@ -141,15 +112,16 @@ class QueryEvaluatorTest extends Specification {
                 ["function=movavg:10,MINUTES"] as String[],
                 ["function=add:10"] as String[],
                 ["function=sub:10"] as String[],
-                ["function=timeshift:10,SECONDS"] as String[]
+                ["function=timeshift:10,SECONDS"] as String[],
+                ["function=smovavg:10"] as String[]
         ]
 
         expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP,
                          FunctionType.BOTTOM, FunctionType.MOVAVG, FunctionType.ADD, FunctionType.SUB,
-                         FunctionType.TIMESHIFT]
+                         FunctionType.TIMESHIFT, FunctionType.SMOVAVG]
         expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
                          "value=10", "timeSpan=10", "value=10.0", "value=10.0",
-                         "amount=10"]
+                         "amount=10", "samples=10"]
     }
 
     @Unroll

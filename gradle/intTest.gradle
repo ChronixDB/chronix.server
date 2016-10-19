@@ -25,6 +25,11 @@ dependencies {
 
     intTestRuntime configurations.runtime
     intTestRuntime configurations.testRuntime
+
+    testCompile project(':chronix-server-query-handler')
+    testCompile project(':chronix-server-ingestion-handler')
+    testCompile project(':chronix-server-compaction-handler')
+    testCompile project(':chronix-server-retention')
 }
 
 import de.undercouch.gradle.tasks.download.Download
@@ -74,9 +79,10 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
-    include("*chronix-kassiopeia*.jar")
+    include("*chronix-timeseries*.jar")
     include("*chronix-server-query*.jar")
     include("*chronix-server-ingestion*.jar")
+    include("*chronix-server-compaction*.jar")
     include("*chronix-server-retention.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "archive.file.tracked",
+    "timestamp": 1349109376,
+    "type": "long",
+    "value": 123,
+    "tags": {
+      "host": "test"
+    }
+  },
+  {
+    "name": "archive.file.search",
+    "timestamp": 1349109665,
+    "type": "double",
+    "value": 32.1,
+    "tags": {
+      "host": "test"
+    }
+  }
+]

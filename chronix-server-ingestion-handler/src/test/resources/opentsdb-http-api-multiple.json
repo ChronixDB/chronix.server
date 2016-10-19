@@ -1,0 +1,29 @@
+[
+  {
+    "metric": "sys.cpu.nice",
+    "timestamp": 1346846400,
+    "value": 1.0,
+    "tags": {
+      "host": "web01",
+      "dc": "lga"
+    }
+  },
+  {
+    "metric": "sys.cpu.nice",
+    "timestamp": 1346846400100,
+    "value": 2.0,
+    "tags": {
+      "host": "web01",
+      "dc": "lga"
+    }
+  },
+  {
+    "metric": "sys.cpu.load",
+    "timestamp": 1346846400,
+    "value": 2.0,
+    "tags": {
+      "host": "web02",
+      "dc": "lga"
+    }
+  }
+]

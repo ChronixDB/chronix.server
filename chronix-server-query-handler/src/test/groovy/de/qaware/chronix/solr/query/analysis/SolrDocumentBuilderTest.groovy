@@ -11,7 +11,7 @@ package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.Schema
 import de.qaware.chronix.converter.BinaryTimeSeries
-import de.qaware.chronix.converter.KassiopeiaSimpleConverter
+import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.converter.common.DoubleList
 import de.qaware.chronix.converter.common.LongList
@@ -193,7 +193,7 @@ class SolrDocumentBuilderTest extends Specification {
     List<SolrDocument> fillDocs() {
         def result = new ArrayList<SolrDocument>();
 
-        TimeSeriesConverter<MetricTimeSeries> converter = new KassiopeiaSimpleConverter();
+        TimeSeriesConverter<MetricTimeSeries> converter = new MetricTimeSeriesConverter();
 
         10.times {
             MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")

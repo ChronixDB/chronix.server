@@ -118,35 +118,8 @@ public final class QueryEvaluator {
         } else if (FunctionType.isAggregation(type)) {
             //Check if the type is an aggregation and add it
             addAggregation(result, type, arguments);
-        } else if (FunctionType.isLsof(type)) {
-            addLsof(result, type, arguments);
-        } else if (FunctionType.isStrace(type)) {
-            addStrace(result, type);
         } else {
             LOGGER.info("{} is unknown. {} is ignored", type, type);
-        }
-    }
-
-    private static void addStrace(QueryFunctions result, FunctionType type) {
-        switch (type) {
-            case SPLIT:
-                result.addTransformation(new Split());
-                break;
-            default:
-                LOGGER.info("{} is unknown. {} is ignored", type, type);
-
-        }
-    }
-
-    private static void addLsof(QueryFunctions result, FunctionType type, String[] arguments) {
-        switch (type) {
-            case GROUP:
-                String[] filters = new String[arguments.length - 1];
-                System.arraycopy(arguments, 1, filters, 0, filters.length);
-                result.addTransformation(new Group(arguments[0], filters));
-                break;
-            default:
-                LOGGER.info("{} is unknown. {} is ignored", type, type);
         }
     }
 
@@ -258,6 +231,10 @@ public final class QueryEvaluator {
                 long timeSpan = Long.parseLong(arguments[0]);
                 ChronoUnit unit = ChronoUnit.valueOf(arguments[1].toUpperCase());
                 result.addTransformation(new MovingAverage(timeSpan, unit));
+                break;
+            case SMOVAVG:
+                int samples = Integer.parseInt(arguments[0]);
+                result.addTransformation(new SampleMovingAverage(samples));
                 break;
             case SCALE:
                 double scale = Double.parseDouble(arguments[0]);

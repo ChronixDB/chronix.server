@@ -10,7 +10,7 @@
 package de.qaware.chronix.solr
 
 import de.qaware.chronix.ChronixClient
-import de.qaware.chronix.converter.KassiopeiaSimpleConverter
+import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -46,7 +46,7 @@ class ChronixClientTestIT extends Specification {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new KassiopeiaSimpleConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
+        chronix = new ChronixClient(new MetricTimeSeriesConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(30_000)
@@ -155,13 +155,12 @@ class ChronixClientTestIT extends Specification {
 
         where:
         analysisQuery << ["function=vector:0.01", "function=scale:4", "function=divide:4", "function=movavg:4,minutes",
-                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4", "function=timeshift:10,DAYS"]
+                          "function=top:10", "function=bottom:10", "function=add:4", "function=sub:4", "function=timeshift:10,DAYS", "function=smovavg:5"]
         attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
-                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift"]
+                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift", "0_function_smovavg"]
         attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
-                            "value=4.0", "value=4.0",
-                            "amount=10"]
-        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693]
+                            "value=4.0", "value=4.0", "amount=10", "samples=5"]
+        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693, 9689]
     }
 
     @Unroll

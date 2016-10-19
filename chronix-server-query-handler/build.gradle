@@ -14,9 +14,10 @@ dependencies {
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
-    compile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-timeseries:0.3'
+    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
+    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
+
     //Chronix FastDTW for time series similarity
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'
     //Sax - GPL2
@@ -128,21 +129,6 @@ bintray {
             mavenCentralSync {
                 sync = false
             }
-        }
-    }
-}
-
-pluginBundle {
-    website = project.websiteUrl
-    vcsUrl = project.scmUrl
-
-    plugins {
-        basePlugin {
-            id = 'de.qaware.chronix'
-            displayName = project.displayName
-            description = project.description
-            tags = ['chronix', 'time series database']
-            version = project.version
         }
     }
 }

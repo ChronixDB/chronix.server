@@ -12,16 +12,12 @@ dependencies {
     compile 'org.apache.solr:solr-solrj:6.2.1'
 
     compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple:0.3.9-beta'
-    compile 'de.qaware.chronix:chronix-kassiopeia-simple-converter:0.3.9-beta'
-    compile 'de.qaware.chronix:chronix-kassiopeia-common:0.3.9-beta'
+    compile 'de.qaware.chronix:chronix-timeseries:0.3'
+    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
+    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
-
-    testCompile project(':chronix-server-query-handler')
-    testCompile project(':chronix-server-ingestion-handler')
-    testCompile project(':chronix-server-retention')
 }
 task copyTestResources(type: Copy) {
     from "${projectDir}/src/test/resources"
@@ -124,21 +120,6 @@ bintray {
             mavenCentralSync {
                 sync = false
             }
-        }
-    }
-}
-
-pluginBundle {
-    website = project.websiteUrl
-    vcsUrl = project.scmUrl
-
-    plugins {
-        basePlugin {
-            id = 'de.qaware.chronix'
-            displayName = project.displayName
-            description = project.description
-            tags = ['chronix', 'time series database', 'retention']
-            version = project.version
         }
     }
 }
