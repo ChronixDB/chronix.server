@@ -21,8 +21,8 @@ import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.converter.common.MetricTSSchema;
-import de.qaware.chronix.converter.serializer.JsonKassiopeiaSimpleSerializer;
-import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer;
+import de.qaware.chronix.converter.serializer.json.JsonMetricTimeSeriesSerializer;
+import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAggregation;
 import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
@@ -284,7 +284,7 @@ public final class SolrDocumentBuilder {
         //No data is requested, hence we do not decompress it
         if (decompress) {
             InputStream decompressed = Compression.decompressToStream(data);
-            ProtoBufKassiopeiaSimpleSerializer.from(decompressed, tsStart, tsEnd, queryStart, queryEnd, ts);
+            ProtoBufMetricTimeSeriesSerializer.from(decompressed, tsStart, tsEnd, queryStart, queryEnd, ts);
             IOUtils.closeQuietly(decompressed);
         }
         return ts.build();
@@ -308,10 +308,10 @@ public final class SolrDocumentBuilder {
             timeSeries.sort();
             //data should returned serialized as json
             if (asJson) {
-                data = new JsonKassiopeiaSimpleSerializer().toJson(timeSeries);
+                data = new JsonMetricTimeSeriesSerializer().toJson(timeSeries);
                 doc.setField(ChronixQueryParams.DATA_AS_JSON, new String(data, Charset.forName("UTF-8")));
             } else {
-                data = ProtoBufKassiopeiaSimpleSerializer.to(timeSeries.points().iterator());
+                data = ProtoBufMetricTimeSeriesSerializer.to(timeSeries.points().iterator());
                 //compress data
                 data = Compression.compress(data);
                 doc.addField(Schema.DATA, data);

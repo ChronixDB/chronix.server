@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.converter.common.Compression
-import de.qaware.chronix.converter.serializer.ProtoBufKassiopeiaSimpleSerializer
+import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer
 import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
 import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw
@@ -200,7 +200,7 @@ class AnalysisHandlerTest extends Specification {
         doc.put("start", start.toEpochMilli())
         doc.put("end", start.plusSeconds(10).toEpochMilli())
         doc.put("metric", "test")
-        def data = ProtoBufKassiopeiaSimpleSerializer.to(ts.points().iterator())
+        def data = ProtoBufMetricTimeSeriesSerializer.to(ts.points().iterator())
         def compressed = Compression.compress(data)
         doc.put("data", ByteBuffer.wrap(compressed))
 
