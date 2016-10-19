@@ -1,11 +1,17 @@
 /*
- * GNU GENERAL PUBLIC LICENSE
- *                        Version 2, June 1991
+ * Copyright (C) 2016 QAware GmbH
  *
- *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- *  Everyone is permitted to copy and distribute verbatim copies
- *  of this license document, but changing it is not allowed.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 package de.qaware.chronix.solr.query.date
 

@@ -1,18 +1,27 @@
 /*
- * GNU GENERAL PUBLIC LICENSE
- *                        Version 2, June 1991
+ * Copyright (C) 2016 QAware GmbH
  *
- *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
- *  Everyone is permitted to copy and distribute verbatim copies
- *  of this license document, but changing it is not allowed.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.analysis.functions.FunctionType;
 import de.qaware.chronix.solr.query.analysis.functions.aggregations.*;
-import de.qaware.chronix.solr.query.analysis.functions.analyses.*;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.FastDtw;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Frequency;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Outlier;
+import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend;
 import de.qaware.chronix.solr.query.analysis.functions.transformation.*;
 import org.apache.solr.common.StringUtils;
 import org.slf4j.Logger;
@@ -190,14 +199,6 @@ public final class QueryEvaluator {
                 int searchRadius = Integer.parseInt(arguments[1]);
                 double maxAvgWarpingCost = Double.parseDouble(arguments[2]);
                 result.addAnalysis(new FastDtw(subquery, searchRadius, maxAvgWarpingCost));
-                break;
-            case SAX:
-                //sax:*af*,7,10,0.01
-                String regex = arguments[0];
-                int paaSize = Integer.parseInt(arguments[1]);
-                int alphabetSize = Integer.parseInt(arguments[2]);
-                double threshold = Double.parseDouble(arguments[3]);
-                result.addAnalysis(new Sax(regex, paaSize, alphabetSize, threshold));
                 break;
             default:
                 LOGGER.warn("Ignoring {} as an analysis. {} is unknown", type, type);
