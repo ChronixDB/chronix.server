@@ -30,6 +30,7 @@ import org.apache.solr.common.util.Pair;
 import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,30 +277,36 @@ public class AnalysisHandler extends SearchHandler {
      */
     private Map<String, List<SolrDocument>> collectDocuments(String query, SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
         //query and collect all documents
-        Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
-        //we need it every time
-        if (fields != null && !fields.contains(Schema.DATA)) {
-            fields.add(Schema.DATA);
-            //add the involved fields from in the join key
+        Set<String> fields = getFields(req.getParams().get(CommonParams.FL), req.getSchema().getFields());
+
+        //we always need the data field
+        fields.add(Schema.DATA);
+
+        //add the involved fields from in the join key
+        if (!isEmptyArray(collectionKey.involvedFields())) {
             Collections.addAll(fields, collectionKey.involvedFields());
         }
-
 
         DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
         SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
         return SolrDocumentBuilder.collect(docs, collectionKey);
     }
 
+    private boolean isEmptyArray(String[] array) {
+        return array == null || array.length == 0;
+    }
+
 
     /**
      * Converts the fields parameter in a set with single fields
      *
-     * @param fl the fields parameter as string
+     * @param fl     the fields parameter as string
+     * @param schema the solr schema
      * @return a set containing the single fields split on ','
      */
-    private Set<String> getFields(String fl) {
+    private Set<String> getFields(String fl, Map<String, SchemaField> schema) {
         if (fl == null) {
-            return null;
+            return new HashSet<>(schema.keySet());
         }
         String[] fields = fl.split(",");
         Set<String> returnFields = new HashSet<>();

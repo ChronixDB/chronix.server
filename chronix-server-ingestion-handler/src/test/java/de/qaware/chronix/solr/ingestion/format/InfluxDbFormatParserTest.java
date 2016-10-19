@@ -29,9 +29,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class InfluxDbFormatParserTest {
-    private InfluxDbFormatParser sut;
-
     private static final Instant NOW = Instant.now();
+    private InfluxDbFormatParser sut;
 
     @Before
     public void setUp() throws Exception {

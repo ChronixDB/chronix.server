@@ -113,6 +113,7 @@ public final class CSVImporter {
                                     .attribute("myIntList", LIST_INT_FIELD)
                                     .attribute("myLongList", LIST_LONG_FIELD)
                                     .attribute("myDoubleList", LIST_DOUBLE_FIELD)
+                                    .attribute("dynamic_s", "dynamic_string")
                                     .build();
                             documents.put(j, ts);
 

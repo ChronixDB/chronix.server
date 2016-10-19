@@ -28,6 +28,8 @@
         <field name="group" type="string" indexed="true" stored="true" required="false"/>
         <field name="date" type="string" indexed="true" stored="true" required="false"/>
 
+        <!-- Dynamic field -->
+        <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
 
         <field name="myIntField" type="int" indexed="true" stored="true" required="false"/>
         <field name="myLongField" type="long" indexed="true" stored="true" required="false"/>

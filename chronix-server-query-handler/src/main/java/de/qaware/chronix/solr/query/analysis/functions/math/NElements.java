@@ -82,6 +82,14 @@ public final class NElements {
     }
 
     /**
+     * The two calculations
+     */
+    public enum NElementsCalculation {
+        TOP,
+        BOTTOM
+    }
+
+    /**
      * Helper class to represent values with belonging index
      */
     private static final class Pair implements Comparable<Pair> {
@@ -135,14 +143,6 @@ public final class NElements {
                     .append(value)
                     .toHashCode();
         }
-    }
-
-    /**
-     * The two calculations
-     */
-    public enum NElementsCalculation {
-        TOP,
-        BOTTOM
     }
 
     /**

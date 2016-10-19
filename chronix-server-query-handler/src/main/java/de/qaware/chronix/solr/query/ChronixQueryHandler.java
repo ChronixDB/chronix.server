@@ -49,21 +49,6 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixQueryHandler.class);
 
     private static final Set<String> REQUIRED_FIELDS = new HashSet<>();
-    /**
-     * The default solr search handler
-     */
-    private final SearchHandler searchHandler = new SearchHandler();
-
-    /**
-     * The analysis handler
-     */
-    private final SearchHandler analysisHandler = new AnalysisHandler(new SolrDocListProvider());
-
-    /**
-     * The date range parser
-     */
-    private final DateQueryParser dateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
-
 
     static {
         REQUIRED_FIELDS.add(Schema.DATA);
@@ -71,6 +56,19 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         REQUIRED_FIELDS.add(Schema.END);
         REQUIRED_FIELDS.add(MetricTSSchema.METRIC);
     }
+
+    /**
+     * The default solr search handler
+     */
+    private final SearchHandler searchHandler = new SearchHandler();
+    /**
+     * The analysis handler
+     */
+    private final SearchHandler analysisHandler = new AnalysisHandler(new SolrDocListProvider());
+    /**
+     * The date range parser
+     */
+    private final DateQueryParser dateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
     @Override
     public void init(PluginInfo info) {

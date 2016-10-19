@@ -221,13 +221,37 @@ class ChronixClientTestIT extends Specification {
     def "test function query with dataAsJson and join"() {
         when:
         def query = new SolrQuery("metric:\\\\Cpu*")
-        query.addFilterQuery("join=group")
+        query.addFilterQuery("join=dynamic_s,metric")
         query.setFields("dataAsJson")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 8
+        def ts = timeSeries.get(0)
+        ts.size() == 9693
+        def joinKey = ts.attribute("dynamic_s")[0] + "-" + ts.getMetric()
+        timeSeries.get(0).attribute("join_key") == joinKey
+    }
+
+    @Unroll
+    def "test join documents with data: #ifData on dynamic field"() {
+        when:
+        def query = new SolrQuery("metric:\\\\Cpu*")
+        query.addFilterQuery("join=dynamic_s")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
-        timeSeries.get(0).size() == 77544
+        if (ifData) {
+            timeSeries.get(0).size() == 77544
+        } else {
+            timeSeries.get(0).size() == 0
+        }
+
+        where:
+        data << ["", "+data"]
+        ifData << [false, true]
     }
+
 
     @Unroll
     def "test join documents with data: #ifData"() {
@@ -308,7 +332,7 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attributes().size() == 12
+        selectedTimeSeries.attributes().size() == 13
     }
 
     @Unroll

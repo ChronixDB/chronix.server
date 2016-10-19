@@ -3,6 +3,11 @@ sonarqube {
         property "sonar.projectName", "de.qaware.chronix:chronix-server-query-handler"
     }
 }
+repositories {
+    flatDir {
+        dirs '../extLibs'
+    }
+}
 
 dependencies {
     compile "org.apache.solr:solr-core:6.2.1"

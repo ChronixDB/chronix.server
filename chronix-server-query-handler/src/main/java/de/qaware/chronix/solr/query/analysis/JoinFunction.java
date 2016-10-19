@@ -53,6 +53,21 @@ public final class JoinFunction implements Function<SolrDocument, String> {
         }
     }
 
+    /**
+     * Validates if the given join function is (==) the default join function
+     *
+     * @param joinFunction the join function given by the callee
+     * @return true if it is the same as the default join function (default = join on metric field)
+     */
+    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
+        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
+    }
+
+    private static String[] fields(String filterQuery) {
+        int startIndex = filterQuery.indexOf('=') + 1;
+        String stringFields = filterQuery.substring(startIndex);
+        return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
+    }
 
     @Override
     public String apply(SolrDocument doc) {
@@ -67,17 +82,6 @@ public final class JoinFunction implements Function<SolrDocument, String> {
         return sb.toString();
     }
 
-
-    /**
-     * Validates if the given join function is (==) the default join function
-     *
-     * @param joinFunction the join function given by the callee
-     * @return true if it is the same as the default join function (default = join on metric field)
-     */
-    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
-        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
-    }
-
     /**
      * Returns the involved fields of the join function
      *
@@ -85,12 +89,6 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      */
     public String[] involvedFields() {
         return Arrays.copyOf(involvedFields, involvedFields.length);
-    }
-
-    private static String[] fields(String filterQuery) {
-        int startIndex = filterQuery.indexOf('=') + 1;
-        String stringFields = filterQuery.substring(startIndex);
-        return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
     }
 
 

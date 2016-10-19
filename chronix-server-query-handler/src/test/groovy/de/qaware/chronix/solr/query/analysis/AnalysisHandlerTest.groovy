@@ -29,6 +29,8 @@ import org.apache.solr.common.params.ModifiableSolrParams
 import org.apache.solr.core.PluginInfo
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
+import org.apache.solr.schema.IndexSchema
+import org.apache.solr.schema.SchemaField
 import org.apache.solr.search.DocSlice
 import spock.lang.Shared
 import spock.lang.Specification
@@ -47,7 +49,10 @@ class AnalysisHandlerTest extends Specification {
     def "test handle function request"() {
         given:
         def request = Mock(SolrQueryRequest)
+        def indexSchema = Mock(IndexSchema)
 
+        indexSchema.getFields() >> new HashMap<String, SchemaField>()
+        request.getSchema() >> indexSchema
         request.getParams() >> params
 
         def docListMock = Stub(DocListProvider)
@@ -83,14 +88,14 @@ class AnalysisHandlerTest extends Specification {
         def analysisHandler = new AnalysisHandler(docListMock)
 
         when:
-        def fields = analysisHandler.getFields(concatedFields)
+        def fields = analysisHandler.getFields(concatedFields, new HashMap<String, SchemaField>())
 
         then:
         fields == result
 
         where:
         concatedFields << [null, "myField,start,end,data,metric"]
-        result << [null, ["myField", "start", "end", "data", "metric"] as Set<String>]
+        result << [new HashSet<>(), ["myField", "start", "end", "data", "metric"] as Set<String>]
     }
 
     @Shared
@@ -150,6 +155,11 @@ class AnalysisHandlerTest extends Specification {
         timeSeriesRecordsFromSubQuery.put("something-other", solrDocument(start))
 
         def request = Mock(SolrQueryRequest)
+        def indexSchema = Mock(IndexSchema)
+
+        indexSchema.getFields() >> new HashMap<String, SchemaField>()
+        request.getSchema() >> indexSchema
+
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                 .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))

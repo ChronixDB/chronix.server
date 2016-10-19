@@ -58,11 +58,7 @@ public enum FunctionType {
     ADD,
     SUB,
     TIMESHIFT,
-    DISTINCT,
-    //Strace
-    SPLIT,
-    //LSOF
-    GROUP;
+    DISTINCT;
 
     //Sets to hold the aggregations, analyses and transformations.
     //Otherwise the complexity of if(type == X || type == X ...) is to high
