@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.query.analysis
 
@@ -83,18 +77,20 @@ class QueryEvaluatorTest extends Specification {
                 ["function=outlier"] as String[],
                 ["function=frequency:10,6"] as String[],
                 ["function=fastdtw:(metric:load* AND group:(A OR B)),5,0.4"] as String[],
-                ["function=fastdtw:metric:load* AND group:(A OR B),5,0.4"] as String[]
+                ["function=fastdtw:metric:load* AND group:(A OR B),5,0.4"] as String[],
+                ["function=sax:*af*,10,60,0.01"] as String[]
         ]
 
         expectedAggreation << [FunctionType.TREND, FunctionType.OUTLIER, FunctionType.FREQUENCY,
-                               FunctionType.FASTDTW, FunctionType.FASTDTW]
+                               FunctionType.FASTDTW, FunctionType.FASTDTW, FunctionType.SAX]
         expectedValue << [new String[0], new String[0],
                           ["window size=10", "window threshold=6"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
-                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
+                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
+                          ["pattern=.*af.*", "paaSize=10", "alphabetSize=60", "threshold=0.01"] as String[]]
 
-        subQuery << [null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
-        needSubQuery << [false, false, false, true, true]
+        subQuery << [null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)", null]
+        needSubQuery << [false, false, false, true, true, false]
     }
 
 

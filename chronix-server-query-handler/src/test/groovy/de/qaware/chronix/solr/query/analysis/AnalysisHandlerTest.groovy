@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.query.analysis
 
@@ -29,6 +23,8 @@ import org.apache.solr.common.params.ModifiableSolrParams
 import org.apache.solr.core.PluginInfo
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
+import org.apache.solr.schema.IndexSchema
+import org.apache.solr.schema.SchemaField
 import org.apache.solr.search.DocSlice
 import spock.lang.Shared
 import spock.lang.Specification
@@ -47,7 +43,10 @@ class AnalysisHandlerTest extends Specification {
     def "test handle function request"() {
         given:
         def request = Mock(SolrQueryRequest)
+        def indexSchema = Mock(IndexSchema)
 
+        indexSchema.getFields() >> new HashMap<String, SchemaField>()
+        request.getSchema() >> indexSchema
         request.getParams() >> params
 
         def docListMock = Stub(DocListProvider)
@@ -83,14 +82,14 @@ class AnalysisHandlerTest extends Specification {
         def analysisHandler = new AnalysisHandler(docListMock)
 
         when:
-        def fields = analysisHandler.getFields(concatedFields)
+        def fields = analysisHandler.getFields(concatedFields, new HashMap<String, SchemaField>())
 
         then:
         fields == result
 
         where:
         concatedFields << [null, "myField,start,end,data,metric"]
-        result << [null, ["myField", "start", "end", "data", "metric"] as Set<String>]
+        result << [new HashSet<>(), ["myField", "start", "end", "data", "metric"] as Set<String>]
     }
 
     @Shared
@@ -150,6 +149,11 @@ class AnalysisHandlerTest extends Specification {
         timeSeriesRecordsFromSubQuery.put("something-other", solrDocument(start))
 
         def request = Mock(SolrQueryRequest)
+        def indexSchema = Mock(IndexSchema)
+
+        indexSchema.getFields() >> new HashMap<String, SchemaField>()
+        request.getSchema() >> indexSchema
+
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                 .add("fq", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))

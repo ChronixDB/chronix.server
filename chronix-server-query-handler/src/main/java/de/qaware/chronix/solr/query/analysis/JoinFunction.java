@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.query.analysis;
 
@@ -53,6 +47,21 @@ public final class JoinFunction implements Function<SolrDocument, String> {
         }
     }
 
+    /**
+     * Validates if the given join function is (==) the default join function
+     *
+     * @param joinFunction the join function given by the callee
+     * @return true if it is the same as the default join function (default = join on metric field)
+     */
+    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
+        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
+    }
+
+    private static String[] fields(String filterQuery) {
+        int startIndex = filterQuery.indexOf('=') + 1;
+        String stringFields = filterQuery.substring(startIndex);
+        return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
+    }
 
     @Override
     public String apply(SolrDocument doc) {
@@ -67,17 +76,6 @@ public final class JoinFunction implements Function<SolrDocument, String> {
         return sb.toString();
     }
 
-
-    /**
-     * Validates if the given join function is (==) the default join function
-     *
-     * @param joinFunction the join function given by the callee
-     * @return true if it is the same as the default join function (default = join on metric field)
-     */
-    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
-        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
-    }
-
     /**
      * Returns the involved fields of the join function
      *
@@ -85,12 +83,6 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      */
     public String[] involvedFields() {
         return Arrays.copyOf(involvedFields, involvedFields.length);
-    }
-
-    private static String[] fields(String filterQuery) {
-        int startIndex = filterQuery.indexOf('=') + 1;
-        String stringFields = filterQuery.substring(startIndex);
-        return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
     }
 
 

@@ -191,6 +191,7 @@ Currently the following functions are available:
 - Timeshift (function=timeshift:[+/-]10,DAYS) (*Release 0.3*)
 - Distinct (function=distinct) (*Release 0.4*)
 - Integral (function=integral) (*Release 0.4*)
+- SAX (function=sax:\*af\*,10,60,0.01)
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.

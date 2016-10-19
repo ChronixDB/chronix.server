@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * GNU GENERAL PUBLIC LICENSE
+ *                        Version 2, June 1991
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ *  Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/>
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *  Everyone is permitted to copy and distribute verbatim copies
+ *  of this license document, but changing it is not allowed.
  */
 package de.qaware.chronix.solr.query.analysis;
 
@@ -30,6 +24,7 @@ import org.apache.solr.common.util.Pair;
 import org.apache.solr.handler.component.SearchHandler;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.schema.SchemaField;
 import org.apache.solr.search.DocList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,30 +271,36 @@ public class AnalysisHandler extends SearchHandler {
      */
     private Map<String, List<SolrDocument>> collectDocuments(String query, SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
         //query and collect all documents
-        Set<String> fields = getFields(req.getParams().get(CommonParams.FL));
-        //we need it every time
-        if (fields != null && !fields.contains(Schema.DATA)) {
-            fields.add(Schema.DATA);
-            //add the involved fields from in the join key
+        Set<String> fields = getFields(req.getParams().get(CommonParams.FL), req.getSchema().getFields());
+
+        //we always need the data field
+        fields.add(Schema.DATA);
+
+        //add the involved fields from in the join key
+        if (!isEmptyArray(collectionKey.involvedFields())) {
             Collections.addAll(fields, collectionKey.involvedFields());
         }
-
 
         DocList result = docListProvider.doSimpleQuery(query, req, 0, Integer.MAX_VALUE);
         SolrDocumentList docs = docListProvider.docListToSolrDocumentList(result, req.getSearcher(), fields, null);
         return SolrDocumentBuilder.collect(docs, collectionKey);
     }
 
+    private boolean isEmptyArray(String[] array) {
+        return array == null || array.length == 0;
+    }
+
 
     /**
      * Converts the fields parameter in a set with single fields
      *
-     * @param fl the fields parameter as string
+     * @param fl     the fields parameter as string
+     * @param schema the solr schema
      * @return a set containing the single fields split on ','
      */
-    private Set<String> getFields(String fl) {
+    private Set<String> getFields(String fl, Map<String, SchemaField> schema) {
         if (fl == null) {
-            return null;
+            return new HashSet<>(schema.keySet());
         }
         String[] fields = fl.split(",");
         Set<String> returnFields = new HashSet<>();
