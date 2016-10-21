@@ -605,6 +605,8 @@
                     class="de.qaware.chronix.solr.ingestion.InfluxDbIngestionHandler"/>
     <requestHandler name="/ingest/kairosdb/api/v1/datapoints"
                     class="de.qaware.chronix.solr.ingestion.KairosDbIngestionHandler"/>
+    <requestHandler name="/ingest/prometheus/text"
+                    class="de.qaware.chronix.solr.ingestion.PrometheusTextIngestionHandler"/>
 
     <!-- Define an update processor chain for uuids -->
     <initParams path="/update/**,/ingest/**">
