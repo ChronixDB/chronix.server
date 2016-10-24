@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The Chronix ingestion handler
+ * The Chronix compaction handler
  *
  * @author f.lautenschlager
  */
