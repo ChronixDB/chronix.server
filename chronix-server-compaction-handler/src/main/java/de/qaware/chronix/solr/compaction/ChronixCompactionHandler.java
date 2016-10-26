@@ -15,35 +15,54 @@
  */
 package de.qaware.chronix.solr.compaction;
 
-import org.apache.solr.core.PluginInfo;
-import org.apache.solr.core.SolrCore;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
-import org.apache.solr.util.plugin.PluginInfoInitialized;
-import org.apache.solr.util.plugin.SolrCoreAware;
+import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.search.SolrIndexSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import static de.qaware.chronix.Schema.START;
+import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC;
+import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.lucene.search.SortField.Type.LONG;
 
 /**
  * The Chronix compaction handler
  *
  * @author f.lautenschlager
+ * @author alex.christ
  */
-public class ChronixCompactionHandler extends RequestHandlerBase implements SolrCoreAware, PluginInfoInitialized {
+public class ChronixCompactionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixCompactionHandler.class);
+    private static final String PARAM_METRICS = "metrics";
+    private static final char PARAM_METRICS_SEPARATOR = ',';
+    private final CompactionHandlerConfiguration config;
 
-    @Override
-    public void init(PluginInfo info) {
-
+    /**
+     * Creates a new instance. Constructor used by Solr.
+     */
+    public ChronixCompactionHandler() {
+        config = new CompactionHandlerConfiguration();
     }
 
-    @Override
-    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
-    public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
-        //Idea: We can call the handler for statistics (last compaction run, etc.)
-        //The compaction runs timed or on a hard trigger
-        LOGGER.info("I was called");
+    /**
+     * Creates a new instance. Constructor used by tests.
+     *
+     * @param config the configuration
+     */
+    public ChronixCompactionHandler(CompactionHandlerConfiguration config) {
+        this.config = config;
     }
 
     @Override
@@ -52,7 +71,44 @@ public class ChronixCompactionHandler extends RequestHandlerBase implements Solr
     }
 
     @Override
-    public void inform(SolrCore core) {
+    public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
+        String metrics = req.getParams().get(PARAM_METRICS);
+        if (metrics == null) {
+            LOGGER.error("No metrics names");
+            rsp.add("error", "No metrics names");
+            return;
+        }
+        for (String metric : split(metrics, PARAM_METRICS_SEPARATOR)) {
+            compact(req, rsp, metric);
+        }
+    }
 
+    private void compact(SolrQueryRequest req, SolrQueryResponse rsp, String metric) throws IOException {
+        SolrUpdateService updateService = config.getSolrUpdateService(req, rsp);
+        SolrIndexSearcher searcher = req.getSearcher();
+        IndexSchema schema = searcher.getSchema();
+        Query query = new TermQuery(new Term(METRIC, metric));
+        Sort sort = new Sort(new SortField(START, LONG));
+
+        Iterable<Document> documents = config.getDocumentLoader().load(searcher, query, sort);
+        Iterable<CompactionResult> compactionResults = config.getCompactor().compact(documents, schema);
+
+        int compactedCount = 0;
+        int resultCount = 0;
+        for (CompactionResult compactionResult : compactionResults) {
+            for (Document document : compactionResult.getOriginalDocuments()) {
+                updateService.delete(document, req);
+                compactedCount++;
+            }
+            for (SolrInputDocument document : compactionResult.getResultingDocuments()) {
+                updateService.add(document, req);
+                resultCount++;
+            }
+        }
+
+        updateService.commit(req);
+
+        rsp.add(metric + "-numCompacted", compactedCount);
+        rsp.add(metric + "-numNewDocs", resultCount);
     }
 }
