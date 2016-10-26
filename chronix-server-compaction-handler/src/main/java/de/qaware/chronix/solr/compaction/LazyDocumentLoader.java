@@ -44,7 +44,7 @@ public class LazyDocumentLoader {
 
     private class LazySolrDocumentSet implements Iterator<Document>, Iterable<Document> {
         private final IndexSearcher searcher;
-        private static final int PAGE_SIZE = 1;
+        private static final int PAGE_LIMIT = 1;
         private Query query;
         private Sort sort;
         private ScoreDoc[] page;
@@ -55,7 +55,7 @@ public class LazyDocumentLoader {
             this.query = query;
             this.sort = sort;
             try {
-                TopDocs topDocs = searcher.searchAfter(null, query, PAGE_SIZE, sort);
+                TopDocs topDocs = searcher.searchAfter(null, query, PAGE_LIMIT, sort);
                 page = topDocs.scoreDocs;
                 pageHitsRead = 0;
             } catch (IOException e) {
@@ -75,7 +75,7 @@ public class LazyDocumentLoader {
                 result = searcher.doc(page[pageHitsRead].doc);
                 pageHitsRead++;
                 if (pageHitsRead == page.length) {
-                    page = searcher.searchAfter(page[page.length - 1], query, PAGE_SIZE, sort).scoreDocs;
+                    page = searcher.searchAfter(page[page.length - 1], query, PAGE_LIMIT, sort).scoreDocs;
                     pageHitsRead = 0;
                 }
             } catch (IOException e) {

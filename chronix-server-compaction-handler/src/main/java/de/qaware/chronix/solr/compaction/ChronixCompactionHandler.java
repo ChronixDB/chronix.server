@@ -78,9 +78,11 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
             rsp.add("error", "No metrics names");
             return;
         }
+
         for (String metric : split(metrics, PARAM_METRICS_SEPARATOR)) {
             compact(req, rsp, metric);
         }
+
         config.getSolrUpdateService(req, rsp).commit();
     }
 

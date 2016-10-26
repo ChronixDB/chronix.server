@@ -25,8 +25,8 @@ import java.util.Set;
  * Contains the "input" documents, i.e. the documents that were compacted.
  * Contains the "output" documents, i.e. the documents containing the compacted data.
  * <p>
- * All of the input document data is contained in the output documents.
- * The output documents may however contain less data than the input documents.
+ * All input document data is contained in the output document data.
+ * Some output document data may not be contained in the input document data.
  *
  * @author alex.christ
  */
@@ -36,7 +36,8 @@ public class CompactionResult {
 
     /**
      * Creates a new instance
-     * @param inputDocuments the original documents
+     *
+     * @param inputDocuments  the original documents
      * @param outputDocuments the resulting documents
      */
     public CompactionResult(Set<Document> inputDocuments, Set<SolrInputDocument> outputDocuments) {
