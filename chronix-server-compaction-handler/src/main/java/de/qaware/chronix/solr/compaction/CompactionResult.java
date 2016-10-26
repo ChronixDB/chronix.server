@@ -31,24 +31,24 @@ import java.util.Set;
  * @author alex.christ
  */
 public class CompactionResult {
-    private Set<Document> originalDocuments;
-    private Set<SolrInputDocument> resultingDocuments;
+    private Set<Document> inputDocuments;
+    private Set<SolrInputDocument> outputDocuments;
 
     /**
      * Creates a new instance
-     * @param originalDocuments the original documents
-     * @param resultingDocuments the resulting documents
+     * @param inputDocuments the original documents
+     * @param outputDocuments the resulting documents
      */
-    public CompactionResult(Set<Document> originalDocuments, Set<SolrInputDocument> resultingDocuments) {
-        this.originalDocuments = originalDocuments;
-        this.resultingDocuments = resultingDocuments;
+    public CompactionResult(Set<Document> inputDocuments, Set<SolrInputDocument> outputDocuments) {
+        this.inputDocuments = inputDocuments;
+        this.outputDocuments = outputDocuments;
     }
 
-    public Set<Document> getOriginalDocuments() {
-        return originalDocuments;
+    public Set<Document> getInputDocuments() {
+        return inputDocuments;
     }
 
-    public Set<SolrInputDocument> getResultingDocuments() {
-        return resultingDocuments;
+    public Set<SolrInputDocument> getOutputDocuments() {
+        return outputDocuments;
     }
 }

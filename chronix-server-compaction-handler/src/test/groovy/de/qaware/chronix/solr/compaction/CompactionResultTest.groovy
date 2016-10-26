@@ -32,7 +32,7 @@ class CompactionResultTest extends Specification {
         def result = new CompactionResult(originalDocuments, resultingDocuments)
 
         expect:
-        result.originalDocuments == originalDocuments
-        result.resultingDocuments == resultingDocuments
+        result.inputDocuments == originalDocuments
+        result.outputDocuments == resultingDocuments
     }
 }

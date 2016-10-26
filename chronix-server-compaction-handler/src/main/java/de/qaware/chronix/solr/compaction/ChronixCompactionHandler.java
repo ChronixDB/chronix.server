@@ -74,7 +74,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String metrics = req.getParams().get(PARAM_METRICS);
         if (metrics == null) {
-            LOGGER.error("No metrics names");
+            LOGGER.error("No metrics names given");
             rsp.add("error", "No metrics names");
             return;
         }
@@ -96,11 +96,11 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         int compactedCount = 0;
         int resultCount = 0;
         for (CompactionResult compactionResult : compactionResults) {
-            for (Document document : compactionResult.getOriginalDocuments()) {
+            for (Document document : compactionResult.getInputDocuments()) {
                 updateService.delete(document, req);
                 compactedCount++;
             }
-            for (SolrInputDocument document : compactionResult.getResultingDocuments()) {
+            for (SolrInputDocument document : compactionResult.getOutputDocuments()) {
                 updateService.add(document, req);
                 resultCount++;
             }

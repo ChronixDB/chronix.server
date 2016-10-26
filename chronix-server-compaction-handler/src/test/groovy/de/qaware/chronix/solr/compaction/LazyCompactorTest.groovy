@@ -56,8 +56,8 @@ class LazyCompactorTest extends Specification {
 
         when:
         def result = compactor.compact([doc], schema).toList()
-        def originals = result[0].originalDocuments
-        def compacted = result[0].resultingDocuments
+        def originals = result[0].inputDocuments
+        def compacted = result[0].outputDocuments
 
         then:
         result.size() == 1
