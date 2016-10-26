@@ -72,8 +72,8 @@ class ChronixCompactionHandlerTest extends Specification {
         then:
         1 * rsp.add('heap_usage-numCompacted', _)
         1 * rsp.add('heap_usage-numNewDocs', _)
-        1 * updateService.delete(docs[0], _)
-        1 * updateService.add(compacted[0], _)
+        1 * updateService.delete(docs[0])
+        1 * updateService.add(compacted[0])
     }
 
     def mockConfig() {

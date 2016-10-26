@@ -36,6 +36,7 @@ import static de.qaware.chronix.Schema.ID;
 public class SolrUpdateService {
 
     private UpdateRequestProcessor updateProcessor;
+    private SolrQueryRequest req;
 
     /**
      * Creates a new instance.
@@ -44,7 +45,7 @@ public class SolrUpdateService {
      * @param rsp the solr response
      */
     public SolrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
-        this(req.getCore()
+        this(req, req.getCore()
                 .getUpdateProcessorChain(req.getParams())
                 .createProcessor(req, rsp));
     }
@@ -52,20 +53,21 @@ public class SolrUpdateService {
     /**
      * Creates a new instance, mainly for testing purposes
      *
+     * @param req             the solr query request
      * @param updateProcessor the update processor
      */
-    SolrUpdateService(UpdateRequestProcessor updateProcessor) {
+    SolrUpdateService(SolrQueryRequest req, UpdateRequestProcessor updateProcessor) {
         this.updateProcessor = updateProcessor;
+        this.req = req;
     }
 
     /**
      * Deletes the given document from the solr index without commit.
      *
      * @param doc the document to delete
-     * @param req the solr request
      * @throws IOException iff something goes wrong
      */
-    public void delete(Document doc, SolrQueryRequest req) throws IOException {
+    public void delete(Document doc) throws IOException {
         DeleteUpdateCommand deleteUpdateCommand = new DeleteUpdateCommand(req);
         deleteUpdateCommand.setQuery(ID + ":" + doc.get(ID));
         updateProcessor.processDelete(deleteUpdateCommand);
@@ -75,10 +77,9 @@ public class SolrUpdateService {
      * Adds the given document to the solr index without commit.
      *
      * @param doc the document to add
-     * @param req the solr request
      * @throws IOException iff something goes wrong
      */
-    public void add(SolrInputDocument doc, SolrQueryRequest req) throws IOException {
+    public void add(SolrInputDocument doc) throws IOException {
         AddUpdateCommand cmd = new AddUpdateCommand(req);
         cmd.solrDoc = doc;
         updateProcessor.processAdd(cmd);
@@ -87,10 +88,9 @@ public class SolrUpdateService {
     /**
      * Commits open changes to the solr index. Does not optimize the index afterwards.
      *
-     * @param req the solr request
      * @throws IOException iff something goes wrong
      */
-    public void commit(SolrQueryRequest req) throws IOException {
+    public void commit() throws IOException {
         updateProcessor.processCommit(new CommitUpdateCommand(req, false));
     }
 }

@@ -81,6 +81,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         for (String metric : split(metrics, PARAM_METRICS_SEPARATOR)) {
             compact(req, rsp, metric);
         }
+        config.getSolrUpdateService(req, rsp).commit();
     }
 
     private void compact(SolrQueryRequest req, SolrQueryResponse rsp, String metric) throws IOException {
@@ -97,16 +98,14 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         int resultCount = 0;
         for (CompactionResult compactionResult : compactionResults) {
             for (Document document : compactionResult.getInputDocuments()) {
-                updateService.delete(document, req);
+                updateService.delete(document);
                 compactedCount++;
             }
             for (SolrInputDocument document : compactionResult.getOutputDocuments()) {
-                updateService.add(document, req);
+                updateService.add(document);
                 resultCount++;
             }
         }
-
-        updateService.commit(req);
 
         rsp.add(metric + "-numCompacted", compactedCount);
         rsp.add(metric + "-numNewDocs", resultCount);

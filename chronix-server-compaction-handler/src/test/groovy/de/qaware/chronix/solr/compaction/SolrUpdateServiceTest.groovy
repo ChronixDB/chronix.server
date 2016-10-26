@@ -37,7 +37,7 @@ class SolrUpdateServiceTest extends Specification {
     void setup() {
         updateProcessor = Mock(UpdateRequestProcessor)
         req = Mock()
-        service = new SolrUpdateService(updateProcessor)
+        service = new SolrUpdateService(req, updateProcessor)
     }
 
     def "test deleting"() {
@@ -46,7 +46,7 @@ class SolrUpdateServiceTest extends Specification {
             (Document) it
         };
         when:
-        service.delete(doc, req)
+        service.delete doc
 
         then:
         1 * updateProcessor.processDelete({ it.query == "$ID:some-id" })
@@ -55,7 +55,7 @@ class SolrUpdateServiceTest extends Specification {
     def "test adding"() {
         def doc = new SolrInputDocument()
         when:
-        service.add(doc, req)
+        service.add doc
 
         then:
         1 * updateProcessor.processAdd({ it.solrInputDocument == doc })
@@ -64,7 +64,7 @@ class SolrUpdateServiceTest extends Specification {
 
     def "test committing"() {
         when:
-        service.commit(req);
+        service.commit();
 
         then:
         1 * updateProcessor.processCommit({ it.req == req })
