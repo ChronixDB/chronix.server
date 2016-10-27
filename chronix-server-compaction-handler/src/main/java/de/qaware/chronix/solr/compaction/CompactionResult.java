@@ -24,9 +24,6 @@ import java.util.Set;
  * Result of a compaction.
  * Contains the "input" documents, i.e. the documents that were compacted.
  * Contains the "output" documents, i.e. the documents containing the compacted data.
- * <p>
- * All input document data is contained in the output document data.
- * Some output document data may not be contained in the input document data.
  *
  * @author alex.christ
  */

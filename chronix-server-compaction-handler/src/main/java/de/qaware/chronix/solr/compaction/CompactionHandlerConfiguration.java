@@ -31,21 +31,21 @@ public class CompactionHandlerConfiguration {
      * @param rsp the response
      * @return the solr update service
      */
-    public SolrUpdateService getSolrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
+    public SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
         return new SolrUpdateService(req, rsp);
     }
 
     /**
      * @return the document loader
      */
-    public LazyDocumentLoader getDocumentLoader() {
+    public LazyDocumentLoader documentLoader() {
         return new LazyDocumentLoader();
     }
 
     /**
      * @return the compactor
      */
-    public LazyCompactor getCompactor() {
+    public LazyCompactor compactor() {
         return new LazyCompactor();
     }
 }

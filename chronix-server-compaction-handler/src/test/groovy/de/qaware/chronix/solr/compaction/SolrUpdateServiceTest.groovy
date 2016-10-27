@@ -41,10 +41,12 @@ class SolrUpdateServiceTest extends Specification {
     }
 
     def "test deleting"() {
+        given:
         def doc = new Document().with {
             add(new StringField(ID, 'some-id', Field.Store.YES))
             (Document) it
         };
+
         when:
         service.delete doc
 
@@ -53,7 +55,9 @@ class SolrUpdateServiceTest extends Specification {
     }
 
     def "test adding"() {
+        given:
         def doc = new SolrInputDocument()
+
         when:
         service.add doc
 

@@ -83,18 +83,18 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
             compact(req, rsp, metric);
         }
 
-        config.getSolrUpdateService(req, rsp).commit();
+        config.solrUpdateService(req, rsp).commit();
     }
 
     private void compact(SolrQueryRequest req, SolrQueryResponse rsp, String metric) throws IOException {
-        SolrUpdateService updateService = config.getSolrUpdateService(req, rsp);
+        SolrUpdateService updateService = config.solrUpdateService(req, rsp);
         SolrIndexSearcher searcher = req.getSearcher();
         IndexSchema schema = searcher.getSchema();
         Query query = new TermQuery(new Term(METRIC, metric));
         Sort sort = new Sort(new SortField(START, LONG));
 
-        Iterable<Document> documents = config.getDocumentLoader().load(searcher, query, sort);
-        Iterable<CompactionResult> compactionResults = config.getCompactor().compact(documents, schema);
+        Iterable<Document> documents = config.documentLoader().load(searcher, query, sort);
+        Iterable<CompactionResult> compactionResults = config.compactor().compact(documents, schema);
 
         int compactedCount = 0;
         int resultCount = 0;

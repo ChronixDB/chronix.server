@@ -16,7 +16,6 @@
 package de.qaware.chronix.solr.compaction
 
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import de.qaware.chronix.timeseries.dts.Point
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.DoublePoint
 import org.apache.solr.common.SolrDocument
@@ -25,9 +24,9 @@ import org.apache.solr.schema.SchemaField
 import org.apache.solr.schema.TrieDoubleField
 import spock.lang.Specification
 
-import static de.qaware.chronix.converter.common.Compression.compress
+import static de.qaware.chronix.Schema.ID
 import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
-import static de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer.to
+import static de.qaware.chronix.solr.compaction.TestUtils.*
 
 /**
  * Test case for {@link ConverterService}.
@@ -46,17 +45,15 @@ class ConverterServiceTest extends Specification {
                 attr1    : 0,
                 attr2    : 'hello',
                 _version_: 1549200241530503168L,
-                id       : 'b515202e-d3fb-4d1c-878f-85bb45f89a69']).build()
+                (ID)     : 'b515202e-d3fb-4d1c-878f-85bb45f89a69']).build()
 
         when:
         def result = service.toInputDocument(ts)
 
         then:
-        result[METRIC].value == 'heap_usage'
-        result['attr1'].value == 0
-        result['attr2'].value == 'hello'
+        result hasAttributes((METRIC): 'heap_usage', attr1: 0, attr2: 'hello')
         result['_version_'] == null
-        result['id'] != 'b515202e-d3fb-4d1c-878f-85bb45f89a69'
+        result[ID] != 'b515202e-d3fb-4d1c-878f-85bb45f89a69'
     }
 
     def "convert solr document to time series"() {
@@ -66,10 +63,7 @@ class ConverterServiceTest extends Specification {
             setField('end', 4L)
             setField('host', 'some-host')
             setField('id', 'b515202e-d3fb-4d1c-878f-85bb45f89a69')
-            setField('data', compress(to([
-                    new Point(0, 1, 11),
-                    new Point(1, 2, 12),
-                    new Point(2, 4, 14)].iterator())))
+            setField('data', compress([1: 11, 2: 12, 4: 14]))
             setField('metric', 'heap_average')
             (SolrDocument) it
         }
@@ -78,10 +72,7 @@ class ConverterServiceTest extends Specification {
         def result = service.toTimeSeries(doc)
 
         then:
-        result.metric == 'heap_average'
-        result.start == 1L
-        result.end == 4L
-        result.valuesAsArray == [11, 12, 14] as double[]
+        result timeseriesHasAttributes(metric: 'heap_average', start: 1, end: 4, valuesAsArray: [11, 12, 14])
         result.attribute('host') == 'some-host'
     }
 

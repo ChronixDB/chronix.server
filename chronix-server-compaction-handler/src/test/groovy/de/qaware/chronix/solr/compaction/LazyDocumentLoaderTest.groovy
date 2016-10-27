@@ -16,20 +16,23 @@
 package de.qaware.chronix.solr.compaction
 
 import org.apache.lucene.document.Document
-import org.apache.lucene.search.*
+import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.search.Query
+import org.apache.lucene.search.ScoreDoc
+import org.apache.lucene.search.Sort
 import spock.lang.Specification
+
+import static de.qaware.chronix.solr.compaction.TestUtils.asTopDocs
 
 /**
  * @author alex.christ
  */
 class LazyDocumentLoaderTest extends Specification {
-    LazyDocumentLoader loader
     IndexSearcher searcher
     Query query
     Sort sort
 
     def setup() {
-        loader = new LazyDocumentLoader()
         searcher = Mock()
         query = Mock()
         sort = Mock()
@@ -49,14 +52,10 @@ class LazyDocumentLoaderTest extends Specification {
         searcher.doc(3) >> doc3
 
         when:
-        def docs = loader.load(searcher, query, sort)
+        def docs = new LazyDocumentLoader().load(searcher, query, sort)
 
         then:
         docs.toList() == [doc1, doc2, doc3]
 
-    }
-
-    def asTopDocs(def docs) {
-        new TopDocs(3, docs as ScoreDoc[], 0)
     }
 }

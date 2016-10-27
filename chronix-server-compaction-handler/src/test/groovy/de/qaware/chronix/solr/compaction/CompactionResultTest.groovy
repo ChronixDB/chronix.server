@@ -29,9 +29,11 @@ class CompactionResultTest extends Specification {
         given:
         def originalDocuments = [new Document()] as Set
         def resultingDocuments = [new SolrInputDocument()] as Set
+
+        when:
         def result = new CompactionResult(originalDocuments, resultingDocuments)
 
-        expect:
+        then:
         result.inputDocuments == originalDocuments
         result.outputDocuments == resultingDocuments
     }

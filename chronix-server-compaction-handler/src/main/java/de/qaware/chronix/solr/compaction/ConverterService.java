@@ -94,4 +94,8 @@ public class ConverterService {
         }
         return solrDoc;
     }
+
+    public MetricTimeSeries toTimeSeries(Document luceneDoc, IndexSchema schema) {
+        return toTimeSeries(toSolrDoc(schema, luceneDoc));
+    }
 }

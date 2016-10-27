@@ -78,18 +78,17 @@ class ChronixCompactionHandlerTest extends Specification {
 
     def mockConfig() {
         new CompactionHandlerConfiguration() {
-            SolrUpdateService getSolrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
+            SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
                 return ChronixCompactionHandlerTest.this.updateService
             }
 
-            LazyDocumentLoader getDocumentLoader() {
+            LazyDocumentLoader documentLoader() {
                 return ChronixCompactionHandlerTest.this.loader
             }
 
-            LazyCompactor getCompactor() {
+            LazyCompactor compactor() {
                 return ChronixCompactionHandlerTest.this.compactor
             }
         }
     }
-
 }
