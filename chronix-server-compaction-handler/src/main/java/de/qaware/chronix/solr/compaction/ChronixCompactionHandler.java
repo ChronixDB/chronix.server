@@ -58,7 +58,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     /**
      * Creates a new instance. Constructor used by tests.
      *
-     * @param dependencyProvider the dependency provider
+     * @param dependencyProvider the dependency factory
      */
     public ChronixCompactionHandler(DependencyProvider dependencyProvider) {
         this.dependencyProvider = dependencyProvider;
@@ -124,7 +124,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     }
 
     /**
-     * Provides dependencies and thereby facilitates testing.
+     * Provides dependencies and thereby
      */
     public class DependencyProvider {
 
