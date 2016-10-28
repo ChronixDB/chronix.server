@@ -17,8 +17,10 @@ package de.qaware.chronix.solr.compaction;
 
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.component.PivotFacetProcessor;
+import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.search.DocSet;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.solr.common.params.FacetParams.*;
 
@@ -45,7 +48,7 @@ public class SolrFacetService {
 
     private final SolrQueryRequest req;
     private final SolrQueryResponse rsp;
-    private final SolrComponentFactory componentFactory;
+    private final DependencyProvider dependencyProvider;
 
     /**
      * Creates a new instance.
@@ -56,20 +59,20 @@ public class SolrFacetService {
     public SolrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) {
         this.req = req;
         this.rsp = rsp;
-        this.componentFactory = new SolrComponentFactory();
+        this.dependencyProvider = new DependencyProvider();
     }
 
     /**
      * Creates a new instance. Facilitates testing.
      *
-     * @param req              the solr query request
-     * @param rsp              the solr query response
-     * @param componentFactory the solr component factory
+     * @param req                the solr query request
+     * @param rsp                the solr query response
+     * @param dependencyProvider the dependency provider
      */
-    public SolrFacetService(SolrQueryRequest req, SolrQueryResponse rsp, SolrComponentFactory componentFactory) {
+    public SolrFacetService(SolrQueryRequest req, SolrQueryResponse rsp, DependencyProvider dependencyProvider) {
         this.req = req;
         this.rsp = rsp;
-        this.componentFactory = componentFactory;
+        this.dependencyProvider = dependencyProvider;
     }
 
     /**
@@ -98,7 +101,7 @@ public class SolrFacetService {
         params.set(FACET_ZEROS, false);
         params.set(FACET_LIMIT, -1);
         DocSet matchingDocs = req.getSearcher().getDocSet(fq);
-        PivotFacetProcessor pivot = componentFactory.pivotFacetProcessor(req, rsp, matchingDocs, params);
+        PivotFacetProcessor pivot = dependencyProvider.pivotFacetProcessor(req, rsp, matchingDocs, params);
         return pivot.process(new String[]{dimensions}).get(dimensions);
     }
 
@@ -146,6 +149,27 @@ public class SolrFacetService {
             listOfAttributes.forEach(it -> toTimeSeriesIds(it, output, new HashMap<>(tsId)));
         } else {
             output.add(new TimeSeriesId(tsId));
+        }
+    }
+
+    /**
+     * Provides dependencies and thereby facilitates testing.
+     */
+    public class DependencyProvider {
+        /**
+         * @param req          the solr query request
+         * @param rsp          the solr query response
+         * @param matchingDocs the set of matching documents
+         * @param solrParams   the solr request params
+         * @return pivot processor
+         */
+        PivotFacetProcessor pivotFacetProcessor(SolrQueryRequest req,
+                                                SolrQueryResponse rsp,
+                                                DocSet matchingDocs,
+                                                SolrParams solrParams) {
+            ResponseBuilder rb = new ResponseBuilder(req, rsp, emptyList());
+            rb.doFacets = true;
+            return new PivotFacetProcessor(req, matchingDocs, solrParams, rb);
         }
     }
 }

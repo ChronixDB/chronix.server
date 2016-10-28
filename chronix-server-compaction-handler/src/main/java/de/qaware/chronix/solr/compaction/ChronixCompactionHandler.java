@@ -46,22 +46,22 @@ import static org.apache.lucene.search.SortField.Type.LONG;
 public class ChronixCompactionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixCompactionHandler.class);
     private static final String JOIN_KEY = "joinKey";
-    private final CompactionHandlerConfiguration config;
+    private final DependencyProvider dependencyProvider;
 
     /**
      * Creates a new instance. Constructor used by Solr.
      */
     public ChronixCompactionHandler() {
-        config = new CompactionHandlerConfiguration();
+        dependencyProvider = new DependencyProvider();
     }
 
     /**
      * Creates a new instance. Constructor used by tests.
      *
-     * @param config the configuration
+     * @param dependencyProvider the dependency provider
      */
-    public ChronixCompactionHandler(CompactionHandlerConfiguration config) {
-        this.config = config;
+    public ChronixCompactionHandler(DependencyProvider dependencyProvider) {
+        this.dependencyProvider = dependencyProvider;
     }
 
     @Override
@@ -80,8 +80,8 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
                             " represents the primary key of a time series."));
             return;
         }
-        SolrFacetService facetService = config.solrFacetService(req, rsp);
-        SolrUpdateService updateService = config.solrUpdateService(req, rsp);
+        SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
+        SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
 
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
         List<TimeSeriesId> timeSeriesIds = facetService.toTimeSeriesIds(pivotResult);
@@ -96,10 +96,10 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     private void doCompact(SolrQueryRequest req,
                            SolrQueryResponse rsp,
                            TimeSeriesId tsId) throws IOException, SyntaxError {
-        QParser parser = config.parser(req, tsId.toQuery());
-        LazyCompactor compactor = config.compactor();
-        LazyDocumentLoader documentLoader = config.documentLoader();
-        SolrUpdateService updateService = config.solrUpdateService(req, rsp);
+        QParser parser = dependencyProvider.parser(req, tsId.toQuery());
+        LazyCompactor compactor = dependencyProvider.compactor();
+        LazyDocumentLoader documentLoader = dependencyProvider.documentLoader();
+        SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
         SolrIndexSearcher searcher = req.getSearcher();
         Sort sort = new Sort(new SortField(START, LONG));
 
@@ -121,5 +121,45 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
 
         rsp.add("timeseries " + tsId + " oldNumDocs:", compactedCount);
         rsp.add("timeseries " + tsId + " newNumDocs:", resultCount);
+    }
+
+    /**
+     * Provides dependencies and thereby facilitates testing.
+     */
+    public class DependencyProvider {
+
+        /**
+         * @param req the request
+         * @param rsp the response
+         * @return the solr update service
+         */
+        public SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
+            return new SolrUpdateService(req, rsp);
+        }
+
+        /**
+         * @return the document loader
+         */
+        public LazyDocumentLoader documentLoader() {
+            return new LazyDocumentLoader();
+        }
+
+        /**
+         * @return the compactor
+         */
+        public LazyCompactor compactor() {
+            return new LazyCompactor();
+        }
+
+        /**
+         * @return the solr facet service
+         */
+        public SolrFacetService solrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) {
+            return new SolrFacetService(req, rsp);
+        }
+
+        public QParser parser(SolrQueryRequest req, String query) throws SyntaxError {
+            return QParser.getParser(query, req);
+        }
     }
 }

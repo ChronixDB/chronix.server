@@ -31,10 +31,10 @@ import spock.lang.Specification
  */
 class ChronixCompactionHandlerTest extends Specification {
     ChronixCompactionHandler handler
+    ChronixCompactionHandler.DependencyProvider provider
     SolrUpdateService updateService
     SolrFacetService facetService
     QParser parser
-    LazyDocumentLoader loader
     LazyCompactor compactor
     SolrQueryRequest req
     SolrQueryResponse rsp
@@ -47,22 +47,16 @@ class ChronixCompactionHandlerTest extends Specification {
         updateService = Mock()
         facetService = Mock()
         parser = Mock()
-        loader = Mock()
         compactor = Mock()
+        provider = Mock()
+        provider.solrFacetService(_, _) >> facetService
+        provider.solrUpdateService(_, _) >> updateService
+        provider.parser(_, _) >> Mock(QParser)
+        provider.documentLoader() >> Mock(LazyDocumentLoader)
+        provider.compactor() >> compactor
         req.getSearcher() >> Mock(SolrIndexSearcher)
         req.getParams() >> params
-        handler = new ChronixCompactionHandler(
-                new CompactionHandlerConfiguration() {
-                    SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) { updateService }
-
-                    SolrFacetService solrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) { facetService }
-
-                    QParser parser(SolrQueryRequest req, String query) { parser }
-
-                    LazyDocumentLoader documentLoader() { loader }
-
-                    LazyCompactor compactor() { compactor }
-                })
+        handler = new ChronixCompactionHandler(provider)
     }
 
     def "test default constructor"() {

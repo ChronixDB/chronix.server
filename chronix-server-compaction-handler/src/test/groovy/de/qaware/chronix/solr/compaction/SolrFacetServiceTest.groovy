@@ -35,18 +35,18 @@ class SolrFacetServiceTest extends Specification {
     SolrQueryResponse rsp
     SolrIndexSearcher searcher
     PivotFacetProcessor processor
-    SolrComponentFactory componentFactory
+    SolrFacetService.DependencyProvider dependencyProvider
 
     def setup() {
         req = Mock()
         rsp = Mock()
         searcher = Mock()
-        componentFactory = Mock()
+        dependencyProvider = Mock()
         processor = Mock()
         req.getSearcher() >> searcher
         searcher.getDocSet(_) >> Mock(DocSet)
-        componentFactory.pivotFacetProcessor(_, _, _, _) >> processor
-        service = new SolrFacetService(req, rsp, componentFactory)
+        dependencyProvider.pivotFacetProcessor(_, _, _, _) >> processor
+        service = new SolrFacetService(req, rsp, dependencyProvider)
     }
 
     def "test pivots"() {
