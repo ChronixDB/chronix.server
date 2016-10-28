@@ -38,6 +38,6 @@ public class CompactionHandlerParams {
      * Unofficial parameter for testing purposes only. May be deleted at any time.
      * Default value: 100
      */
-    static final String PAGE_SIZE = "pageSize";
+    public static final String PAGE_SIZE = "pageSize";
 
 }

@@ -26,9 +26,7 @@ import org.hamcrest.Description
 import org.hamcrest.TypeSafeDiagnosingMatcher
 
 import static de.qaware.chronix.Schema.*
-import static de.qaware.chronix.converter.common.Compression.compress
 import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
-import static de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer.from
 import static de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer.to
 
 /**
@@ -44,19 +42,7 @@ final class TestUtils {
      */
     public static final byte[] compress(Map<Long, Double> points) {
         def index = 0
-        compress to(points.collect { new Point(index++, it.key, it.value) }.iterator())
-    }
-
-    /**
-     * @param bytes the points as compressed blog
-     * @param start the start timestamp of points to decompress
-     * @param end the end timestamp of points to decompress
-     * @return inverse of {@link #compress(java.util.Map)}
-     */
-    public static final Map<Long, Double> decompress(byte[] bytes, int start, int end) {
-        def builder = new MetricTimeSeries.Builder('')
-        from new ByteArrayInputStream(Compression.decompress(bytes)), start, end, builder
-        builder.build().points().collect { it -> [(it.getTimestamp()): it.getValue()] }.collectEntries()
+        Compression.compress to(points.collect { new Point(index++, it.key, it.value) }.iterator())
     }
 
     /**
@@ -70,7 +56,7 @@ final class TestUtils {
      * @return document
      */
     public static final Document doc(String metric, Map<Long, Double> data) {
-        doc(metric, data.keySet().min(), data.keySet().max(), TestUtils.compress(data))
+        doc(metric, data.keySet().min(), data.keySet().max(), compress(data))
     }
 
     /**
