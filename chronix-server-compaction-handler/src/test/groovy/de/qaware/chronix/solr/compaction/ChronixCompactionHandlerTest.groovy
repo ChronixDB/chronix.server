@@ -48,15 +48,16 @@ class ChronixCompactionHandlerTest extends Specification {
         facetService = Mock()
         parser = Mock()
         compactor = Mock()
-        provider = Mock()
-        provider.solrFacetService(_, _) >> facetService
-        provider.solrUpdateService(_, _) >> updateService
-        provider.parser(_, _) >> Mock(QParser)
-        provider.documentLoader() >> Mock(LazyDocumentLoader)
-        provider.compactor() >> compactor
         req.getSearcher() >> Mock(SolrIndexSearcher)
         req.getParams() >> params
-        handler = new ChronixCompactionHandler(provider)
+        def dependencyProvider = Mock(ChronixCompactionHandler.DependencyProvider) {
+            solrFacetService(*_) >> facetService
+            solrUpdateService(*_) >> updateService
+            parser(*_) >> Mock(QParser)
+            documentLoader() >> Mock(LazyDocumentLoader)
+            compactor() >> compactor
+        }
+        handler = new ChronixCompactionHandler(dependencyProvider)
     }
 
     def "test default constructor"() {
@@ -74,7 +75,7 @@ class ChronixCompactionHandlerTest extends Specification {
         facetService.toTimeSeriesIds(_) >> [new TimeSeriesId([metric: 'cpu'])]
         def docs = [new Document()] as Set
         def compacted = [new SolrInputDocument()] as Set
-        compactor.compact(_, _) >> [new CompactionResult(docs, compacted)]
+        compactor.compact(*_) >> [new CompactionResult(docs, compacted)]
         params.get('joinKey') >> 'metric'
 
         when:

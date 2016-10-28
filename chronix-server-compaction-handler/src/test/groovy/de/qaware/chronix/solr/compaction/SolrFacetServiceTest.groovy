@@ -41,8 +41,8 @@ class SolrFacetServiceTest extends Specification {
         req = Mock()
         rsp = Mock()
         searcher = Mock()
-        dependencyProvider = Mock()
         processor = Mock()
+        dependencyProvider = Mock()
         req.getSearcher() >> searcher
         searcher.getDocSet(_) >> Mock(DocSet)
         dependencyProvider.pivotFacetProcessor(_, _, _, _) >> processor

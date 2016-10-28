@@ -40,10 +40,10 @@ class LazyDocumentLoaderTest extends Specification {
     def "test simple paging"() {
         given:
         def (sdoc1, sdoc2, sdoc3) = [new ScoreDoc(1, 0), new ScoreDoc(2, 0), new ScoreDoc(3, 0)]
-        searcher.searchAfter(null, _, _, _) >> asTopDocs([sdoc1])
-        searcher.searchAfter(sdoc1, _, _, _) >> asTopDocs([sdoc2])
-        searcher.searchAfter(sdoc2, _, _, _) >> asTopDocs([sdoc3])
-        searcher.searchAfter(sdoc3, _, _, _) >> asTopDocs([])
+        searcher.searchAfter(null, *_) >> asTopDocs([sdoc1])
+        searcher.searchAfter(sdoc1, *_) >> asTopDocs([sdoc2])
+        searcher.searchAfter(sdoc2, *_) >> asTopDocs([sdoc3])
+        searcher.searchAfter(sdoc3, *_) >> asTopDocs([])
 
         def (doc1, doc2, doc3) = [new Document(), new Document(), new Document()]
         searcher.doc(1) >> doc1
