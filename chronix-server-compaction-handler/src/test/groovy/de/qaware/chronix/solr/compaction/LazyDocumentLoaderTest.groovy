@@ -34,7 +34,6 @@ class LazyDocumentLoaderTest extends Specification {
 
     def setup() {
         searcher = Mock()
-        query = Mock()
         sort = Mock()
     }
 

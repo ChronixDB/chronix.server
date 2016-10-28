@@ -30,6 +30,7 @@ import static de.qaware.chronix.solr.compaction.TestUtils.*
 
 /**
  * Test case for {@link ConverterService}.
+ *
  * @author alex.christ
  */
 class ConverterServiceTest extends Specification {

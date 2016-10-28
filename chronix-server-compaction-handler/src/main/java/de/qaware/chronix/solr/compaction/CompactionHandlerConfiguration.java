@@ -17,10 +17,11 @@ package de.qaware.chronix.solr.compaction;
 
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.search.QParser;
+import org.apache.solr.search.SyntaxError;
 
 /**
- * Configures the compaction handler.
- * The primary use case is to facilitate testing.
+ * Provides compaction handler dependencies. Facilitates testing.
  *
  * @author alex.christ
  */
@@ -47,5 +48,16 @@ public class CompactionHandlerConfiguration {
      */
     public LazyCompactor compactor() {
         return new LazyCompactor();
+    }
+
+    /**
+     * @return the solr facet service
+     */
+    public SolrFacetService solrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) {
+        return new SolrFacetService(req, rsp);
+    }
+
+    public QParser parser(SolrQueryRequest req, String query) throws SyntaxError {
+        return QParser.getParser(query, req);
     }
 }

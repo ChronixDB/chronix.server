@@ -20,6 +20,7 @@ import org.apache.solr.common.SolrInputDocument
 import org.apache.solr.common.params.SolrParams
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
+import org.apache.solr.search.QParser
 import org.apache.solr.search.SolrIndexSearcher
 import spock.lang.Specification
 
@@ -31,6 +32,8 @@ import spock.lang.Specification
 class ChronixCompactionHandlerTest extends Specification {
     ChronixCompactionHandler handler
     SolrUpdateService updateService
+    SolrFacetService facetService
+    QParser parser
     LazyDocumentLoader loader
     LazyCompactor compactor
     SolrQueryRequest req
@@ -42,11 +45,24 @@ class ChronixCompactionHandlerTest extends Specification {
         rsp = Mock()
         params = Mock()
         updateService = Mock()
+        facetService = Mock()
+        parser = Mock()
         loader = Mock()
         compactor = Mock()
         req.getSearcher() >> Mock(SolrIndexSearcher)
         req.getParams() >> params
-        handler = new ChronixCompactionHandler(mockConfig())
+        handler = new ChronixCompactionHandler(
+                new CompactionHandlerConfiguration() {
+                    SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) { updateService }
+
+                    SolrFacetService solrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) { facetService }
+
+                    QParser parser(SolrQueryRequest req, String query) { parser }
+
+                    LazyDocumentLoader documentLoader() { loader }
+
+                    LazyCompactor compactor() { compactor }
+                })
     }
 
     def "test default constructor"() {
@@ -61,34 +77,19 @@ class ChronixCompactionHandlerTest extends Specification {
 
     def "test simple request"() {
         given:
+        facetService.toTimeSeriesIds(_) >> [new TimeSeriesId([metric: 'cpu'])]
         def docs = [new Document()] as Set
         def compacted = [new SolrInputDocument()] as Set
         compactor.compact(_, _) >> [new CompactionResult(docs, compacted)]
-        params.get('metrics') >> 'heap_usage'
+        params.get('joinKey') >> 'metric'
 
         when:
         handler.handleRequestBody(req, rsp)
 
         then:
-        1 * rsp.add('heap_usage-numCompacted', _)
-        1 * rsp.add('heap_usage-numNewDocs', _)
+        1 * rsp.add('timeseries [metric:cpu] oldNumDocs:', 1)
+        1 * rsp.add('timeseries [metric:cpu] newNumDocs:', 1)
         1 * updateService.delete(docs[0])
         1 * updateService.add(compacted[0])
-    }
-
-    def mockConfig() {
-        new CompactionHandlerConfiguration() {
-            SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
-                return ChronixCompactionHandlerTest.this.updateService
-            }
-
-            LazyDocumentLoader documentLoader() {
-                return ChronixCompactionHandlerTest.this.loader
-            }
-
-            LazyCompactor compactor() {
-                return ChronixCompactionHandlerTest.this.compactor
-            }
-        }
     }
 }

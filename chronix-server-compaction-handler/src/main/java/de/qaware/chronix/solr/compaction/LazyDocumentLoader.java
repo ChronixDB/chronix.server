@@ -33,6 +33,8 @@ public class LazyDocumentLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(LazyDocumentLoader.class);
 
     /**
+     * Loads documents sorted in index order.
+     *
      * @param searcher the index searcher
      * @param query    the query
      * @param sort     the sort criterion
