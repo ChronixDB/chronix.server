@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.compaction;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.solr.common.SolrInputDocument;
@@ -24,6 +25,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
+import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
@@ -34,6 +36,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static de.qaware.chronix.Schema.START;
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*;
 import static java.lang.String.join;
 import static org.apache.lucene.search.SortField.Type.LONG;
 
@@ -45,7 +48,6 @@ import static org.apache.lucene.search.SortField.Type.LONG;
  */
 public class ChronixCompactionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixCompactionHandler.class);
-    private static final String JOIN_KEY = "joinKey";
     private final DependencyProvider dependencyProvider;
 
     /**
@@ -72,6 +74,8 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
+        int threshold = req.getParams().getInt(THRESHOLD, 100000);
+        int pageSize = req.getParams().getInt(PAGE_SIZE, 100);
         if (joinKey == null) {
             LOGGER.error("No join key given.");
             rsp.add("error",
@@ -80,31 +84,34 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
                             " represents the primary key of a time series."));
             return;
         }
-        SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
-        SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
 
+        SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
+        SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
         List<TimeSeriesId> timeSeriesIds = facetService.toTimeSeriesIds(pivotResult);
 
         for (TimeSeriesId tsId : timeSeriesIds) {
-            doCompact(req, rsp, tsId);
+            doCompact(req, rsp, tsId, threshold, pageSize);
         }
 
         updateService.commit();
     }
 
-    private void doCompact(SolrQueryRequest req,
-                           SolrQueryResponse rsp,
-                           TimeSeriesId tsId) throws IOException, SyntaxError {
+    private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
+                           TimeSeriesId tsId,
+                           int threshold, int pageSize) throws IOException, SyntaxError {
         QParser parser = dependencyProvider.parser(req, tsId.toQuery());
-        LazyCompactor compactor = dependencyProvider.compactor();
-        LazyDocumentLoader documentLoader = dependencyProvider.documentLoader();
+        LazyCompactor compactor = dependencyProvider.compactor(threshold);
+        LazyDocumentLoader documentLoader = dependencyProvider.documentLoader(pageSize);
         SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
+
         SolrIndexSearcher searcher = req.getSearcher();
+        IndexSchema schema = searcher.getSchema();
+        Query query = parser.getQuery();
         Sort sort = new Sort(new SortField(START, LONG));
 
-        Iterable<Document> documents = documentLoader.load(searcher, parser.getQuery(), sort);
-        Iterable<CompactionResult> compactionResults = compactor.compact(documents, searcher.getSchema());
+        Iterable<Document> documents = documentLoader.load(searcher, query, sort);
+        Iterable<CompactionResult> compactionResults = compactor.compact(documents, schema);
 
         int compactedCount = 0;
         int resultCount = 0;
@@ -138,17 +145,19 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         }
 
         /**
+         * @param pageSize the page size
          * @return the document loader
          */
-        public LazyDocumentLoader documentLoader() {
-            return new LazyDocumentLoader();
+        public LazyDocumentLoader documentLoader(int pageSize) {
+            return new LazyDocumentLoader(pageSize);
         }
 
         /**
+         * @param threshold the threshold
          * @return the compactor
          */
-        public LazyCompactor compactor() {
-            return new LazyCompactor();
+        public LazyCompactor compactor(int threshold) {
+            return new LazyCompactor(threshold);
         }
 
         /**

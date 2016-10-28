@@ -31,20 +31,12 @@ import static java.util.Collections.emptySet;
  * @author alex.christ
  */
 public class LazyCompactor {
-
-    private int threshold = 100000;
-
-    /**
-     * Creates an instance.
-     */
-    public LazyCompactor() {
-
-    }
+    private int threshold;
 
     /**
      * Creates an instance.
      *
-     * @param threshold threshold
+     * @param threshold the minimum number of data points to be merged into a single document.
      */
     public LazyCompactor(int threshold) {
         this.threshold = threshold;
@@ -88,7 +80,7 @@ public class LazyCompactor {
             List<MetricTimeSeries> readTs = new ArrayList<>();
             int numPoints = 0;
             while (documents.hasNext()) {
-                if (numPoints > threshold) {
+                if (numPoints >= threshold) {
                     return new CompactionResult(readDocs, doCompact(readTs));
                 }
                 Document document = documents.next();

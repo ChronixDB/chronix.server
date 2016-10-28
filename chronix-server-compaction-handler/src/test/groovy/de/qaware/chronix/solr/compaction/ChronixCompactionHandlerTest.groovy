@@ -17,12 +17,14 @@ package de.qaware.chronix.solr.compaction
 
 import org.apache.lucene.document.Document
 import org.apache.solr.common.SolrInputDocument
-import org.apache.solr.common.params.SolrParams
+import org.apache.solr.common.params.ModifiableSolrParams
 import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.search.QParser
 import org.apache.solr.search.SolrIndexSearcher
 import spock.lang.Specification
+
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
 
 /**
  * Test case for {@link ChronixCompactionHandler}.
@@ -31,32 +33,33 @@ import spock.lang.Specification
  */
 class ChronixCompactionHandlerTest extends Specification {
     ChronixCompactionHandler handler
-    ChronixCompactionHandler.DependencyProvider provider
     SolrUpdateService updateService
     SolrFacetService facetService
     QParser parser
     LazyCompactor compactor
+    LazyDocumentLoader documentLoader
     SolrQueryRequest req
     SolrQueryResponse rsp
-    SolrParams params
+    ModifiableSolrParams params
+    ChronixCompactionHandler.DependencyProvider dependencyProvider
 
     def setup() {
         req = Mock()
         rsp = Mock()
-        params = Mock()
+        params = new ModifiableSolrParams([:])
         updateService = Mock()
         facetService = Mock()
         parser = Mock()
         compactor = Mock()
+        documentLoader = Mock()
         req.getSearcher() >> Mock(SolrIndexSearcher)
         req.getParams() >> params
-        def dependencyProvider = Mock(ChronixCompactionHandler.DependencyProvider) {
+        dependencyProvider = Mock(ChronixCompactionHandler.DependencyProvider) {
             solrFacetService(*_) >> facetService
             solrUpdateService(*_) >> updateService
             parser(*_) >> Mock(QParser)
-            documentLoader() >> Mock(LazyDocumentLoader)
-            compactor() >> compactor
         }
+        def dependencyProvider = dependencyProvider
         handler = new ChronixCompactionHandler(dependencyProvider)
     }
 
@@ -76,7 +79,7 @@ class ChronixCompactionHandlerTest extends Specification {
         def docs = [new Document()] as Set
         def compacted = [new SolrInputDocument()] as Set
         compactor.compact(*_) >> [new CompactionResult(docs, compacted)]
-        params.get('joinKey') >> 'metric'
+        params.add(JOIN_KEY, 'metric,host')
 
         when:
         handler.handleRequestBody(req, rsp)
@@ -86,5 +89,24 @@ class ChronixCompactionHandlerTest extends Specification {
         1 * rsp.add('timeseries [metric:cpu] newNumDocs:', 1)
         1 * updateService.delete(docs[0])
         1 * updateService.add(compacted[0])
+        1 * dependencyProvider.documentLoader(100) >> documentLoader
+        1 * dependencyProvider.compactor(100000) >> compactor
+    }
+
+    def "test parameters"() {
+        given:
+        facetService.toTimeSeriesIds(_) >> [new TimeSeriesId([:])]
+        compactor.compact(*_) >> [new CompactionResult([] as Set, [] as Set)]
+        params.add(JOIN_KEY, 'metric,host')
+        params.add(PAGE_SIZE, '112')
+        params.add(THRESHOLD, '327')
+
+        when:
+        handler.handleRequestBody(req, rsp)
+
+        then:
+        1* facetService.pivot('metric,host', _)
+        1 * dependencyProvider.documentLoader(112) >> documentLoader
+        1 * dependencyProvider.compactor(327) >> compactor
     }
 }

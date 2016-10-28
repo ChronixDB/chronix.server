@@ -24,13 +24,25 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- * Loads documents lazily from solr when {@link Iterator#next()} is called. Documents are loaded in pages.
- * Main use case of this class is to iterate over large result sets.
+ * Loads documents lazily from solr when {@link Iterator#next()} is called.
+ * Documents are loaded in pages and not scores computed.
+ * <p>
+ * Use this class if you want to efficiently iterate over large result sets.
  *
  * @author alex.christ
  */
 public class LazyDocumentLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(LazyDocumentLoader.class);
+    private final int pageLimit;
+
+    /**
+     * Creates a new instance.
+     *
+     * @param pageLimit the number of documents to be loaded into memory at a time.
+     */
+    public LazyDocumentLoader(int pageLimit) {
+        this.pageLimit = pageLimit;
+    }
 
     /**
      * Loads documents sorted in index order.
@@ -46,7 +58,6 @@ public class LazyDocumentLoader {
 
     private class LazySolrDocumentSet implements Iterator<Document>, Iterable<Document> {
         private final IndexSearcher searcher;
-        private static final int PAGE_LIMIT = 1;
         private Query query;
         private Sort sort;
         private ScoreDoc[] page;
@@ -57,7 +68,7 @@ public class LazyDocumentLoader {
             this.query = query;
             this.sort = sort;
             try {
-                TopDocs topDocs = searcher.searchAfter(null, query, PAGE_LIMIT, sort);
+                TopDocs topDocs = searcher.searchAfter(null, query, pageLimit, sort);
                 page = topDocs.scoreDocs;
                 pageHitsRead = 0;
             } catch (IOException e) {
@@ -77,11 +88,12 @@ public class LazyDocumentLoader {
                 result = searcher.doc(page[pageHitsRead].doc);
                 pageHitsRead++;
                 if (pageHitsRead == page.length) {
-                    page = searcher.searchAfter(page[page.length - 1], query, PAGE_LIMIT, sort).scoreDocs;
+                    ScoreDoc lastDoc = page[page.length - 1];
+                    page = searcher.searchAfter(lastDoc, query, pageLimit, sort).scoreDocs;
                     pageHitsRead = 0;
                 }
             } catch (IOException e) {
-                LOGGER.error("Could not retrieve next lucene document", e);
+                LOGGER.error("Could not retrieve documents", e);
                 return null;
             }
             return result;

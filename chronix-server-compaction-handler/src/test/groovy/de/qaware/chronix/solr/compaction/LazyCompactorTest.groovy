@@ -43,7 +43,7 @@ class LazyCompactorTest extends Specification {
         def doc = doc 'load_avg', [1: 10, 2: 20]
 
         when:
-        def result = new LazyCompactor().compact([doc], schema).toList()
+        def result = new LazyCompactor(1).compact([doc], schema).toList()
         def outDoc1 = result[0].outputDocuments[0]
 
         then:
@@ -59,7 +59,7 @@ class LazyCompactorTest extends Specification {
         def doc2 = doc 'load_avg', [3: 30, 4: 40]
 
         when:
-        def result = new LazyCompactor().compact([doc1, doc2], schema).toList()
+        def result = new LazyCompactor(4).compact([doc1, doc2], schema).toList()
         def outDoc1 = result[0].outputDocuments[0]
 
         then:
@@ -77,7 +77,7 @@ class LazyCompactorTest extends Specification {
         def doc3 = doc 'load_avg', [5: 50, 6: 60]
 
         when:
-        def result = new LazyCompactor(2).compact([doc1, doc2, doc3], schema).toList()
+        def result = new LazyCompactor(4).compact([doc1, doc2, doc3], schema).toList()
         def outDoc1 = result[0].outputDocuments[0]
         def outDoc2 = result[1].outputDocuments[0]
 
