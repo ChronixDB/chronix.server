@@ -71,6 +71,9 @@ class TestUtils {
     public static final Map<Long, Double> decompress(byte[] bytes, int start, int end) {
         def builder = new MetricTimeSeries.Builder('')
         from new ByteArrayInputStream(Compression.decompress(bytes)), start, end, builder
-        builder.build().points().collect { it -> [(it.getTimestamp()): it.getValue()] }.collectEntries()
+        def res = builder.build().points().collect {
+            it -> [(it.getTimestamp()): it.getValue()]
+        }
+        res.collectEntries()
     }
 }
