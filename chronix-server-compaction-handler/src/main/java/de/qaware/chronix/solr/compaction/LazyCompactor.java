@@ -15,15 +15,20 @@
  */
 package de.qaware.chronix.solr.compaction;
 
-import com.google.common.collect.ImmutableSet;
+import de.qaware.chronix.converter.common.DoubleList;
+import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.lucene.document.Document;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.schema.IndexSchema;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import static java.util.Collections.emptySet;
+import static de.qaware.chronix.solr.compaction.ListUtils.subList;
+import static de.qaware.chronix.solr.compaction.ListUtils.sublist;
+import static java.lang.Math.min;
 
 /**
  * Takes documents and merges them to larger ones.
@@ -36,10 +41,10 @@ public class LazyCompactor {
     /**
      * Creates an instance.
      *
-     * @param threshold the minimum number of data points to be merged into a single document.
+     * @param chunkSize the minimum number of data points to be merged into a single document.
      */
-    public LazyCompactor(int threshold) {
-        this.threshold = threshold;
+    public LazyCompactor(int chunkSize) {
+        this.threshold = chunkSize;
     }
 
     /**
@@ -57,11 +62,16 @@ public class LazyCompactor {
         private final Iterator<Document> documents;
         private final ConverterService converterService;
         private final IndexSchema schema;
+        private LongList timestamps;
+        private DoubleList values;
+        private MetricTimeSeries currentTs;
 
         private LazyCompactionResultSet(Iterable<Document> documents, IndexSchema schema) {
             this.documents = documents.iterator();
             this.schema = schema;
-            converterService = new ConverterService();
+            this.converterService = new ConverterService();
+            this.timestamps = new LongList();
+            this.values = new DoubleList();
         }
 
         @Override
@@ -76,30 +86,53 @@ public class LazyCompactor {
 
         @Override
         public CompactionResult next() {
-            Set<Document> readDocs = new HashSet<>();
-            List<MetricTimeSeries> readTs = new ArrayList<>();
-            int numPoints = 0;
+            Set<Document> inputDocs = new HashSet<>();
+            Set<SolrInputDocument> outputDocs = new HashSet<>();
             while (documents.hasNext()) {
-                if (numPoints >= threshold) {
-                    return new CompactionResult(readDocs, doCompact(readTs));
+                Document doc = documents.next();
+                inputDocs.add(doc);
+                currentTs = converterService.toTimeSeries(doc, schema);
+                timestamps.addAll(currentTs.getTimestamps());
+                values.addAll(currentTs.getValues());
+
+                if (timestamps.size() < threshold) {
+                    continue;
                 }
-                Document document = documents.next();
-                MetricTimeSeries ts = converterService.toTimeSeries(document, schema);
-                readTs.add(ts);
-                readDocs.add(document);
-                numPoints += ts.size();
+
+                int index = 0;
+                while (index + threshold <= timestamps.size()) {
+                    MetricTimeSeries slice = copyWithDataRange(currentTs, index, index + threshold);
+                    SolrInputDocument solrDoc = converterService.toInputDocument(slice);
+                    outputDocs.add(solrDoc);
+                    index += threshold;
+                }
+
+                // reduce timestamps and values to orphans
+                int end = timestamps.size() - 1;
+                int start = min(index, end);
+                timestamps = sublist(timestamps, start, end);
+                values = subList(values, start, end);
+
+                break;
             }
-            return new CompactionResult(readDocs, doCompact(readTs));
+
+            // write orphans
+            if (timestamps.size() > 0) {
+                MetricTimeSeries slice = copyWithDataRange(currentTs, 0, timestamps.size());
+                SolrInputDocument solrDoc = converterService.toInputDocument(slice);
+                outputDocs.add(solrDoc);
+            }
+
+            return new CompactionResult(inputDocs, outputDocs);
         }
 
-        private Set<SolrInputDocument> doCompact(List<MetricTimeSeries> tsToCompact) {
-            if (tsToCompact.isEmpty()) {
-                return emptySet();
-            }
-            Iterator<MetricTimeSeries> it = tsToCompact.iterator();
-            MetricTimeSeries first = it.next();
-            it.forEachRemaining(ts -> first.addAll(ts.getTimestamps(), ts.getValues()));
-            return ImmutableSet.of(converterService.toInputDocument(first));
+        private MetricTimeSeries copyWithDataRange(MetricTimeSeries ts, int start, int end) {
+            return converterService.copy(ts)
+                    .points(sublist(timestamps, start, end),
+                            subList(values, start, end))
+                    .start(timestamps.get(start))
+                    .end(timestamps.get(end - 1))
+                    .build();
         }
     }
 }

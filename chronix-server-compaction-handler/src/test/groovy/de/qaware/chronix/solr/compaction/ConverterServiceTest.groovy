@@ -40,7 +40,7 @@ class ConverterServiceTest extends Specification {
         service = new ConverterService()
     }
 
-    def "convert timeseries to solr input document"() {
+    def "test convert timeseries to solr input document"() {
         given:
         def ts = new MetricTimeSeries.Builder('heap_usage').attributes([
                 attr1    : 0,
@@ -57,7 +57,7 @@ class ConverterServiceTest extends Specification {
         result[ID] != 'b515202e-d3fb-4d1c-878f-85bb45f89a69'
     }
 
-    def "convert solr document to time series"() {
+    def "test convert solr document to time series"() {
         given:
         def doc = new SolrDocument().with {
             setField('start', 1L)
@@ -77,7 +77,7 @@ class ConverterServiceTest extends Specification {
         result.attribute('host') == 'some-host'
     }
 
-    def "convert lucene document to solr document"() {
+    def "test convert lucene document to solr document"() {
         given:
         def doc = new Document().with {
             add(new DoublePoint('doubleField', 1))
@@ -91,5 +91,23 @@ class ConverterServiceTest extends Specification {
 
         then:
         result['doubleField'] == 1
+    }
+
+    def "test copy time series"() {
+        given:
+        def ts = new MetricTimeSeries.Builder('cpu')
+                .attribute('host', 'h01')
+                .point(1, 10)
+                .point(2, 20)
+                .build()
+
+        when:
+        def result = service.copy(ts).build()
+
+        then:
+        result.metric == 'cpu'
+        result.attribute('host') == 'h01'
+        result.getTimestamps().toArray() == [1, 2] as long[]
+        result.getValues().toArray() == [10, 20] as double[]
     }
 }

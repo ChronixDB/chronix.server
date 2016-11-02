@@ -112,4 +112,19 @@ public class ConverterService {
     public MetricTimeSeries toTimeSeries(Document luceneDoc, IndexSchema schema) {
         return toTimeSeries(toSolrDoc(schema, luceneDoc));
     }
+
+    /**
+     * Copies a given metric time series.
+     *
+     * @param ts the time series
+     * @return builder preconfigured with values from the given time series
+     */
+    public MetricTimeSeries.Builder copy(MetricTimeSeries ts) {
+        MetricTimeSeries.Builder result = new MetricTimeSeries.Builder(ts.getMetric());
+        result.start(ts.getStart());
+        result.end(ts.getEnd());
+        result.points(ts.getTimestamps(), ts.getValues());
+        result.attributes(ts.attributes());
+        return result;
+    }
 }
