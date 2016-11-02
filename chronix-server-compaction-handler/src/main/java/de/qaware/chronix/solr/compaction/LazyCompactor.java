@@ -41,10 +41,10 @@ public class LazyCompactor {
     /**
      * Creates an instance.
      *
-     * @param chunkSize the minimum number of data points to be merged into a single document.
+     * @param pointsPerChunk the number of data points to be merged into a single document.
      */
-    public LazyCompactor(int chunkSize) {
-        this.threshold = chunkSize;
+    public LazyCompactor(int pointsPerChunk) {
+        this.threshold = pointsPerChunk;
     }
 
     /**

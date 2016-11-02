@@ -76,7 +76,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
-        int chunkSize = req.getParams().getInt(CHUNK_SIZE, 100000);
+        int ppc = req.getParams().getInt(POINTS_PER_CHUNK, 100000);
         int pageSize = req.getParams().getInt(PAGE_SIZE, 100);
         if (joinKey == null) {
             LOGGER.error("No join key given.");
@@ -92,24 +92,23 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
 
         facetService.toTimeSeriesIds(pivotResult)
                 .parallelStream()
-                .forEach(timeSeriesId -> compact(req, rsp, timeSeriesId, chunkSize, pageSize));
+                .forEach(timeSeriesId -> compact(req, rsp, timeSeriesId, ppc, pageSize));
 
         dependencyProvider.solrUpdateService(req, rsp).commit();
     }
 
-    private void compact(SolrQueryRequest req, SolrQueryResponse rsp, TimeSeriesId tsId, int chunkSize, int pageSize) {
+    private void compact(SolrQueryRequest req, SolrQueryResponse rsp, TimeSeriesId tsId, int ppc, int pageSize) {
         try {
-            doCompact(req, rsp, tsId, chunkSize, pageSize);
+            doCompact(req, rsp, tsId, ppc, pageSize);
         } catch (IOException | SyntaxError e) {
             throw new IllegalStateException(e);
         }
     }
 
     private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
-                           TimeSeriesId tsId,
-                           int chunkSize, int pageSize) throws IOException, SyntaxError {
+                           TimeSeriesId tsId, int ppc, int pageSize) throws IOException, SyntaxError {
         Query query = dependencyProvider.parser(req, tsId.toQuery()).getQuery();
-        LazyCompactor compactor = dependencyProvider.compactor(chunkSize);
+        LazyCompactor compactor = dependencyProvider.compactor(ppc);
         LazyDocumentLoader documentLoader = dependencyProvider.documentLoader(pageSize);
 
         SolrIndexSearcher searcher = req.getSearcher();
@@ -163,11 +162,11 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         }
 
         /**
-         * @param chunkSize the chunkSize
+         * @param pointsPerChunk the pointsPerChunk
          * @return the compactor
          */
-        public LazyCompactor compactor(int chunkSize) {
-            return new LazyCompactor(chunkSize);
+        public LazyCompactor compactor(int pointsPerChunk) {
+            return new LazyCompactor(pointsPerChunk);
         }
 
         /**

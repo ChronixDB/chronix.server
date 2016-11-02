@@ -63,7 +63,7 @@ class CompactionHandlerTestIT extends Specification {
                   doc((START): 3, (END): 4, (METRIC): 'cpu', (DATA): compress(3L: 30d, 4L: 40d)),
                   doc((START): 5, (END): 6, (METRIC): 'cpu', (DATA): compress(5L: 50d, 6L: 60d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (CHUNK_SIZE): 10))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (POINTS_PER_CHUNK): 10))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
@@ -87,7 +87,7 @@ class CompactionHandlerTestIT extends Specification {
             solr.add(doc((START): start, (END): end, (METRIC): 'cpu', (DATA): compress(data)))
         }
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (CHUNK_SIZE): 100))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (POINTS_PER_CHUNK): 100))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
@@ -107,7 +107,7 @@ class CompactionHandlerTestIT extends Specification {
         given:
         solr.add([doc((START): 5, (END): 6, (METRIC): 'a: AND ){!}', (DATA): compress(1L: 10d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (CHUNK_SIZE): 10))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (POINTS_PER_CHUNK): 10))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
@@ -133,7 +133,7 @@ class CompactionHandlerTestIT extends Specification {
             solr.add(doc((START): start, (END): end, (METRIC): 'heap', (DATA): compress(heapData)))
         }
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (CHUNK_SIZE): 100))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (POINTS_PER_CHUNK): 100))
         def cpuDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:cpu"))
         def heapDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:heap"))
 
@@ -143,13 +143,20 @@ class CompactionHandlerTestIT extends Specification {
 
         then:
         rspParts.get('status') == 0
+
+        and:
+        when:
         SolrDocumentList cpuDocs = solr.request(cpuDocsQuery).get('response')
+
+        then:
         cpuDocs.size() == 1
         decompress(cpuDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
 
         and:
-        then:
+        when:
         SolrDocumentList heapDocs = solr.request(heapDocsQuery).get('response')
+
+        then:
         heapDocs.size() == 1
         decompress(heapDocs[0].get(DATA), 1, 100).entrySet().each { assert cos(it.key) == it.value }
     }

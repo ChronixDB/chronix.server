@@ -22,7 +22,6 @@ import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.search.QParser
 import org.apache.solr.search.SolrIndexSearcher
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
@@ -100,7 +99,7 @@ class ChronixCompactionHandlerTest extends Specification {
         compactor.compact(*_) >> [new CompactionResult([] as Set, [] as Set)]
         params.add(JOIN_KEY, 'metric,host')
         params.add(PAGE_SIZE, '112')
-        params.add(CHUNK_SIZE, '327')
+        params.add(POINTS_PER_CHUNK, '327')
 
         when:
         handler.handleRequestBody(req, rsp)
