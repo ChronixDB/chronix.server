@@ -48,10 +48,10 @@ class SolrUpdateServiceTest extends Specification {
         };
 
         when:
-        service.delete doc
+        service.delete([doc])
 
         then:
-        1 * updateProcessor.processDelete({ it.query == "$ID:some-id" })
+        1 * updateProcessor.processDelete({ it.query == "{!terms f=$ID}some-id" })
     }
 
     def "test adding"() {

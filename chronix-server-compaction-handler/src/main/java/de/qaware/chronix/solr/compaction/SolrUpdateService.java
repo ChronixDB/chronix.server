@@ -25,8 +25,10 @@ import org.apache.solr.update.DeleteUpdateCommand;
 import org.apache.solr.update.processor.UpdateRequestProcessor;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import static de.qaware.chronix.Schema.ID;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Executes update actions on solr.
@@ -34,7 +36,7 @@ import static de.qaware.chronix.Schema.ID;
  * @author alex.christ
  */
 public class SolrUpdateService {
-
+    private static final int COMMIT_WITHIN = 900000;
     private UpdateRequestProcessor updateProcessor;
     private SolrQueryRequest req;
 
@@ -62,18 +64,6 @@ public class SolrUpdateService {
     }
 
     /**
-     * Deletes the given document from the solr index without commit.
-     *
-     * @param doc the document to delete
-     * @throws IOException iff something goes wrong
-     */
-    public void delete(Document doc) throws IOException {
-        DeleteUpdateCommand deleteUpdateCommand = new DeleteUpdateCommand(req);
-        deleteUpdateCommand.setQuery(ID + ":" + doc.get(ID));
-        updateProcessor.processDelete(deleteUpdateCommand);
-    }
-
-    /**
      * Adds the given document to the solr index without commit.
      *
      * @param doc the document to add
@@ -82,6 +72,7 @@ public class SolrUpdateService {
     public void add(SolrInputDocument doc) throws IOException {
         AddUpdateCommand cmd = new AddUpdateCommand(req);
         cmd.solrDoc = doc;
+        cmd.commitWithin = COMMIT_WITHIN;
         updateProcessor.processAdd(cmd);
     }
 
@@ -92,5 +83,18 @@ public class SolrUpdateService {
      */
     public void commit() throws IOException {
         updateProcessor.processCommit(new CommitUpdateCommand(req, false));
+    }
+
+    /**
+     * Deletes documents identified by the given documents.
+     *
+     * @param docs the documents
+     * @throws IOException iff something goes wrong
+     */
+    public void delete(Collection<Document> docs) throws IOException {
+        DeleteUpdateCommand deleteUpdateCommand = new DeleteUpdateCommand(req);
+        deleteUpdateCommand.commitWithin = COMMIT_WITHIN;
+        deleteUpdateCommand.setQuery("{!terms f=" + ID + "}" + docs.stream().map(it -> it.get(ID)).collect(joining(",")));
+        updateProcessor.processDelete(deleteUpdateCommand);
     }
 }

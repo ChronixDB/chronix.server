@@ -22,6 +22,7 @@ import org.apache.solr.request.SolrQueryRequest
 import org.apache.solr.response.SolrQueryResponse
 import org.apache.solr.search.QParser
 import org.apache.solr.search.SolrIndexSearcher
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
@@ -87,7 +88,7 @@ class ChronixCompactionHandlerTest extends Specification {
         then:
         1 * rsp.add('timeseries [metric:cpu] oldNumDocs:', 1)
         1 * rsp.add('timeseries [metric:cpu] newNumDocs:', 1)
-        1 * updateService.delete(docs[0])
+        1 * updateService.delete([docs[0]])
         1 * updateService.add(compacted[0])
         1 * dependencyProvider.documentLoader(100) >> documentLoader
         1 * dependencyProvider.compactor(100000) >> compactor

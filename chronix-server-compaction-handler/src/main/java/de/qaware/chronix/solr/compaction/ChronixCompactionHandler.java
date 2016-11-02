@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import static de.qaware.chronix.Schema.START;
@@ -92,7 +93,9 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
             doCompact(req, rsp, timeSeriesId, chunkSize, pageSize);
         }
 
+        LOGGER.info("Start committing compacted documents...");
         dependencyProvider.solrUpdateService(req, rsp).commit();
+        LOGGER.info("Finished committing compacted documents.");
     }
 
     private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
@@ -113,9 +116,10 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         int compactedCount = 0;
         int resultCount = 0;
         SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
+        LinkedList<Document> documentsToDelete = new LinkedList<>();
         for (CompactionResult compactionResult : compactionResults) {
             for (Document document : compactionResult.getInputDocuments()) {
-                updateService.delete(document);
+                documentsToDelete.add(document);
                 compactedCount++;
             }
             for (SolrInputDocument document : compactionResult.getOutputDocuments()) {
@@ -123,6 +127,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
                 resultCount++;
             }
         }
+        updateService.delete(documentsToDelete);
 
         rsp.add("timeseries " + tsId + " oldNumDocs:", compactedCount);
         rsp.add("timeseries " + tsId + " newNumDocs:", resultCount);
