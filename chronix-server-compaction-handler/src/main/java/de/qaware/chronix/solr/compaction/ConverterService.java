@@ -83,6 +83,13 @@ public class ConverterService {
         return converter.from(bts, start, end);
     }
 
+    /**
+     * Converts a lucene document to a solr document.
+     *
+     * @param schema    the index schema
+     * @param luceneDoc the lucene document
+     * @return solr document
+     */
     public SolrDocument toSolrDoc(IndexSchema schema, Document luceneDoc) {
         SolrDocument solrDoc = new SolrDocument();
         luceneDoc.forEach(it -> solrDoc.addField(it.name(), schema.getField(it.name()).getType().toObject(it)));
@@ -95,6 +102,13 @@ public class ConverterService {
         return solrDoc;
     }
 
+    /**
+     * Converts a lucene document to a metric time series.
+     *
+     * @param luceneDoc the lucene document
+     * @param schema    the index schema
+     * @return metric time series
+     */
     public MetricTimeSeries toTimeSeries(Document luceneDoc, IndexSchema schema) {
         return toTimeSeries(toSolrDoc(schema, luceneDoc));
     }
