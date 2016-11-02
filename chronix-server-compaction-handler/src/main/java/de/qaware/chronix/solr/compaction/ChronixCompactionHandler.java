@@ -50,6 +50,7 @@ import static org.apache.lucene.search.SortField.Type.LONG;
 public class ChronixCompactionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixCompactionHandler.class);
     private final DependencyProvider dependencyProvider;
+    private static final Sort SORT = new Sort(new SortField(START, LONG));
 
     /**
      * Creates a new instance. Constructor used by Solr.
@@ -88,11 +89,11 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
 
         SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
+
         facetService.toTimeSeriesIds(pivotResult)
                 .parallelStream()
                 .forEach(timeSeriesId -> compact(req, rsp, timeSeriesId, chunkSize, pageSize));
 
-        //commit final changes
         dependencyProvider.solrUpdateService(req, rsp).commit();
     }
 
@@ -107,22 +108,20 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
                            TimeSeriesId tsId,
                            int chunkSize, int pageSize) throws IOException, SyntaxError {
-        QParser parser = dependencyProvider.parser(req, tsId.toQuery());
+        Query query = dependencyProvider.parser(req, tsId.toQuery()).getQuery();
         LazyCompactor compactor = dependencyProvider.compactor(chunkSize);
         LazyDocumentLoader documentLoader = dependencyProvider.documentLoader(pageSize);
 
         SolrIndexSearcher searcher = req.getSearcher();
         IndexSchema schema = searcher.getSchema();
-        Query query = parser.getQuery();
-        Sort sort = new Sort(new SortField(START, LONG));
 
-        Iterable<Document> documents = documentLoader.load(searcher, query, sort);
+        Iterable<Document> documents = documentLoader.load(searcher, query, SORT);
         Iterable<CompactionResult> compactionResults = compactor.compact(documents, schema);
 
         int compactedCount = 0;
         int resultCount = 0;
         SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
-        LinkedList<Document> docsToDelete = new LinkedList<>();
+        List<Document> docsToDelete = new LinkedList<>();
 
         for (CompactionResult compactionResult : compactionResults) {
             for (Document doc : compactionResult.getInputDocuments()) {

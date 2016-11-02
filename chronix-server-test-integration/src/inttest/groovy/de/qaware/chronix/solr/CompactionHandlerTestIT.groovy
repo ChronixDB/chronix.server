@@ -27,6 +27,7 @@ import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
 import static de.qaware.chronix.solr.SolrServerFactory.newEmbeddedSolrServer
 import static de.qaware.chronix.solr.TestUtils.*
 import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
+import static java.lang.Math.cos
 import static java.lang.Math.sin
 import static org.apache.solr.common.params.CommonParams.Q
 import static org.apache.solr.common.params.CommonParams.QT
@@ -120,5 +121,36 @@ class CompactionHandlerTestIT extends Specification {
         foundDocs.size() == 1
         foundDocs[0].get(METRIC) == 'a: AND ){!}'
         decompress(foundDocs[0].get(DATA), 1, 6) == [1L: 10d]
+    }
+
+    def "test compaction of two time series"() {
+        given:
+        (1L..100L).step(5) { def start ->
+            def end = start + 4
+            def cpuData = (start..end).collectEntries { [it, sin(it)] }
+            def heapData = (start..end).collectEntries { [it, cos(it)] }
+            solr.add(doc((START): start, (END): end, (METRIC): 'cpu', (DATA): compress(cpuData)))
+            solr.add(doc((START): start, (END): end, (METRIC): 'heap', (DATA): compress(heapData)))
+        }
+        solr.commit()
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (CHUNK_SIZE): 100))
+        def cpuDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:cpu"))
+        def heapDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:heap"))
+
+        when:
+        def rsp = solr.request(compactionQuery)
+        NamedList rspParts = rsp.get('responseHeader')
+
+        then:
+        rspParts.get('status') == 0
+        SolrDocumentList cpuDocs = solr.request(cpuDocsQuery).get('response')
+        cpuDocs.size() == 1
+        decompress(cpuDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
+
+        and:
+        then:
+        SolrDocumentList heapDocs = solr.request(heapDocsQuery).get('response')
+        heapDocs.size() == 1
+        decompress(heapDocs[0].get(DATA), 1, 100).entrySet().each { assert cos(it.key) == it.value }
     }
 }
