@@ -15,8 +15,6 @@
  */
 package de.qaware.chronix.solr.compaction;
 
-import org.apache.solr.search.SyntaxError;
-
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
@@ -42,10 +40,9 @@ public class TimeSeriesId {
      * Creates a lucene query macthing all documents belonging to this time series.
      *
      * @return query
-     * @throws SyntaxError iff something goes wrong
      */
-    public String toQuery() throws SyntaxError {
-        return id.entrySet().stream().map(it -> it.getKey() + ":" + it.getValue()).collect(joining(" AND "));
+    public String toQuery() {
+        return id.entrySet().stream().map(it -> it.getKey() + ":\"" + it.getValue() + "\"").collect(joining(" AND "));
     }
 
     @Override

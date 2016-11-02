@@ -30,6 +30,6 @@ class TimeSeriesIdTest extends Specification {
 
         expect:
         id.toString() == '[host:machine1,metric:cpu_load,process:java]'
-        id.toQuery() == 'metric:cpu_load AND host:machine1 AND process:java'
+        id.toQuery() == 'metric:"cpu_load" AND host:"machine1" AND process:"java"'
     }
 }

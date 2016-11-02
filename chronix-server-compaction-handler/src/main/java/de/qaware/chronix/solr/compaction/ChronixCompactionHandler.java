@@ -88,14 +88,20 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
 
         SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
+        facetService.toTimeSeriesIds(pivotResult)
+                .parallelStream()
+                .forEach(timeSeriesId -> compact(req, rsp, timeSeriesId, chunkSize, pageSize));
 
-        for (TimeSeriesId timeSeriesId : facetService.toTimeSeriesIds(pivotResult)) {
-            doCompact(req, rsp, timeSeriesId, chunkSize, pageSize);
-        }
-
-        LOGGER.info("Start committing compacted documents...");
+        //commit final changes
         dependencyProvider.solrUpdateService(req, rsp).commit();
-        LOGGER.info("Finished committing compacted documents.");
+    }
+
+    private void compact(SolrQueryRequest req, SolrQueryResponse rsp, TimeSeriesId tsId, int chunkSize, int pageSize) {
+        try {
+            doCompact(req, rsp, tsId, chunkSize, pageSize);
+        } catch (IOException | SyntaxError e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
@@ -116,22 +122,24 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         int compactedCount = 0;
         int resultCount = 0;
         SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
-        LinkedList<Document> documentsToDelete = new LinkedList<>();
+        LinkedList<Document> docsToDelete = new LinkedList<>();
+
         for (CompactionResult compactionResult : compactionResults) {
-            for (Document document : compactionResult.getInputDocuments()) {
-                documentsToDelete.add(document);
+            for (Document doc : compactionResult.getInputDocuments()) {
+                docsToDelete.add(doc);
                 compactedCount++;
             }
-            for (SolrInputDocument document : compactionResult.getOutputDocuments()) {
-                updateService.add(document);
+            for (SolrInputDocument doc : compactionResult.getOutputDocuments()) {
+                updateService.add(doc);
                 resultCount++;
             }
         }
-        updateService.delete(documentsToDelete);
+        updateService.delete(docsToDelete);
 
         rsp.add("timeseries " + tsId + " oldNumDocs:", compactedCount);
         rsp.add("timeseries " + tsId + " newNumDocs:", resultCount);
     }
+
 
     /**
      * Provides dependencies and thereby
