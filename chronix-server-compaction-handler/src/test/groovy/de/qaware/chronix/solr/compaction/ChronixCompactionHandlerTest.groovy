@@ -99,7 +99,7 @@ class ChronixCompactionHandlerTest extends Specification {
         compactor.compact(*_) >> [new CompactionResult([] as Set, [] as Set)]
         params.add(JOIN_KEY, 'metric,host')
         params.add(PAGE_SIZE, '112')
-        params.add(THRESHOLD, '327')
+        params.add(CHUNK_SIZE, '327')
 
         when:
         handler.handleRequestBody(req, rsp)

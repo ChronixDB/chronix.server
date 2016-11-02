@@ -62,7 +62,7 @@ class CompactionHandlerTestIT extends Specification {
                   doc((START): 3, (END): 4, (METRIC): 'cpu', (DATA): compress(3L: 30d, 4L: 40d)),
                   doc((START): 5, (END): 6, (METRIC): 'cpu', (DATA): compress(5L: 50d, 6L: 60d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (THRESHOLD): 10))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (CHUNK_SIZE): 10))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
@@ -86,7 +86,7 @@ class CompactionHandlerTestIT extends Specification {
             solr.add(doc((START): start, (END): end, (METRIC): 'cpu', (DATA): compress(data)))
         }
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (THRESHOLD): 100))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (CHUNK_SIZE): 100))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:

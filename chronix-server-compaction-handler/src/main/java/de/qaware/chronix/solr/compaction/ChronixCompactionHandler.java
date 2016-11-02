@@ -74,7 +74,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
-        int threshold = req.getParams().getInt(THRESHOLD, 100000);
+        int threshold = req.getParams().getInt(CHUNK_SIZE, 100000);
         int pageSize = req.getParams().getInt(PAGE_SIZE, 100);
         if (joinKey == null) {
             LOGGER.error("No join key given.");
