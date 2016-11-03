@@ -31,7 +31,7 @@ public class CompactionHandlerParams {
      * Minimum number of data points to be merged into a single document.
      * Default value: 100000.
      */
-    public static final String POINTS_PER_CHUNK = "pointsPerChunk";
+    public static final String POINTS_PER_CHUNK = "ppc";
 
     /**
      * Number of documents to be loaded into memory at a time.
