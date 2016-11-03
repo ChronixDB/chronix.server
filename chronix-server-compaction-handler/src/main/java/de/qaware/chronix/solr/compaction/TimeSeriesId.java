@@ -15,6 +15,8 @@
  */
 package de.qaware.chronix.solr.compaction;
 
+import com.google.common.base.CharMatcher;
+
 import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
@@ -42,7 +44,11 @@ public class TimeSeriesId {
      * @return query
      */
     public String toQuery() {
-        return id.entrySet().stream().map(it -> it.getKey() + ":\"" + it.getValue() + "\"").collect(joining(" AND "));
+        return id.entrySet().stream().map(it -> it.getKey() + ":\"" + escape(it.getValue()) + "\"").collect(joining(" AND "));
+    }
+
+    private static String escape(Object obj) {
+        return CharMatcher.is('\\').replaceFrom(obj.toString(), "\\\\");
     }
 
     @Override

@@ -105,7 +105,7 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test special chars as value of a join key field"() {
         given:
-        solr.add([doc((START): 5, (END): 6, (METRIC): 'a: AND ){!}', (DATA): compress(1L: 10d))])
+        solr.add([doc((START): 5, (END): 6, (METRIC): 'a:AND() {!$#}\\', (DATA): compress(1L: 10d))])
         solr.commit()
         def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (POINTS_PER_CHUNK): 10))
         def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
@@ -119,7 +119,7 @@ class CompactionHandlerTestIT extends Specification {
         SolrDocumentList foundDocs = solr.request(allDocsQuery).get('response')
         expect:
         foundDocs.size() == 1
-        foundDocs[0].get(METRIC) == 'a: AND ){!}'
+        foundDocs[0].get(METRIC) == 'a:AND() {!$#}\\'
         decompress(foundDocs[0].get(DATA), 1, 6) == [1L: 10d]
     }
 
