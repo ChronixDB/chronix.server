@@ -92,9 +92,10 @@ public class SolrUpdateService {
      * @throws IOException iff something goes wrong
      */
     public void delete(Collection<Document> docs) throws IOException {
-        DeleteUpdateCommand deleteUpdateCommand = new DeleteUpdateCommand(req);
-        deleteUpdateCommand.commitWithin = COMMIT_WITHIN;
-        deleteUpdateCommand.setQuery("{!terms f=" + ID + "}" + docs.stream().map(it -> it.get(ID)).collect(joining(",")));
-        updateProcessor.processDelete(deleteUpdateCommand);
+        DeleteUpdateCommand cmd = new DeleteUpdateCommand(req);
+        cmd.commitWithin = COMMIT_WITHIN;
+        cmd.setFlags(DeleteUpdateCommand.BUFFERING);
+        cmd.setQuery("{!terms f=" + ID + "}" + docs.stream().map(it -> it.get(ID)).collect(joining(",")));
+        updateProcessor.processDelete(cmd);
     }
 }

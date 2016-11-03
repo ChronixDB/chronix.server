@@ -87,38 +87,39 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
             return;
         }
 
-        SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
+        dependencyProvider.init(req, rsp);
+        SolrFacetService facetService = dependencyProvider.solrFacetService();
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
 
-        facetService.toTimeSeriesIds(pivotResult).forEach(
-                timeSeriesId -> compact(req, rsp, timeSeriesId, ppc, pageSize));
+        facetService.toTimeSeriesIds(pivotResult)
+                .parallelStream()
+                .forEach(timeSeriesId -> compact(req.getSearcher(), rsp, timeSeriesId, ppc, pageSize));
 
-        dependencyProvider.solrUpdateService(req, rsp).commit();
+        dependencyProvider.solrUpdateService().commit();
     }
 
-    private void compact(SolrQueryRequest req, SolrQueryResponse rsp, TimeSeriesId tsId, int ppc, int pageSize) {
+    private void compact(SolrIndexSearcher searcher, SolrQueryResponse rsp, TimeSeriesId tsId, int ppc, int pageSize) {
         try {
-            doCompact(req, rsp, tsId, ppc, pageSize);
+            // throw unchecked exception in order to call this method in a lambda expression
+            doCompact(searcher, rsp, tsId, ppc, pageSize);
         } catch (IOException | SyntaxError e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void doCompact(SolrQueryRequest req, SolrQueryResponse rsp,
-                           TimeSeriesId tsId, int ppc, int pageSize) throws IOException, SyntaxError {
-        Query query = dependencyProvider.parser(req, tsId.toQuery()).getQuery();
-        LazyCompactor compactor = dependencyProvider.compactor(ppc);
-        LazyDocumentLoader documentLoader = dependencyProvider.documentLoader(pageSize);
-
-        SolrIndexSearcher searcher = req.getSearcher();
+    private void doCompact(SolrIndexSearcher searcher,
+                           SolrQueryResponse rsp,
+                           TimeSeriesId tsId,
+                           int ppc,
+                           int pageSize) throws IOException, SyntaxError {
+        Query query = dependencyProvider.parser(tsId.toQuery()).getQuery();
         IndexSchema schema = searcher.getSchema();
-
-        Iterable<Document> documents = documentLoader.load(searcher, query, SORT);
-        Iterable<CompactionResult> compactionResults = compactor.compact(documents, schema);
 
         int compactedCount = 0;
         int resultCount = 0;
-        SolrUpdateService updateService = dependencyProvider.solrUpdateService(req, rsp);
+
+        Iterable<Document> docs = dependencyProvider.documentLoader(pageSize).load(searcher, query, SORT);
+        Iterable<CompactionResult> compactionResults = dependencyProvider.compactor(ppc).compact(docs, schema);
         List<Document> docsToDelete = new LinkedList<>();
 
         for (CompactionResult compactionResult : compactionResults) {
@@ -127,29 +128,42 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
                 compactedCount++;
             }
             for (SolrInputDocument doc : compactionResult.getOutputDocuments()) {
-                updateService.add(doc);
+                dependencyProvider.solrUpdateService().add(doc);
                 resultCount++;
             }
         }
-        updateService.delete(docsToDelete);
+        dependencyProvider.solrUpdateService().delete(docsToDelete);
 
         rsp.add("timeseries " + tsId + " oldNumDocs:", compactedCount);
         rsp.add("timeseries " + tsId + " newNumDocs:", resultCount);
     }
 
-
     /**
-     * Provides dependencies and thereby
+     * Provides dependencies and thereby facilitates testing.
      */
     public class DependencyProvider {
+        private SolrQueryRequest req;
+        private SolrUpdateService updateService;
+        private SolrFacetService facetService;
 
         /**
-         * @param req the request
-         * @param rsp the response
+         * Initializes
+         *
+         * @param req the solr query request
+         * @param rsp the solr query response
+         */
+        public void init(SolrQueryRequest req, SolrQueryResponse rsp) {
+            this.req = req;
+            this.updateService = new SolrUpdateService(req, rsp);
+            this.facetService = new SolrFacetService(req, rsp);
+
+        }
+
+        /**
          * @return the solr update service
          */
-        public SolrUpdateService solrUpdateService(SolrQueryRequest req, SolrQueryResponse rsp) {
-            return new SolrUpdateService(req, rsp);
+        public SolrUpdateService solrUpdateService() {
+            return updateService;
         }
 
         /**
@@ -171,11 +185,16 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         /**
          * @return the solr facet service
          */
-        public SolrFacetService solrFacetService(SolrQueryRequest req, SolrQueryResponse rsp) {
-            return new SolrFacetService(req, rsp);
+        public SolrFacetService solrFacetService() {
+            return facetService;
         }
 
-        public QParser parser(SolrQueryRequest req, String query) throws SyntaxError {
+        /**
+         * @param query the query
+         * @return a lucene qparser
+         * @throws SyntaxError iff something goes wrong
+         */
+        public QParser parser(String query) throws SyntaxError {
             return QParser.getParser(query, req);
         }
     }
