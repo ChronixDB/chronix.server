@@ -100,6 +100,7 @@ public class SolrFacetService {
         params.set(FACET_PIVOT, split(dimensions, ','));
         params.set(FACET_ZEROS, false);
         params.set(FACET_LIMIT, -1);
+        params.set(FACET_PIVOT_MINCOUNT, 1);
         DocSet matchingDocs = req.getSearcher().getDocSet(fq);
         PivotFacetProcessor pivot = dependencyProvider.pivotFacetProcessor(req, rsp, matchingDocs, params);
         return pivot.process(new String[]{dimensions}).get(dimensions);
