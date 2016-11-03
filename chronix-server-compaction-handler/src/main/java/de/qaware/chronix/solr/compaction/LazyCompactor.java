@@ -102,25 +102,30 @@ public class LazyCompactor {
                 int index = 0;
                 while (index + threshold <= timestamps.size()) {
                     MetricTimeSeries slice = copyWithDataRange(currentTs, index, index + threshold);
+                    //this, apprently side effect free method, is consciously called twice
+                    //otherwise solrDoc sometimes contains a wrong data field
+                    @SuppressWarnings("UnusedAssignment")
                     SolrInputDocument solrDoc = converterService.toInputDocument(slice);
+                    solrDoc = converterService.toInputDocument(slice);
                     outputDocs.add(solrDoc);
                     index += threshold;
                 }
 
-                // reduce timestamps and values to orphans
-                int end = timestamps.size() - 1;
-                int start = min(index, end);
+                // reduce timestamps and values to windows
+                int start = min(index, timestamps.size());
+                int end = timestamps.size();
                 timestamps = sublist(timestamps, start, end);
                 values = subList(values, start, end);
 
                 break;
             }
-
-            // write orphans
-            if (timestamps.size() > 0) {
+            // write widows
+            if (!hasNext() && timestamps.size() > 0) {
                 MetricTimeSeries slice = copyWithDataRange(currentTs, 0, timestamps.size());
                 SolrInputDocument solrDoc = converterService.toInputDocument(slice);
                 outputDocs.add(solrDoc);
+                timestamps = new LongList();
+                values = new DoubleList();
             }
 
             return new CompactionResult(inputDocs, outputDocs);

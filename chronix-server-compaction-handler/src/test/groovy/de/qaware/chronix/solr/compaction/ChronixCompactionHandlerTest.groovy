@@ -105,7 +105,7 @@ class ChronixCompactionHandlerTest extends Specification {
         handler.handleRequestBody(req, rsp)
 
         then:
-        1* facetService.pivot('metric,host', _)
+        1 * facetService.pivot('metric,host', _)
         1 * dependencyProvider.documentLoader(112) >> documentLoader
         1 * dependencyProvider.compactor(327) >> compactor
     }

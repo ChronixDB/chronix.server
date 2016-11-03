@@ -26,7 +26,8 @@ import static de.qaware.chronix.Schema.*
 import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
 import static de.qaware.chronix.solr.SolrServerFactory.newEmbeddedSolrServer
 import static de.qaware.chronix.solr.TestUtils.*
-import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.JOIN_KEY
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.POINTS_PER_CHUNK
 import static java.lang.Math.cos
 import static java.lang.Math.sin
 import static org.apache.solr.common.params.CommonParams.Q
@@ -39,6 +40,7 @@ import static org.apache.solr.common.params.CommonParams.QT
  */
 class CompactionHandlerTestIT extends Specification {
 
+    def QueryRequest ALL_DOCS_QUERY = new QueryRequest(params((QT): '/select', (Q): '*:*'))
     @Shared
     def EmbeddedSolrServer solr
 
@@ -57,107 +59,104 @@ class CompactionHandlerTestIT extends Specification {
         solr.close()
     }
 
+    def "test status code"() {
+        given:
+        solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', (DATA): compress(1L: 10d, 2L: 20d))])
+        solr.commit()
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10))
+
+        when:
+        NamedList rsp = solr.request(compactionQuery).get('responseHeader')
+
+        then:
+        rsp.get('status') == 0
+    }
+
     def "test compaction of a small number of documents"() {
         given:
         solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', (DATA): compress(1L: 10d, 2L: 20d)),
                   doc((START): 3, (END): 4, (METRIC): 'cpu', (DATA): compress(3L: 30d, 4L: 40d)),
                   doc((START): 5, (END): 6, (METRIC): 'cpu', (DATA): compress(5L: 50d, 6L: 60d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (POINTS_PER_CHUNK): 10))
-        def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
-        def rsp = solr.request(compactionQuery)
-        NamedList rspParts = rsp.get('responseHeader')
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10)))
+        SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
-        rspParts.get('status') == 0
-        SolrDocumentList foundDocs = solr.request(allDocsQuery).get('response')
-
-        expect:
-        foundDocs.size() == 1
-        decompress(foundDocs[0].get(DATA), 1, 6) == [1L: 10d, 2L: 20d, 3L: 30d, 4L: 40d, 5L: 50d, 6L: 60d]
+        docs.size() == 1
+        decompress(docs[0].get(DATA), 1, 6) == [1L: 10d, 2L: 20d, 3L: 30d, 4L: 40d, 5L: 50d, 6L: 60d]
     }
 
     def "test compaction of a large number of documents"() {
         given:
-        (1L..100L).step(5) { def start ->
-            def end = start + 4
-            def data = (start..end).collectEntries { [it, sin(it)] }
-            solr.add(doc((START): start, (END): end, (METRIC): 'cpu', (DATA): compress(data)))
+        (1L..100L).collate(5).each { range ->
+            def data = range.collectEntries { it -> [it, sin(it)] }
+            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(data)))
         }
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (POINTS_PER_CHUNK): 100))
-        def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
-        def rsp = solr.request(compactionQuery)
-        NamedList rspParts = rsp.get('responseHeader')
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 100)))
+        SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
-        rspParts.get('status') == 0
-
-        expect:
-        SolrDocumentList foundDocs = solr.request(allDocsQuery).get('response')
-        foundDocs.size() == 1
-        decompress(foundDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
+        docs.size() == 1
+        decompress(docs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
     }
 
     def "test special chars as value of a join key field"() {
         given:
         solr.add([doc((START): 5, (END): 6, (METRIC): 'a:AND() {!$#}\\', (DATA): compress(1L: 10d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 8, (POINTS_PER_CHUNK): 10))
-        def allDocsQuery = new QueryRequest(params((QT): '/select', (Q): '*:*'))
 
         when:
-        def rsp = solr.request(compactionQuery)
-        NamedList rspParts = rsp.get('responseHeader')
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10)))
+        SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
-        rspParts.get('status') == 0
-        SolrDocumentList foundDocs = solr.request(allDocsQuery).get('response')
-        expect:
-        foundDocs.size() == 1
-        foundDocs[0].get(METRIC) == 'a:AND() {!$#}\\'
-        decompress(foundDocs[0].get(DATA), 1, 6) == [1L: 10d]
+        docs.size() == 1
+        docs[0].get(METRIC) == 'a:AND() {!$#}\\'
+        decompress(docs[0].get(DATA), 1, 6) == [1L: 10d]
+    }
+
+    def "test widow handdling"() {
+        given:
+        (1L..10L).collate(5).each { range ->
+            def data = range.collectEntries { it -> [it, sin(it)] }
+            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(data)))
+        }
+        solr.commit()
+
+        when:
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 4)))
+        SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
+
+        then:
+        docs.size() == 3
     }
 
     def "test compaction of two time series"() {
         given:
-        (1L..100L).step(5) { def start ->
-            def end = start + 4
-            def cpuData = (start..end).collectEntries { [it, sin(it)] }
-            def heapData = (start..end).collectEntries { [it, cos(it)] }
-            solr.add(doc((START): start, (END): end, (METRIC): 'cpu', (DATA): compress(cpuData)))
-            solr.add(doc((START): start, (END): end, (METRIC): 'heap', (DATA): compress(heapData)))
+        (1L..100L).collate(5).each { def range ->
+            def cpuData = range.collectEntries { it -> [it, sin(it)] }
+            def heapData = range.collectEntries { it -> [it, cos(it)] }
+            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(cpuData)))
+            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'heap', (DATA): compress(heapData)))
         }
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): 'metric', (PAGE_SIZE): 10, (POINTS_PER_CHUNK): 100))
         def cpuDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:cpu"))
         def heapDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:heap"))
 
         when:
-        def rsp = solr.request(compactionQuery)
-        NamedList rspParts = rsp.get('responseHeader')
-
-        then:
-        rspParts.get('status') == 0
-
-        and:
-        when:
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 100)))
         SolrDocumentList cpuDocs = solr.request(cpuDocsQuery).get('response')
-
-        then:
-        cpuDocs.size() == 1
-        decompress(cpuDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
-
-        and:
-        when:
         SolrDocumentList heapDocs = solr.request(heapDocsQuery).get('response')
 
         then:
+        cpuDocs.size() == 1
         heapDocs.size() == 1
+        decompress(cpuDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
         decompress(heapDocs[0].get(DATA), 1, 100).entrySet().each { assert cos(it.key) == it.value }
     }
 }

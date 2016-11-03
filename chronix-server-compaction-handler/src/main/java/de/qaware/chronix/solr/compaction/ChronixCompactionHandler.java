@@ -90,9 +90,8 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         SolrFacetService facetService = dependencyProvider.solrFacetService(req, rsp);
         List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
 
-        facetService.toTimeSeriesIds(pivotResult)
-                .parallelStream()
-                .forEach(timeSeriesId -> compact(req, rsp, timeSeriesId, ppc, pageSize));
+        facetService.toTimeSeriesIds(pivotResult).forEach(
+                timeSeriesId -> compact(req, rsp, timeSeriesId, ppc, pageSize));
 
         dependencyProvider.solrUpdateService(req, rsp).commit();
     }
