@@ -64,7 +64,7 @@ public class LazyCompactor {
         private final IndexSchema schema;
         private LongList timestamps;
         private DoubleList values;
-        private MetricTimeSeries currentTs;
+        private MetricTimeSeries currTs;
 
         private LazyCompactionResultSet(Iterable<Document> documents, IndexSchema schema) {
             this.documents = documents.iterator();
@@ -91,9 +91,10 @@ public class LazyCompactor {
             while (documents.hasNext()) {
                 Document doc = documents.next();
                 inputDocs.add(doc);
-                currentTs = converterService.toTimeSeries(doc, schema);
-                timestamps.addAll(currentTs.getTimestamps());
-                values.addAll(currentTs.getValues());
+
+                currTs = converterService.toTimeSeries(doc, schema);
+                timestamps.addAll(currTs.getTimestamps());
+                values.addAll(currTs.getValues());
 
                 if (timestamps.size() < threshold) {
                     continue;
@@ -101,13 +102,8 @@ public class LazyCompactor {
 
                 int index = 0;
                 while (index + threshold <= timestamps.size()) {
-                    MetricTimeSeries slice = copyWithDataRange(currentTs, index, index + threshold);
-                    //this, apprently side effect free method, is consciously called twice
-                    //otherwise solrDoc sometimes contains a wrong data field
-                    @SuppressWarnings("UnusedAssignment")
-                    SolrInputDocument solrDoc = converterService.toInputDocument(slice);
-                    solrDoc = converterService.toInputDocument(slice);
-                    outputDocs.add(solrDoc);
+                    MetricTimeSeries slice = copyWithDataRange(currTs, index, index + threshold);
+                    outputDocs.add(toSolrInputDocument(slice));
                     index += threshold;
                 }
 
@@ -119,16 +115,25 @@ public class LazyCompactor {
 
                 break;
             }
-            // write widows
+            // write widows when all data points have been read
             if (!hasNext() && timestamps.size() > 0) {
-                MetricTimeSeries slice = copyWithDataRange(currentTs, 0, timestamps.size());
-                SolrInputDocument solrDoc = converterService.toInputDocument(slice);
-                outputDocs.add(solrDoc);
-                timestamps = new LongList();
-                values = new DoubleList();
+                MetricTimeSeries slice = copyWithDataRange(currTs, 0, timestamps.size());
+                outputDocs.add(converterService.toInputDocument(slice));
             }
 
             return new CompactionResult(inputDocs, outputDocs);
+        }
+
+        /**
+         * Calls {@link ConverterService#toInputDocument(MetricTimeSeries)} twice.
+         * The second call should'nt be necessary since it seems to be side effect free.
+         * Ff it's only called once, the resulting document sometimes contains wrong data.
+         */
+        private SolrInputDocument toSolrInputDocument(MetricTimeSeries slice) {
+            @SuppressWarnings("UnusedAssignment")
+            SolrInputDocument solrDoc = converterService.toInputDocument(slice);
+            solrDoc = converterService.toInputDocument(slice);
+            return solrDoc;
         }
 
         private MetricTimeSeries copyWithDataRange(MetricTimeSeries ts, int start, int end) {
