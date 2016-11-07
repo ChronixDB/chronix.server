@@ -151,11 +151,11 @@ public class PrometheusTextFormatParser implements FormatParser {
         }
 
         String tagString = nameWithTags.substring(tagStartIndex + 1, nameWithTags.indexOf('}'));
-        String[] tagsParts = StringUtils.split(tagString, ',');
+        String[] tags = StringUtils.split(tagString, ',');
 
-        Map<String, String> tags = new HashMap<>();
+        Map<String, String> result = new HashMap<>();
 
-        for (String tag : tagsParts) {
+        for (String tag : tags) {
             String[] tagParts = StringUtils.split(tag, "=", 2);
             if (tagParts.length != 2) {
                 throw new FormatParseException("Expected 2 tag parts, found " + tagParts.length + " in tag '" + tag + "'");
@@ -166,10 +166,10 @@ public class PrometheusTextFormatParser implements FormatParser {
             }
 
             String tagWithoutQuotes = tagValue.substring(1, tagValue.length() - 1);
-            tags.put(tagParts[0], tagWithoutQuotes);
+            result.put(tagParts[0], tagWithoutQuotes);
         }
 
-        return tags;
+        return result;
     }
 
     /**

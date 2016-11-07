@@ -20,8 +20,8 @@ dependencies {
     testCompile project(':chronix-server-test-extensions')
 }
 task copyTestResources(type: Copy) {
-    from "${projectDir}/src/test/resources"
-    into "${buildDir}/classes/test"
+    from "${projectDir}/src/inttest/resources"
+    into "${buildDir}/classes/inttest"
 }
 processTestResources.dependsOn copyTestResources
 
