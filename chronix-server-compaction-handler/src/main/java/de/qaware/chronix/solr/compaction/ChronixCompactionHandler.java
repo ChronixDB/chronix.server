@@ -74,6 +74,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     }
 
     @Override
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
         int ppc = req.getParams().getInt(POINTS_PER_CHUNK, 100000);
@@ -141,7 +142,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     /**
      * Provides dependencies and thereby facilitates testing.
      */
-    public class DependencyProvider {
+    public static class DependencyProvider {
         private SolrQueryRequest req;
         private SolrUpdateService updateService;
         private SolrFacetService facetService;
