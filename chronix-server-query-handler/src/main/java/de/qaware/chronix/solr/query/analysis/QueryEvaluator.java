@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.temporal.ChronoUnit;
 
+import static de.qaware.chronix.solr.query.ChronixQueryParams.FUNCTION_PARAM;
+
 /**
  * @author f.lautenschlager
  */
@@ -67,6 +69,9 @@ public final class QueryEvaluator {
 
         //Iterate over all filter queries
         for (String unmodifiedAnalysis : filterQueries) {
+            if (!unmodifiedAnalysis.startsWith(FUNCTION_PARAM)) {
+                continue;
+            }
             //Get the plain function without '*='
             String function = extractFunction(unmodifiedAnalysis);
 

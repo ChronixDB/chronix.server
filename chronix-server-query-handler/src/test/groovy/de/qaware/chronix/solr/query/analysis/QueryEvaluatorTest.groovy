@@ -144,6 +144,14 @@ class QueryEvaluatorTest extends Specification {
         expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE, FunctionType.DISTINCT]
     }
 
+    def "test function queries not starting with function="() {
+        when:
+        def functions = QueryEvaluator.extractFunctions(["function=derivative", "joinKey=metric"] as String[])
+
+        then:
+        functions.transformations[0].type == FunctionType.DERIVATIVE
+    }
+
     def "test filter query strings that produce exceptions"() {
         when:
         QueryEvaluator.extractFunctions(fqs)
@@ -153,7 +161,7 @@ class QueryEvaluatorTest extends Specification {
 
         where:
         fqs << [["function=p="] as String[],
-                ["function"] as String[],
+                ["function="] as String[],
                 ["function=UNKNOWN:127"] as String[]]
 
     }
