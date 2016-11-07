@@ -104,25 +104,36 @@ public class PrometheusTextFormatParser implements FormatParser {
                 double value = getMetricValue(parts);
                 Map<String, String> tags = getMetricTags(parts);
 
-                // If the metric is already known, add a point. Otherwise create the metric and add the point.
-                Metric metric = new Metric(metricName, tags);
-                MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
-                if (metricBuilder == null) {
-                    metricBuilder = new MetricTimeSeries.Builder(metricName);
-                    for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
-                        metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
-                    }
-                    metrics.put(metric, metricBuilder);
-                }
-
-                metricBuilder.point(timestamp.toEpochMilli(), value);
-
+                addPoint(metrics, metricName, timestamp, value, tags);
             }
         } catch (IOException e) {
             throw new FormatParseException("IO exception while parsing OpenTSDB telnet format", e);
         }
 
         return metrics.values().stream().map(MetricTimeSeries.Builder::build).collect(Collectors.toList());
+    }
+
+    /**
+     * Adds a point to the given metrics map. If the metric doesn't exist in the map, it will be created.
+     *
+     * @param metrics    Metric map.
+     * @param metricName Name of the metric.
+     * @param timestamp  Timestamp of the point.
+     * @param value      Value of the point.
+     * @param tags       Tags for the metric. These are only used if the metric doesn't already exist in the metrics map.
+     */
+    private void addPoint(Map<Metric, MetricTimeSeries.Builder> metrics, String metricName, Instant timestamp, double value, Map<String, String> tags) {
+        Metric metric = new Metric(metricName, tags);
+        MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
+        if (metricBuilder == null) {
+            metricBuilder = new MetricTimeSeries.Builder(metricName);
+            for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
+                metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
+            }
+            metrics.put(metric, metricBuilder);
+        }
+
+        metricBuilder.point(timestamp.toEpochMilli(), value);
     }
 
     /**
@@ -179,7 +190,7 @@ public class PrometheusTextFormatParser implements FormatParser {
             long epochTime = Long.parseLong(value);
             return Instant.ofEpochMilli(epochTime);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to long");
+            throw new FormatParseException("Can't convert '" + value + "' to long", e);
         }
     }
 
@@ -195,7 +206,7 @@ public class PrometheusTextFormatParser implements FormatParser {
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to double");
+            throw new FormatParseException("Can't convert '" + value + "' to double", e);
         }
     }
 

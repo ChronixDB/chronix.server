@@ -128,7 +128,7 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
             long epochTime = Long.parseLong(value);
             return secondResolution ? Instant.ofEpochSecond(epochTime) : Instant.ofEpochMilli(epochTime);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to long");
+            throw new FormatParseException("Can't convert '" + value + "' to long", e);
         }
     }
 
@@ -144,7 +144,7 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to double");
+            throw new FormatParseException("Can't convert '" + value + "' to double", e);
         }
     }
 

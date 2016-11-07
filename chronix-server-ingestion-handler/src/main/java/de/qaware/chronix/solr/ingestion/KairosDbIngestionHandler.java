@@ -32,6 +32,7 @@ public class KairosDbIngestionHandler extends AbstractIngestionHandler {
         return "The Chronix KairosDB ingestion handler.";
     }
 
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     @Override
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         super.handleRequestBody(req, rsp);
