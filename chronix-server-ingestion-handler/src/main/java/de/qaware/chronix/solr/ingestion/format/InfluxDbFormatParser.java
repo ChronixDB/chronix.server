@@ -113,7 +113,7 @@ public class InfluxDbFormatParser implements FormatParser {
             // epochTime is in nanoseconds, convert to milliseconds
             return Instant.ofEpochMilli(epochTime / 1000);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to long");
+            throw new FormatParseException("Can't convert '" + value + "' to long", e);
         }
     }
 
@@ -138,7 +138,7 @@ public class InfluxDbFormatParser implements FormatParser {
         try {
             return Double.parseDouble(valueParts[1]);
         } catch (NumberFormatException e) {
-            throw new FormatParseException("Can't convert '" + value + "' to double");
+            throw new FormatParseException("Can't convert '" + value + "' to double", e);
         }
 
     }
