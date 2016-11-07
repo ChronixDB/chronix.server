@@ -107,7 +107,6 @@ public class SolrFacetService {
     }
 
     /**
-     * TODO: this method shouldn't be here. I have yet to find a good place to put it in.
      * <p>
      * Converts the pivot table of {@link #pivot(String, Query)} into a list of time series IDs.
      * A concrete and specific time series is identified by a full path through all pivot dimensions. E.g.:

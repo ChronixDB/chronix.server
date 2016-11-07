@@ -61,7 +61,7 @@ public class ConverterService {
                 .stream()
                 .filter(it -> !"_version_".equals(it.getKey()))
                 .forEach(it -> inputDocument.addField(it.getKey(), it.getValue()));
-        inputDocument.setField("id", UUID.randomUUID().toString()); //check if still needed
+        inputDocument.setField("id", UUID.randomUUID().toString());
         return inputDocument;
     }
 

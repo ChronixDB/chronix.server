@@ -20,7 +20,15 @@ package de.qaware.chronix.solr.compaction;
  *
  * @author alex.christ
  */
-public class CompactionHandlerParams {
+public final class CompactionHandlerParams {
+
+    /**
+     * No instantiation required.
+     */
+    private CompactionHandlerParams() {
+
+    }
+
     /**
      * Comma separated list of field names. Represents the primary key of a time series.
      * All documents with the key (i.e.: the same values for the given fields) will be compacted.

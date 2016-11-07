@@ -58,7 +58,7 @@ public class LazyCompactor {
         return new LazyCompactionResultSet(documents, schema);
     }
 
-    private class LazyCompactionResultSet implements Iterator<CompactionResult>, Iterable<CompactionResult> {
+    private final class LazyCompactionResultSet implements Iterator<CompactionResult>, Iterable<CompactionResult> {
         private final Iterator<Document> documents;
         private final ConverterService converterService;
         private final IndexSchema schema;
@@ -85,6 +85,7 @@ public class LazyCompactor {
         }
 
         @Override
+        @SuppressWarnings("PMD.AvoidBranchingStatementAsLastInLoop")
         public CompactionResult next() {
             Set<Document> inputDocs = new HashSet<>();
             Set<SolrInputDocument> outputDocs = new HashSet<>();

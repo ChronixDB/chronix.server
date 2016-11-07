@@ -28,6 +28,13 @@ import static java.util.Arrays.copyOfRange;
 public final class ListUtils {
 
     /**
+     * No instantiation required.
+     */
+    private ListUtils() {
+
+    }
+
+    /**
      * @param list  the list
      * @param start the start index
      * @param end   the end index

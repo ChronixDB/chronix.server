@@ -56,7 +56,7 @@ public class LazyDocumentLoader {
         return new LazySolrDocumentSet(searcher, query, sort);
     }
 
-    private class LazySolrDocumentSet implements Iterator<Document>, Iterable<Document> {
+    private final class LazySolrDocumentSet implements Iterator<Document>, Iterable<Document> {
         private final IndexSearcher searcher;
         private Query query;
         private Sort sort;
