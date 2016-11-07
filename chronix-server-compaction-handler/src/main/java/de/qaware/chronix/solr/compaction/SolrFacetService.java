@@ -155,7 +155,7 @@ public class SolrFacetService {
     /**
      * Provides dependencies and thereby facilitates testing.
      */
-    public class DependencyProvider {
+    public static class DependencyProvider {
         /**
          * @param req          the solr query request
          * @param rsp          the solr query response
