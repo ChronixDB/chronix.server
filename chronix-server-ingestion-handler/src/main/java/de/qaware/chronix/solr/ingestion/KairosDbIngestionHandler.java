@@ -23,6 +23,9 @@ import org.apache.solr.response.SolrQueryResponse;
  * Handler to ingest the KairosDB format.
  */
 public class KairosDbIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public KairosDbIngestionHandler() {
         super(new KairosDbFormatParser());
     }

@@ -22,6 +22,9 @@ import de.qaware.chronix.solr.ingestion.format.RealTimeClock;
  * Handler to ingest the Prometheus text format.
  */
 public class PrometheusTextIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public PrometheusTextIngestionHandler() {
         super(new PrometheusTextFormatParser(new RealTimeClock()));
     }

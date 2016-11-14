@@ -22,6 +22,9 @@ import de.qaware.chronix.solr.ingestion.format.RealTimeClock;
  * Handler to ingest the InfluxDB format.
  */
 public class InfluxDbIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public InfluxDbIngestionHandler() {
         super(new InfluxDbFormatParser(new RealTimeClock()));
     }
