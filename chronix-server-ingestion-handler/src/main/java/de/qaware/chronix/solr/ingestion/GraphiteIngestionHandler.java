@@ -21,6 +21,9 @@ import de.qaware.chronix.solr.ingestion.format.GraphiteFormatParser;
  * Handler to ingest the Graphite line format.
  */
 public class GraphiteIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public GraphiteIngestionHandler() {
         super(new GraphiteFormatParser());
     }

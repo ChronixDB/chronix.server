@@ -21,6 +21,9 @@ import de.qaware.chronix.solr.ingestion.format.OpenTsdbTelnetFormatParser;
  * Handler to ingest the OpenTSDB telnet format.
  */
 public class OpenTsdbTelnetIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public OpenTsdbTelnetIngestionHandler() {
         super(new OpenTsdbTelnetFormatParser());
     }

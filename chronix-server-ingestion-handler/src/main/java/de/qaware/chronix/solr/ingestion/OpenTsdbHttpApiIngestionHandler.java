@@ -21,6 +21,9 @@ import de.qaware.chronix.solr.ingestion.format.OpenTsdbHttpFormatParser;
  * Handler to ingest the OpenTSDB line format.
  */
 public class OpenTsdbHttpApiIngestionHandler extends AbstractIngestionHandler {
+    /**
+     * Constructor.
+     */
     public OpenTsdbHttpApiIngestionHandler() {
         super(new OpenTsdbHttpFormatParser());
     }
