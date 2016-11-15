@@ -34,7 +34,7 @@ dependencies {
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.2.1"
+def solrVersion = "6.3.0"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
