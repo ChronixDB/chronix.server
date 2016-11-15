@@ -56,8 +56,8 @@ Furthermore Chronix has built-in analysis functions, e.g, a trend and outlier de
 
 ## Data model
 Chronix allows one to store any kind of time series and hence the data model is open to your needs.
-Chronix Server per default uses the [Kassiopeia Simple](https://github.com/ChronixDB/chronix.kassiopeia) time series package.
-The data model for the Kassiopeia Simple package.
+Chronix Server per default uses the [Chronix Time Series](https://github.com/ChronixDB/chronix.timeseries) package.
+The data model for the Chronix Time Series package.
 
 A time series has at least the following required fields:
 
@@ -77,7 +77,7 @@ The type of an attribute is restricted by the available [fields](https://cwiki.a
 A Java client that is used to store and stream time series from Chronix.
 The following code snippet shows how to setup an connection to Chronix and stream time series.
 The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), Chronix Server Client, 
-[Chronix Kassiopeia](https://github.com/ChronixDB/chronix.kassiopeia) and [SolrJ](http://mvnrepository.com/artifact/org.apache.solr/solr-solrj/5.5.0)
+[Chronix Time Series](https://github.com/ChronixDB/chronix.timeseries) and [SolrJ](http://mvnrepository.com/artifact/org.apache.solr/solr-solrj/5.5.0)
 ```Java
 //An connection to Solr
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
@@ -94,9 +94,9 @@ BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
             return reduced.build();
         };
 
-//Create a Chronix Client with Kassiopeia Simple and the Chronix Solr Storage
+//Create a Chronix Client with a metric time series and the Chronix Solr Storage
 ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix = 
-                                          new ChronixClient<>(new KassiopeiaSimpleConverter(),
+                                          new ChronixClient<>(new MetricTimeSeriesConverter(),
                                           new ChronixSolrStorage<>(nrOfDocsPerBatch,groupBy,reduce));
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
@@ -113,7 +113,7 @@ Hence there is no need to build a custom modified Solr.
 We just plug the Chronix server parts into a standard Solr.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
-The latest release of Chronix server is based on Apache Solr version 6.2.1
+The latest release of Chronix server is based on Apache Solr version 6.3.0
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
@@ -340,9 +340,9 @@ repositories {
     }
 }
 dependencies {
-   compile 'de.qaware.chronix:chronix-server-client:0.3'
-   compile 'de.qaware.chronix:chronix-server-query-handler:0.3'
-   compile 'de.qaware.chronix:chronix-server-retention:0.3'
+   compile 'de.qaware.chronix:chronix-server-client:<currentVersion>'
+   compile 'de.qaware.chronix:chronix-server-query-handler:<currentVersion>'
+   compile 'de.qaware.chronix:chronix-server-retention:<currentVersion>'
 }
 ```
 
