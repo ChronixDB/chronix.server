@@ -77,6 +77,21 @@ public class SolrUpdateService {
     }
 
     /**
+     * Adds the given document to the solr index without commit.
+     *
+     * @param docs the documents to add
+     * @throws IOException iff something goes wrong
+     */
+    public void add(Collection<SolrInputDocument> docs) throws IOException {
+        for (SolrInputDocument doc : docs) {
+            AddUpdateCommand cmd = new AddUpdateCommand(req);
+            cmd.solrDoc = doc;
+            cmd.commitWithin = COMMIT_WITHIN;
+            updateProcessor.processAdd(cmd);
+        }
+    }
+
+    /**
      * Commits open changes to the solr index. Does not optimize the index afterwards.
      *
      * @throws IOException iff something goes wrong

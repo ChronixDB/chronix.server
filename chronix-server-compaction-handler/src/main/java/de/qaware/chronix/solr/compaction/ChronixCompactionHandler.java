@@ -16,10 +16,7 @@
 package de.qaware.chronix.solr.compaction;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.*;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.RequestHandlerBase;
@@ -27,7 +24,6 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
 import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.QParser;
-import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.search.SyntaxError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +31,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static de.qaware.chronix.Schema.START;
 import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*;
 import static java.lang.String.join;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.lucene.search.SortField.Type.LONG;
 
 /**
@@ -49,23 +49,23 @@ import static org.apache.lucene.search.SortField.Type.LONG;
  */
 public class ChronixCompactionHandler extends RequestHandlerBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixCompactionHandler.class);
-    private final DependencyProvider dependencyProvider;
+    private final DependencyProvider depProvider;
     private static final Sort SORT = new Sort(new SortField(START, LONG));
 
     /**
      * Creates a new instance. Constructor used by Solr.
      */
     public ChronixCompactionHandler() {
-        dependencyProvider = new DependencyProvider();
+        depProvider = new DependencyProvider();
     }
 
     /**
      * Creates a new instance. Constructor used by tests.
      *
-     * @param dependencyProvider the dependency provider
+     * @param depProvider the dependency provider
      */
-    public ChronixCompactionHandler(DependencyProvider dependencyProvider) {
-        this.dependencyProvider = dependencyProvider;
+    public ChronixCompactionHandler(DependencyProvider depProvider) {
+        this.depProvider = depProvider;
     }
 
     @Override
@@ -77,66 +77,75 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     @SuppressWarnings("PMD.SignatureDeclareThrowsException")
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
+        String fq = req.getParams().get(FQ);
         int ppc = req.getParams().getInt(POINTS_PER_CHUNK, 100000);
         int pageSize = req.getParams().getInt(PAGE_SIZE, 100);
-        if (joinKey == null) {
-            LOGGER.error("No join key given.");
+
+        depProvider.init(req, rsp);
+
+        LazyCompactor compactor = depProvider.compactor(ppc, req.getSearcher().getSchema());
+        LazyDocumentLoader documentLoader = depProvider.documentLoader(pageSize, req.getSearcher());
+
+        if (isBlank(joinKey) && isBlank(fq)) {
+            LOGGER.error("Neither join key nor filter query given.");
             rsp.add("error",
-                    join("", "No join key given.",
-                            " The join key is a comma separated list of fields and",
-                            " represents the primary key of a time series."));
+                    join("", "Neither join key nor filter query given.",
+                            "Get help at https://chronix.gitbooks.io/chronix/content/document_compaction.html."));
             return;
         }
 
-        dependencyProvider.init(req, rsp);
-        SolrFacetService facetService = dependencyProvider.solrFacetService();
-        List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, new MatchAllDocsQuery());
+        //no join key => compact documents matching fq
+        if (isBlank(joinKey)) {
+            compact(documentLoader, compactor, rsp, fq, fq);
+            depProvider.solrUpdateService().commit();
+            return;
+        }
 
+        //determine time series identified by joinKey
+        SolrFacetService facetService = depProvider.solrFacetService();
+        Query filterQuery = isBlank(fq) ? new MatchAllDocsQuery() : depProvider.parser(fq).getQuery();
+        List<NamedList<Object>> pivotResult = facetService.pivot(joinKey, filterQuery);
+
+        //compact each time series' constituting documents
         facetService.toTimeSeriesIds(pivotResult)
                 .parallelStream()
-                .forEach(timeSeriesId -> compact(req.getSearcher(), rsp, timeSeriesId, ppc, pageSize));
+                .forEach(tsId -> compact(documentLoader, compactor, rsp, tsId.toString(), and(tsId.toQuery(), fq)));
 
-        dependencyProvider.solrUpdateService().commit();
+        depProvider.solrUpdateService().commit();
     }
 
-    private void compact(SolrIndexSearcher searcher, SolrQueryResponse rsp, TimeSeriesId tsId, int ppc, int pageSize) {
+    private void compact(LazyDocumentLoader loader, LazyCompactor compactor, SolrQueryResponse rsp, String tsId, String q) {
         try {
-            // throw unchecked exception in order to call this method in a lambda expression
-            doCompact(searcher, rsp, tsId, ppc, pageSize);
+            doCompact(loader, compactor, rsp, tsId, q);
         } catch (IOException | SyntaxError e) {
+            // throw unchecked in order to call method from lambda expressions
             throw new IllegalStateException(e);
         }
     }
 
-    private void doCompact(SolrIndexSearcher searcher,
+    private void doCompact(LazyDocumentLoader documentLoader,
+                           LazyCompactor compactor,
                            SolrQueryResponse rsp,
-                           TimeSeriesId tsId,
-                           int ppc,
-                           int pageSize) throws IOException, SyntaxError {
-        Query query = dependencyProvider.parser(tsId.toQuery()).getQuery();
-        IndexSchema schema = searcher.getSchema();
+                           String tsId,
+                           String q) throws IOException, SyntaxError {
+        Query query = depProvider.parser(q).getQuery();
 
-        int compactedCount = 0;
-        int resultCount = 0;
+        Iterable<Document> docs = documentLoader.load(query, SORT);
+        Iterable<CompactionResult> compactionResults = compactor.compact(docs);
 
-        Iterable<Document> docs = dependencyProvider.documentLoader(pageSize).load(searcher, query, SORT);
-        Iterable<CompactionResult> compactionResults = dependencyProvider.compactor(ppc).compact(docs, schema);
         List<Document> docsToDelete = new LinkedList<>();
+        List<SolrInputDocument> docsToAdd = new LinkedList<>();
 
-        for (CompactionResult compactionResult : compactionResults) {
-            for (Document doc : compactionResult.getInputDocuments()) {
-                docsToDelete.add(doc);
-                compactedCount++;
-            }
-            for (SolrInputDocument doc : compactionResult.getOutputDocuments()) {
-                dependencyProvider.solrUpdateService().add(doc);
-                resultCount++;
-            }
-        }
-        dependencyProvider.solrUpdateService().delete(docsToDelete);
+        compactionResults.forEach(it -> {
+            docsToDelete.addAll(it.getInputDocuments());
+            docsToAdd.addAll(it.getOutputDocuments());
+        });
 
-        rsp.add("timeseries " + tsId + " oldNumDocs:", compactedCount);
-        rsp.add("timeseries " + tsId + " newNumDocs:", resultCount);
+        depProvider.solrUpdateService().add(docsToAdd);
+        depProvider.solrUpdateService().delete(docsToDelete);
+
+        rsp.add("timeseries " + tsId + " oldNumDocs:", docsToDelete.size());
+        rsp.add("timeseries " + tsId + " newNumDocs:", docsToAdd.size());
     }
 
     /**
@@ -148,7 +157,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         private SolrFacetService facetService;
 
         /**
-         * Initializes
+         * Initializes instance. Must be called before calling any other methods on this instance.
          *
          * @param req the solr query request
          * @param rsp the solr query response
@@ -157,7 +166,6 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
             this.req = req;
             this.updateService = new SolrUpdateService(req, rsp);
             this.facetService = new SolrFacetService(req, rsp);
-
         }
 
         /**
@@ -169,18 +177,20 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
 
         /**
          * @param pageSize the page size
+         * @param searcher the searcher
          * @return the document loader
          */
-        public LazyDocumentLoader documentLoader(int pageSize) {
-            return new LazyDocumentLoader(pageSize);
+        public LazyDocumentLoader documentLoader(int pageSize, IndexSearcher searcher) {
+            return new LazyDocumentLoader(pageSize, searcher);
         }
 
         /**
          * @param pointsPerChunk the pointsPerChunk
+         * @param schema         the schema
          * @return the compactor
          */
-        public LazyCompactor compactor(int pointsPerChunk) {
-            return new LazyCompactor(pointsPerChunk);
+        public LazyCompactor compactor(int pointsPerChunk, IndexSchema schema) {
+            return new LazyCompactor(pointsPerChunk, schema);
         }
 
         /**
@@ -198,5 +208,9 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         public QParser parser(String query) throws SyntaxError {
             return QParser.getParser(query, req);
         }
+    }
+
+    private String and(String... clauses) {
+        return stream(clauses).filter(Objects::nonNull).map(it -> join("", "(", it, ")")).collect(joining(" AND "));
     }
 }

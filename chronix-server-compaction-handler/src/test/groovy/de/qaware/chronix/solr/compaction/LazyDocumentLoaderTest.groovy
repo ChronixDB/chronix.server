@@ -51,7 +51,7 @@ class LazyDocumentLoaderTest extends Specification {
         searcher.doc(3) >> doc3
 
         when:
-        def docs = new LazyDocumentLoader(10).load(searcher, query, sort)
+        def docs = new LazyDocumentLoader(10, searcher).load(query, sort)
 
         then:
         docs.toList() == [doc1, doc2, doc3]

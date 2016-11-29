@@ -43,7 +43,7 @@ class LazyCompactorTest extends Specification {
         def doc = doc 'load_avg', [1: 10, 2: 20]
 
         when:
-        def result = new LazyCompactor(2).compact([doc], schema).toList()
+        def result = new LazyCompactor(2, schema).compact([doc]).toList()
         def outDoc1 = result[0].outputDocuments[0]
 
         then:
@@ -59,7 +59,7 @@ class LazyCompactorTest extends Specification {
         def doc2 = doc 'load_avg', [3: 30, 4: 40]
 
         when:
-        def result = new LazyCompactor(4).compact([doc1, doc2], schema).toList()
+        def result = new LazyCompactor(4, schema).compact([doc1, doc2]).toList()
         def outDoc1 = result[0].outputDocuments[0]
 
         then:
@@ -77,7 +77,7 @@ class LazyCompactorTest extends Specification {
         def doc3 = doc 'load_avg', [5: 50, 6: 60]
 
         when:
-        def result = new LazyCompactor(4).compact([doc1, doc2, doc3], schema).toList()
+        def result = new LazyCompactor(4, schema).compact([doc1, doc2, doc3]).toList()
         def outDoc1 = result[0].outputDocuments[0]
         def outDoc2 = result[1].outputDocuments[0]
 
@@ -88,5 +88,20 @@ class LazyCompactorTest extends Specification {
 
         outDoc1 hasAttributes((START): 1, (END): 4, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20, 3: 30, 4: 40))
         outDoc2 hasAttributes((START): 5, (END): 6, (METRIC): 'load_avg', (DATA): compress(5: 50, 6: 60))
+    }
+
+    def "test fq"() {
+        given:
+        def doc = doc 'load_avg', [1: 10, 2: 20]
+
+        when:
+        def result = new LazyCompactor(2, schema).compact([doc]).toList()
+        def outDoc1 = result[0].outputDocuments[0]
+
+        then:
+        result.size() == 1
+        result[0].inputDocuments == [doc] as Set
+        result[0].outputDocuments.size() == 1
+        outDoc1 hasAttributes((START): 1, (END): 2, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20))
     }
 }

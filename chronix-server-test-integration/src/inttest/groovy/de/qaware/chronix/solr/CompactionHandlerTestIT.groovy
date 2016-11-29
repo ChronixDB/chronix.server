@@ -26,8 +26,7 @@ import static de.qaware.chronix.Schema.*
 import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
 import static de.qaware.chronix.solr.SolrServerFactory.newEmbeddedSolrServer
 import static de.qaware.chronix.solr.TestUtils.*
-import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.JOIN_KEY
-import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.POINTS_PER_CHUNK
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
 import static java.lang.Math.cos
 import static java.lang.Math.sin
 import static org.apache.solr.common.params.CommonParams.Q
@@ -158,5 +157,60 @@ class CompactionHandlerTestIT extends Specification {
         heapDocs.size() == 1
         decompress(cpuDocs[0].get(DATA), 1, 100).entrySet().each { assert sin(it.key) == it.value }
         decompress(heapDocs[0].get(DATA), 1, 100).entrySet().each { assert cos(it.key) == it.value }
+    }
+
+    def "test fq"() {
+        given:
+        solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', host: '1', (DATA): compress(1L: 10d, 2L: 20d)),
+                  doc((START): 3, (END): 4, (METRIC): 'cpu', host: '1', (DATA): compress(3L: 30d, 4L: 40d)),
+                  doc((START): 5, (END): 6, (METRIC): 'cpu', host: '2', (DATA): compress(5L: 50d, 6L: 60d))])
+        solr.commit()
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (FQ): 'host:1'))
+        def h1Query = new QueryRequest(params((QT): '/select', (Q): 'host:1'))
+        def h2Query = new QueryRequest(params((QT): '/select', (Q): 'host:2'))
+
+        when:
+        solr.request(compactionQuery).get('responseHeader')
+        SolrDocumentList h1Docs = solr.request(h1Query).get('response')
+        SolrDocumentList h2Docs = solr.request(h2Query).get('response')
+
+        then:
+        h1Docs.size() == 1
+        h2Docs.size() == 1
+        decompress(h1Docs[0].get(DATA), 1, 4) == [1L: 10d, 2L: 20d, 3L: 30d, 4L: 40d]
+        decompress(h2Docs[0].get(DATA), 5, 6) == [5L: 50d, 6L: 60d]
+    }
+
+    def "test fq with joinKey"() {
+        given:
+        solr.add([doc((START): 10, (END): 11, (METRIC): 'cpu', host: '1', (DATA): compress(10L: 10d, 11L: 11d)),
+                  doc((START): 12, (END): 13, (METRIC): 'cpu', host: '1', (DATA): compress(12L: 12d, 13L: 13d)),
+                  doc((START): 14, (END): 15, (METRIC): 'cpu', host: '2', (DATA): compress(14L: 14d, 15L: 15d)),
+                  doc((START): 16, (END): 17, (METRIC): 'mem', host: '1', (DATA): compress(16L: 16d, 17L: 17d)),
+                  doc((START): 18, (END): 19, (METRIC): 'mem', host: '1', (DATA): compress(18L: 18d, 19L: 19d)),
+                  doc((START): 20, (END): 21, (METRIC): 'mem', host: '2', (DATA): compress(20L: 20d, 21L: 21d))])
+        solr.commit()
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (FQ): 'host:1', (JOIN_KEY): METRIC))
+        def h1CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $METRIC:cpu"))
+        def h2CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $METRIC:cpu"))
+        def h1MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $METRIC:mem"))
+        def h2MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $METRIC:mem"))
+
+        when:
+        solr.request(compactionQuery).get('responseHeader')
+        SolrDocumentList h1CpuDocs = solr.request(h1CpuQuery).get('response')
+        SolrDocumentList h2CpuDocs = solr.request(h2CpuQuery).get('response')
+        SolrDocumentList h1MemDocs = solr.request(h1MemQuery).get('response')
+        SolrDocumentList h2MemDocs = solr.request(h2MemQuery).get('response')
+
+        then:
+        h1CpuDocs.size() == 1
+        h2CpuDocs.size() == 1
+        h1MemDocs.size() == 1
+        h2MemDocs.size() == 1
+        decompress(h1CpuDocs[0].get(DATA), 10, 13) == [10L: 10d, 11L: 11d, 12L: 12d, 13L: 13d]
+        decompress(h2CpuDocs[0].get(DATA), 14, 15) == [14L: 14d, 15L: 15d]
+        decompress(h1MemDocs[0].get(DATA), 16, 19) == [16L: 16d, 17L: 17d, 18L: 18d, 19L: 19d]
+        decompress(h2MemDocs[0].get(DATA), 20, 21) == [20L: 20d, 21L: 21d]
     }
 }
