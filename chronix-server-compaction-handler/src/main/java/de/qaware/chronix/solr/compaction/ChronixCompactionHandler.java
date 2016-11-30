@@ -148,6 +148,10 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         rsp.add("timeseries " + tsId + " newNumDocs:", docsToAdd.size());
     }
 
+    private String and(String... clauses) {
+        return stream(clauses).filter(Objects::nonNull).map(it -> join("", "(", it, ")")).collect(joining(" AND "));
+    }
+
     /**
      * Provides dependencies and thereby facilitates testing.
      */
@@ -208,9 +212,5 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
         public QParser parser(String query) throws SyntaxError {
             return QParser.getParser(query, req);
         }
-    }
-
-    private String and(String... clauses) {
-        return stream(clauses).filter(Objects::nonNull).map(it -> join("", "(", it, ")")).collect(joining(" AND "));
     }
 }
