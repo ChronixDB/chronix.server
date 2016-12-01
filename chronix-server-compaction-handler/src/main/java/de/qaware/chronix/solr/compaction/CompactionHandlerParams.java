@@ -43,9 +43,17 @@ public final class CompactionHandlerParams {
 
     /**
      * Number of documents to be loaded into memory at a time.
-     * Unofficial parameter for testing purposes only. May be deleted at any time.
+     * Unofficial parameter for testing purposes only. May be removed at any time.
      * Default value: 100
      */
     public static final String PAGE_SIZE = "pageSize";
 
+    /**
+     * Default lucene filter query constraining the number of documents to be compacted.
+     * If no {@link #JOIN_KEY} is given all documents matching the filter query will be compacted.
+     * They are interpreted as belonging the the same time series.
+     * If a {@link #JOIN_KEY} is given all documents having the same key
+     * (i.e.: the same values for the given join key fields) *and* matching the filter query will be compacted.
+     */
+    public static final String FQ = "fq";
 }

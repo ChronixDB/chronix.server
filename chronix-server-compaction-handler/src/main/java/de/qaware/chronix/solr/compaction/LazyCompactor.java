@@ -36,25 +36,27 @@ import static java.lang.Math.min;
  * @author alex.christ
  */
 public class LazyCompactor {
-    private int threshold;
+    private final IndexSchema schema;
+    private int ppc;
 
     /**
      * Creates an instance.
      *
      * @param pointsPerChunk the number of data points to be merged into a single document.
+     * @param schema    the current solr schema
      */
-    public LazyCompactor(int pointsPerChunk) {
-        this.threshold = pointsPerChunk;
+    public LazyCompactor(int pointsPerChunk, IndexSchema schema) {
+        this.ppc = pointsPerChunk;
+        this.schema = schema;
     }
 
     /**
      * Merges documents into larger ones
      *
      * @param documents the documents to compact
-     * @param schema    the current solr schema
      * @return the compaction result
      */
-    public Iterable<CompactionResult> compact(Iterable<Document> documents, IndexSchema schema) {
+    public Iterable<CompactionResult> compact(Iterable<Document> documents) {
         return new LazyCompactionResultSet(documents, schema);
     }
 
@@ -97,15 +99,15 @@ public class LazyCompactor {
                 timestamps.addAll(currTs.getTimestamps());
                 values.addAll(currTs.getValues());
 
-                if (timestamps.size() < threshold) {
+                if (timestamps.size() < ppc) {
                     continue;
                 }
 
                 int index = 0;
-                while (index + threshold <= timestamps.size()) {
-                    MetricTimeSeries slice = copyWithDataRange(currTs, index, index + threshold);
+                while (index + ppc <= timestamps.size()) {
+                    MetricTimeSeries slice = copyWithDataRange(currTs, index, index + ppc);
                     outputDocs.add(toSolrInputDocument(slice));
-                    index += threshold;
+                    index += ppc;
                 }
 
                 // reduce timestamps and values to windows
