@@ -76,9 +76,9 @@ class ChronixCompactionHandlerTest extends Specification {
     def "test simple request"() {
         given:
         facetService.toTimeSeriesIds(_) >> [new TimeSeriesId([metric: 'cpu'])]
-        def docs = [new Document()] as Set
-        def compacted = [new SolrInputDocument()] as Set
-        compactor.compact(*_) >> [new CompactionResult(docs, compacted)]
+        def inputDocs = [new Document()] as Set
+        def outputDocs = [new SolrInputDocument()] as Set
+        compactor.compact(_) >> [new CompactionResult(inputDocs, outputDocs)]
         params.add(JOIN_KEY, 'metric,host')
 
         when:
@@ -87,16 +87,16 @@ class ChronixCompactionHandlerTest extends Specification {
         then:
         1 * rsp.add('timeseries [metric:cpu] oldNumDocs:', 1)
         1 * rsp.add('timeseries [metric:cpu] newNumDocs:', 1)
-        1 * updateService.delete([docs[0]])
-        1 * updateService.add(compacted[0])
-        1 * dependencyProvider.documentLoader(100) >> documentLoader
-        1 * dependencyProvider.compactor(100000) >> compactor
+        1 * updateService.delete([inputDocs[0]])
+        1 * updateService.add([outputDocs[0]])
+        1 * dependencyProvider.documentLoader(100, _) >> documentLoader
+        1 * dependencyProvider.compactor(100000, _) >> compactor
     }
 
     def "test parameters"() {
         given:
         facetService.toTimeSeriesIds(_) >> [new TimeSeriesId([:])]
-        compactor.compact(*_) >> [new CompactionResult([] as Set, [] as Set)]
+        compactor.compact(_) >> [new CompactionResult([] as Set, [] as Set)]
         params.add(JOIN_KEY, 'metric,host')
         params.add(PAGE_SIZE, '112')
         params.add(POINTS_PER_CHUNK, '327')
@@ -106,7 +106,7 @@ class ChronixCompactionHandlerTest extends Specification {
 
         then:
         1 * facetService.pivot('metric,host', _)
-        1 * dependencyProvider.documentLoader(112) >> documentLoader
-        1 * dependencyProvider.compactor(327) >> compactor
+        1 * dependencyProvider.documentLoader(112, _) >> documentLoader
+        1 * dependencyProvider.compactor(327, _) >> compactor
     }
 }
