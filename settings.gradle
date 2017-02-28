@@ -5,7 +5,9 @@ include 'chronix-server-retention'
 include 'chronix-server-query-handler'
 include 'chronix-server-ingestion-handler'
 include 'chronix-server-compaction-handler'
+include 'chronix-server-plugin-management'
 
 include 'chronix-server-test-extensions'
 include 'chronix-server-test-integration'
+include 'chronix-server-type-metric'
 

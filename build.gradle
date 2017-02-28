@@ -14,7 +14,7 @@ allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'com.github.kt3k.coveralls'
 
-    version '0.4'
+    version '0.5-beta'
     group 'de.qaware.chronix'
 
     repositories {
@@ -66,7 +66,7 @@ subprojects {
         compile 'com.google.guava:guava:18.0'
 
         //Logging
-        compile 'org.slf4j:slf4j-api:1.7.12'
+        compile 'org.slf4j:slf4j-api:1.7.22'
 
         //Testing
         testCompile 'org.codehaus.groovy:groovy-all:2.4.6'
@@ -74,10 +74,10 @@ subprojects {
         testCompile 'cglib:cglib-nodep:3.2.0'
         testCompile 'org.objenesis:objenesis:2.2'
         //Logging framework for tests
-        testCompile 'org.apache.logging.log4j:log4j-api:2.4'
-        testCompile 'org.apache.logging.log4j:log4j-core:2.4'
-        testCompile 'org.apache.logging.log4j:log4j-slf4j-impl:2.4'
-        testCompile 'org.slf4j:jcl-over-slf4j:1.7.12'
+        testCompile 'org.apache.logging.log4j:log4j-api:2.7'
+        testCompile 'org.apache.logging.log4j:log4j-core:2.7'
+        testCompile 'org.apache.logging.log4j:log4j-slf4j-impl:2.7'
+        testCompile 'org.slf4j:jcl-over-slf4j:1.7.22'
 
     }
 
@@ -155,7 +155,7 @@ tasks.coveralls {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
+    gradleVersion = '3.2.1'
 }
 
 sonarqube {

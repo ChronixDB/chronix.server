@@ -1,0 +1,20 @@
+sonarqube {
+    properties {
+        property "sonar.projectName", "de.qaware.chronix:chronix-server-plugin-management"
+    }
+}
+
+
+dependencies {
+    compile 'com.google.inject:guice:4.1.0'
+    compile 'org.apache.commons:commons-lang3:3.4'
+
+    testCompile 'com.google.inject.extensions:guice-multibindings:4.1.0'
+    testCompile 'de.qaware.chronix:chronix-timeseries:0.3'
+    compile 'de.qaware.chronix:chronix.fastdtw:0.3'
+    compile 'org.apache.solr:solr-solrj:6.3.0'
+
+    testCompile 'org.apache.solr:solr-core:6.3.0'
+
+
+}

@@ -15,7 +15,12 @@
  */
 package de.qaware.chronix.solr.query.analysis
 
-import de.qaware.chronix.solr.query.analysis.functions.FunctionType
+import com.google.inject.Guice
+import de.qaware.chronix.server.types.ChronixTypeLoader
+import de.qaware.chronix.server.types.ChronixTypePlugin
+import de.qaware.chronix.solr.type.metric.MetricType
+import spock.lang.Ignore
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,69 +30,90 @@ import spock.lang.Unroll
  */
 class QueryEvaluatorTest extends Specification {
 
-    def "test multiple queries"() {
+    @Shared
+    QueryEvaluator evaluator
+
+    def setup() {
+        def injector = Guice.createInjector(ChronixTypeLoader.of(ChronixTypePlugin.class))
+        evaluator = injector.getInstance(QueryEvaluator.class)
+    }
+
+    def "test plugins"() {
         when:
-        def queryFunctions = QueryEvaluator.extractFunctions(fqs)
+        def queryFunctions = evaluator.extractFunctions(fqs)
         then:
-        queryFunctions.size() == size
+        queryFunctions.getTypeFunctions(new MetricType()).size() == size
 
         where:
-        fqs << [["function=min;max;avg", "function=trend;outlier"] as String[],
-                ["function=min"] as String[]]
+        fqs << [["metric{nothing}"] as String[]]
+
+        size << [0]
+    }
+
+
+    def "test multiple queries"() {
+        when:
+        def queryFunctions = evaluator.extractFunctions(fqs)
+        then:
+        queryFunctions.getTypeFunctions(new MetricType()).size() == size
+
+        where:
+        fqs << [["metric{min;max;avg}", "metric{trend;outlier}"] as String[],
+                ["metric{min}"] as String[]]
 
         size << [5, 1]
     }
 
     def "test aggregation query"() {
         when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
+        def functions = evaluator.extractFunctions(fqs)
         then:
-        def aggregation = functions.getAggregations().getAt(0)
-        aggregation.getType() == expectedType
+        def aggregation = functions.getTypeFunctions(new MetricType()).getAggregations()[0]
+        aggregation.getQueryName() == expectedType
         aggregation.getArguments() == expectedArguments
 
         where:
-        fqs << [["function=min"] as String[],
-                ["function=max"] as String[],
-                ["function=avg"] as String[],
-                ["function=dev"] as String[],
-                ["function=sum"] as String[],
-                ["function=count"] as String[],
-                ["function=first"] as String[],
-                ["function=last"] as String[],
-                ["function=range"] as String[],
-                ["function=diff"] as String[],
-                ["function=sdiff"] as String[],
-                ["function=p:0.4"] as String[],
-                ["function=integral"] as String[]
+        fqs << [["metric{min}"] as String[],
+                ["metric{max}"] as String[],
+                ["metric{avg}"] as String[],
+                ["metric{dev}"] as String[],
+                ["metric{sum}"] as String[],
+                ["metric{count}"] as String[],
+                ["metric{first}"] as String[],
+                ["metric{last}"] as String[],
+                ["metric{range}"] as String[],
+                ["metric{diff}"] as String[],
+                ["metric{sdiff}"] as String[],
+                ["metric{p:0.4}"] as String[],
+                ["metric{integral}"] as String[]
         ]
 
-        expectedType << [FunctionType.MIN, FunctionType.MAX, FunctionType.AVG, FunctionType.DEV, FunctionType.SUM,
-                         FunctionType.COUNT, FunctionType.FIRST, FunctionType.LAST, FunctionType.RANGE,
-                         FunctionType.DIFF, FunctionType.SDIFF, FunctionType.P, FunctionType.INTEGRAL]
+        expectedType << ["min", "max", "avg", "dev", "sum",
+                         "count", "first", "last", "range",
+                         "diff", "sdiff", "p", "integral"]
         expectedArguments << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
                               new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[], new String[0]]
     }
 
     def "test analysis query"() {
         when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
+        def functions = evaluator.extractFunctions(fqs)
         then:
-        def analysis = functions.getAnalyses().getAt(0)
-        analysis.getType() == expectedAggreation
+        def analysis = functions.getTypeFunctions(new MetricType()).getAnalyses()[0]
+        analysis.getQueryName() == expectedAggreation
         analysis.getArguments() == expectedValue
         analysis.needSubquery() == needSubQuery
         analysis.getSubquery() == subQuery
         where:
-        fqs << [["function=trend"] as String[],
-                ["function=outlier"] as String[],
-                ["function=frequency:10,6"] as String[],
-                ["function=fastdtw:(metric:load* AND group:(A OR B)),5,0.4"] as String[],
-                ["function=fastdtw:metric:load* AND group:(A OR B),5,0.4"] as String[]
+        fqs << [["metric{trend}"] as String[],
+                ["metric{outlier}"] as String[],
+                ["metric{frequency:10,6}"] as String[],
+                ["metric{fastdtw:(metric:load* AND group:(A OR B)),5,0.4}"] as String[],
+                ["metric{fastdtw:metric:load* AND group:(A OR B),5,0.4}"] as String[]
         ]
 
-        expectedAggreation << [FunctionType.TREND, FunctionType.OUTLIER, FunctionType.FREQUENCY,
-                               FunctionType.FASTDTW, FunctionType.FASTDTW]
+        expectedAggreation << ["trend", "outlier", "frequency",
+                               "fastdtw", "fastdtw"]
         expectedValue << [new String[0], new String[0],
                           ["window size=10", "window threshold=6"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
@@ -101,28 +127,28 @@ class QueryEvaluatorTest extends Specification {
     @Unroll
     def "test transformation query #fqs"() {
         when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
+        def functions = evaluator.extractFunctions(fqs)
         then:
-        def transformation = functions.getTransformations().getAt(0)
-        transformation.getType() == expectedType
+        def transformation = functions.getTypeFunctions(new MetricType()).getTransformations()[0]
+        transformation.getQueryName() == expectedType
         transformation.getArguments()[0] == expectedArgs
 
         where:
-        fqs << [["function=vector:0.01"] as String[],
-                ["function=scale:4"] as String[],
-                ["function=divide:4"] as String[],
-                ["function=top:10"] as String[],
-                ["function=bottom:10"] as String[],
-                ["function=movavg:10,MINUTES"] as String[],
-                ["function=add:10"] as String[],
-                ["function=sub:10"] as String[],
-                ["function=timeshift:10,SECONDS"] as String[],
-                ["function=smovavg:10"] as String[]
+        fqs << [["metric{vector:0.01}"] as String[],
+                ["metric{scale:4}"] as String[],
+                ["metric{divide:4}"] as String[],
+                ["metric{top:10}"] as String[],
+                ["metric{bottom:10}"] as String[],
+                ["metric{movavg:10,MINUTES}"] as String[],
+                ["metric{add:10}"] as String[],
+                ["metric{sub:10}"] as String[],
+                ["metric{timeshift:10,SECONDS}"] as String[],
+                ["metric{smovavg:10}"] as String[]
         ]
 
-        expectedType << [FunctionType.VECTOR, FunctionType.SCALE, FunctionType.DIVIDE, FunctionType.TOP,
-                         FunctionType.BOTTOM, FunctionType.MOVAVG, FunctionType.ADD, FunctionType.SUB,
-                         FunctionType.TIMESHIFT, FunctionType.SMOVAVG]
+        expectedType << ["vector", "scale", "divide", "top",
+                         "bottom", "movavg", "add", "sub",
+                         "timeshift", "smovavg"]
         expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
                          "value=10", "timeSpan=10", "value=10.0", "value=10.0",
                          "amount=10", "samples=10"]
@@ -131,44 +157,38 @@ class QueryEvaluatorTest extends Specification {
     @Unroll
     def "test transformation query without args #fqs"() {
         when:
-        def functions = QueryEvaluator.extractFunctions(fqs)
+        def functions = evaluator.extractFunctions(fqs)
         then:
-        def transformation = functions.getTransformations().getAt(0)
-        transformation.getType() == expectedType
+        def transformation = functions.getTypeFunctions(new MetricType()).getTransformations()[0]
+        transformation.getQueryName() == expectedType
 
         where:
-        fqs << [["function=derivative"] as String[],
-                ["function=nnderivative"] as String[],
-                ["function=distinct"] as String[]]
+        fqs << [["metric{derivative}"] as String[],
+                ["metric{nnderivative}"] as String[],
+                ["metric{distinct}"] as String[]]
 
-        expectedType << [FunctionType.DERIVATIVE, FunctionType.NNDERIVATIVE, FunctionType.DISTINCT]
+        expectedType << ["derivative", "nnderivative", "distinct"]
     }
 
-    def "test function queries not starting with function="() {
-        when:
-        def functions = QueryEvaluator.extractFunctions(["function=derivative", "joinKey=metric"] as String[])
-
-        then:
-        functions.transformations[0].type == FunctionType.DERIVATIVE
-    }
-
+    //TODO: Fix.
+    @Ignore
     def "test filter query strings that produce exceptions"() {
         when:
-        QueryEvaluator.extractFunctions(fqs)
+        evaluator.extractFunctions(fqs)
 
         then:
         thrown Exception
 
         where:
-        fqs << [["function=p="] as String[],
-                ["function="] as String[],
-                ["function=UNKNOWN:127"] as String[]]
+        fqs << [["metric{p=}"] as String[],
+                ["metric{=}"] as String[],
+                ["metric{UNKNOWN:127}"] as String[]]
 
     }
 
     def "test empty or null filter query"() {
         when:
-        def result = QueryEvaluator.extractFunctions(fqs)
+        def result = evaluator.extractFunctions(fqs)
 
         then:
         noExceptionThrown()

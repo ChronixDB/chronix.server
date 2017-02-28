@@ -23,19 +23,19 @@ package de.qaware.chronix.solr.query;
 public final class ChronixQueryParams {
 
     /**
-     * Used to determine if a query contains an aggregation
-     */
-    public static final String FUNCTION_PARAM = "function=";
-
-    /**
      * The function: aggregation or analysis
      */
     public static final String FUNCTION = "function";
 
     /**
+     * Used to determine if a query contains a function
+     */
+    public static final String FUNCTION_PARAM = FUNCTION + "=";
+
+    /**
      * The aggregation arguments
      */
-    public static final String FUNCTION_ARGUMENTS = "function_arguments";
+    public static final String FUNCTION_ARGUMENTS = FUNCTION+"_arguments";
 
     /**
      * Used to join documents into one time series

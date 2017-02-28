@@ -16,7 +16,6 @@
 package de.qaware.chronix.solr.query;
 
 import de.qaware.chronix.Schema;
-import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -54,7 +53,8 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         REQUIRED_FIELDS.add(Schema.DATA);
         REQUIRED_FIELDS.add(Schema.START);
         REQUIRED_FIELDS.add(Schema.END);
-        REQUIRED_FIELDS.add(MetricTSSchema.METRIC);
+        //TODO: Fix this within the api - every time series has a name
+        REQUIRED_FIELDS.add("metric");
     }
 
     /**
@@ -101,9 +101,11 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
 
         //check the filter queries
         final String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
+        final String[] chronixFunctions = modifiableSolrParams.getParams("cf");
+
 
         //if we have an function query or someone wants the data as json
-        if (contains(filterQueries, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || contains(filterQueries,ChronixQueryParams.JOIN_PARAM)) {
+        if (contains(chronixFunctions, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || contains(filterQueries, ChronixQueryParams.JOIN_PARAM)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {
