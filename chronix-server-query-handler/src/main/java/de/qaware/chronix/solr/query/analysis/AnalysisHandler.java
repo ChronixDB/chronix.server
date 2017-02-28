@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.query.analysis;
 import com.google.common.base.Strings;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Stage;
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.types.*;
@@ -61,7 +62,7 @@ public class AnalysisHandler extends SearchHandler {
      */
     public AnalysisHandler(DocListProvider docListProvider) {
 
-        Injector injector = Guice.createInjector(ChronixTypeLoader.of(ChronixTypePlugin.class));
+        Injector injector = Guice.createInjector(Stage.PRODUCTION, ChronixTypeLoader.of(ChronixTypePlugin.class));
         types = injector.getInstance(ChronixTypes.class);
 
         this.docListProvider = docListProvider;
