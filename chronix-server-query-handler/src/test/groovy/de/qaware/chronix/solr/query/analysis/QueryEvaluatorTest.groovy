@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.query.analysis
 
 import com.google.inject.Guice
+import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin
+import de.qaware.chronix.server.functions.plugin.ChronixFunctionPluginLoader
 import de.qaware.chronix.server.types.ChronixTypeLoader
 import de.qaware.chronix.server.types.ChronixTypePlugin
 import de.qaware.chronix.solr.type.metric.MetricType
@@ -34,7 +36,9 @@ class QueryEvaluatorTest extends Specification {
     QueryEvaluator evaluator
 
     def setup() {
-        def injector = Guice.createInjector(ChronixTypeLoader.of(ChronixTypePlugin.class))
+        def injector = Guice.createInjector(
+                ChronixTypeLoader.of(ChronixTypePlugin.class),
+                ChronixFunctionPluginLoader.of(ChronixFunctionPlugin.class))
         evaluator = injector.getInstance(QueryEvaluator.class)
     }
 
@@ -119,7 +123,7 @@ class QueryEvaluatorTest extends Specification {
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
 
-        subQuery << [null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
+        subQuery << [null, null, null, "metric:load* and group:(a or b)", "metric:load* and group:(a or b)"]
         needSubQuery << [false, false, false, true, true]
     }
 
@@ -205,6 +209,21 @@ class QueryEvaluatorTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "test metric type extension"() {
+        when:
+        def functions = evaluator.extractFunctions(fqs)
+        then:
+        def aggregation = functions.getTypeFunctions(new MetricType()).getAggregations()[0]
+        aggregation.getQueryName() == expectedType
+        aggregation.getArguments() == expectedArguments
+
+        where:
+        fqs << [["metric{nonsense}"] as String[]]
+
+        expectedType << ["nonsense"]
+        expectedArguments << [new String[0]]
     }
 
 }

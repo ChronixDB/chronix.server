@@ -10,4 +10,5 @@ include 'chronix-server-plugin-management'
 include 'chronix-server-test-extensions'
 include 'chronix-server-test-integration'
 include 'chronix-server-type-metric'
+include 'chronix-server-function-metric'
 

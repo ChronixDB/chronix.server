@@ -13,21 +13,18 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.plugin;
-
+package de.qaware.chronix.solr.type.metric.functions.ext;
 
 import com.google.inject.multibindings.Multibinder;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
 
 /**
- * An simple function module for test purposes
- *
- * @author f.lautenschlager
+ * Created by flo on 2/28/17.
  */
-public class OutlierModule extends ChronixFunctionPlugin {
+public class NonsenseGuiceBinding extends ChronixFunctionPlugin {
 
     protected void configure() {
-        Multibinder.newSetBinder(binder(), ChronixFunction.class).addBinding().to(Outlier.class);
+        Multibinder.newSetBinder(binder(), ChronixFunction.class).addBinding().to(Nonsense.class);
     }
 }

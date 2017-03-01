@@ -19,6 +19,7 @@ dependencies {
 
     testCompile project(':chronix-server-test-extensions')
     testCompile project(':chronix-server-type-metric')
+    testCompile project(':chronix-server-function-metric')
 
 }
 task copyTestResources(type: Copy) {

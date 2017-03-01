@@ -20,6 +20,7 @@ import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.ChronixTransformation;
+import de.qaware.chronix.server.functions.plugin.PluginFunctions;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypes;
 import org.apache.solr.common.StringUtils;
@@ -42,6 +43,9 @@ public final class QueryEvaluator {
 
     @Inject
     private ChronixTypes plugInTypes;
+
+    @Inject
+    private PluginFunctions plugInFunctions;
 
     /**
      * Analyzes the filter queries and parses them for chronix fucntions
@@ -66,7 +70,7 @@ public final class QueryEvaluator {
         for (String unmodifiedAnalysis : chronixFunctions) {
 
             //For each type
-            String[] types = unmodifiedAnalysis.split(TYPE_SPLITS);
+            String[] types = unmodifiedAnalysis.toLowerCase().split(TYPE_SPLITS);
 
             for (String type : types) {
 
@@ -89,34 +93,37 @@ public final class QueryEvaluator {
                         queryFunction = queryFunction.substring(0, queryFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                     }
 
-                    //TODO: Fix this
-                    queryFunction = queryFunction.toUpperCase();
+                    ChronixFunction chronixFunction;
 
                     if (chronixType.supportsFunction(queryFunction)) {
-                        ChronixFunction chronixFunction = chronixType.getFunction(queryFunction, arguments);
-                        switch (chronixFunction.getType()) {
-                            case AGGREGATION:
-                                resultingTypeFunctions.addAggregation((ChronixAggregation) chronixFunction);
-                                break;
-                            case TRANSFORMATION:
-                                resultingTypeFunctions.addTransformation((ChronixTransformation) chronixFunction);
-                                break;
-                            case ANALYSIS:
-                                resultingTypeFunctions.addAnalysis((ChronixAnalysis) chronixFunction);
-                                break;
-                            default:
-                                //ignore
-                                break;
-
-                        }
+                        chronixFunction = chronixType.getFunction(queryFunction, arguments);
                     } else {
                         //check the plugins for this type
-                        LOGGER.info("Try to find plugin for function {}", queryFunction);
+                        LOGGER.debug("Try to find plugin for type {} and function {}", typeName, queryFunction);
+                        chronixFunction = plugInFunctions.getFunctionForQueryName(typeName, queryFunction);
 
+                        if (chronixFunction == null) {
+                            LOGGER.debug("Could not find custom function {} for type {}", queryFunction, typeName);
+                            continue;
+                        }
                     }
 
-                }
+                    switch (chronixFunction.getType()) {
+                        case AGGREGATION:
+                            resultingTypeFunctions.addAggregation((ChronixAggregation) chronixFunction);
+                            break;
+                        case TRANSFORMATION:
+                            resultingTypeFunctions.addTransformation((ChronixTransformation) chronixFunction);
+                            break;
+                        case ANALYSIS:
+                            resultingTypeFunctions.addAnalysis((ChronixAnalysis) chronixFunction);
+                            break;
+                        default:
+                            //ignore
+                            break;
 
+                    }
+                }
                 result.setTypeFunctions(chronixType, resultingTypeFunctions);
             }
         }
@@ -132,6 +139,7 @@ public final class QueryEvaluator {
      * @param fqs the string array
      * @return true if empty, otherwise false
      */
+
     private static boolean isEmpty(String[] fqs) {
         if (fqs == null || fqs.length == 0) {
             return true;

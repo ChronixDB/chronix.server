@@ -21,6 +21,8 @@ import com.google.inject.Injector;
 import com.google.inject.Stage;
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.server.functions.*;
+import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
+import de.qaware.chronix.server.functions.plugin.ChronixFunctionPluginLoader;
 import de.qaware.chronix.server.types.*;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -61,8 +63,10 @@ public class AnalysisHandler extends SearchHandler {
      * @param docListProvider - the search provider for the DocList Result
      */
     public AnalysisHandler(DocListProvider docListProvider) {
+        Injector injector = Guice.createInjector(Stage.PRODUCTION,
+                ChronixTypeLoader.of(ChronixTypePlugin.class),
+                ChronixFunctionPluginLoader.of(ChronixFunctionPlugin.class));
 
-        Injector injector = Guice.createInjector(Stage.PRODUCTION, ChronixTypeLoader.of(ChronixTypePlugin.class));
         types = injector.getInstance(ChronixTypes.class);
 
         this.docListProvider = docListProvider;

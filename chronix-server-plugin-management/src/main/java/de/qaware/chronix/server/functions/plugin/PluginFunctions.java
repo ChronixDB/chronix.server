@@ -19,6 +19,9 @@ import com.google.inject.Inject;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -28,30 +31,34 @@ import java.util.Set;
  */
 public class PluginFunctions {
 
-    private Set<ChronixFunction> chronixPlugins;
+    private Map<String, Set<ChronixFunction>> typePluginFunctions = new HashMap<>();
 
     @Inject
     PluginFunctions(Set<ChronixFunction> chronixPlugins) {
-        this.chronixPlugins = chronixPlugins;
+        for (ChronixFunction pluginFunction : chronixPlugins) {
+            if (!typePluginFunctions.containsKey(pluginFunction.getTimeSeriesType())) {
+                typePluginFunctions.put(pluginFunction.getTimeSeriesType(), new HashSet<>());
+            }
+            typePluginFunctions.get(pluginFunction.getTimeSeriesType()).add(pluginFunction);
+        }
     }
 
-    /**
-     * @return all plugged-in functions
-     */
-    public Set<ChronixFunction> getChronixPlugins() {
-        return chronixPlugins;
-    }
 
     /**
      * @param queryName the query name of the function
      * @return the function for the query name, otherwise null
      */
-    public ChronixFunction getFunctionForQueryName(String queryName) {
-        for (ChronixFunction function : chronixPlugins) {
-            if (function.getQueryName().equals(queryName)) {
-                return function;
+    public ChronixFunction getFunctionForQueryName(String timeSeriesType, String queryName) {
+        if (typePluginFunctions.containsKey(timeSeriesType)) {
+            for (ChronixFunction function : typePluginFunctions.get(timeSeriesType)) {
+                if (function.getQueryName().equals(queryName)) {
+                    return function;
+                }
             }
+        } else {
+            return null;
         }
+
         return null;
     }
 
@@ -59,7 +66,7 @@ public class PluginFunctions {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("chronixPlugins", chronixPlugins)
+                .append("chronixPlugins", typePluginFunctions)
                 .toString();
     }
 }

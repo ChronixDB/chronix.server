@@ -37,9 +37,9 @@ public class MetricFunctions {
         Collections.addAll(ANALYSES, "TREND", "OUTLIER", "FREQUENCY", "FASTDTW");
         Collections.addAll(TRANSFORMATIONS, "VECTOR", "DIVIDE", "SCALE", "BOTTOM", "TOP", "MOVAVG", "SMOVAVG", "DERIVATIVE", "NNDERIVATIVE", "ADD", "SUB", "TIMESHIFT", "DISTINCT");
 
-        Collections.addAll(ALL_FUNCTIONS, "AVG", "MIN", "MAX", "DEV", "P", "SUM", "COUNT", "FIRST", "LAST", "RANGE", "DIFF", "SDIFF", "INTEGRAL");
-        Collections.addAll(ALL_FUNCTIONS, "TREND", "OUTLIER", "FREQUENCY", "FASTDTW");
-        Collections.addAll(ALL_FUNCTIONS, "VECTOR", "DIVIDE", "SCALE", "BOTTOM", "TOP", "MOVAVG", "SMOVAVG", "DERIVATIVE", "NNDERIVATIVE", "ADD", "SUB", "TIMESHIFT", "DISTINCT");
+        Collections.addAll(ALL_FUNCTIONS, "avg", "min", "max", "dev", "p", "sum", "count", "first", "last", "range", "diff", "sdiff", "integral");
+        Collections.addAll(ALL_FUNCTIONS, "trend", "outlier", "frequency", "fastdtw");
+        Collections.addAll(ALL_FUNCTIONS, "vector", "divide", "scale", "bottom", "top", "movavg", "smovavg", "derivative", "nnderivative", "add", "sub", "timeshift", "distinct");
 
     }
 
