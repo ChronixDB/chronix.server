@@ -79,10 +79,13 @@ public final class QueryEvaluator {
 
                 ChronixType chronixType = plugInTypes.getTypeForName(typeName);
 
+                if (chronixType == null) {
+                    LOGGER.info("Type {} not supported", typeName);
+                    continue;
+                }
+
                 QueryFunctions resultingTypeFunctions = new QueryFunctions();
-
                 String typeFunctions = type.substring(type.indexOf(TYPE_FUNCTION_START)).replaceAll("(\\{|\\})", "");
-
                 String[] queryFunctions = typeFunctions.split(FUNCTION_ARGUMENT_SPLITTER);
 
                 //run over the functions
