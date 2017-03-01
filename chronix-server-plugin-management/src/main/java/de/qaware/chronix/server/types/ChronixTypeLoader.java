@@ -37,7 +37,7 @@ public class ChronixTypeLoader<M extends Module> extends AbstractModule {
 
     @Override
     protected void configure() {
-        for (M module : ServiceLoader.load(type)) {
+        for (M module : ServiceLoader.load(type, type.getClassLoader())) {
             install(module);
         }
     }

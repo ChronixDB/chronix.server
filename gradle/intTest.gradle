@@ -30,6 +30,9 @@ dependencies {
     testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-compaction-handler')
     testCompile project(':chronix-server-retention')
+    testCompile project(':chronix-server-type-metric')
+    testCompile project(':chronix-server-function-metric')
+    testCompile project(':chronix-server-plugin-management')
 }
 
 import de.undercouch.gradle.tasks.download.Download
@@ -83,13 +86,18 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     include("*chronix-server-query*.jar")
     include("*chronix-server-ingestion*.jar")
     include("*chronix-server-compaction*.jar")
-    include("*chronix-server-retention.jar")
+    include("*chronix-server-retention*.jar")
+    include("*chronix-server-plugin-management*.jar")
+    include("*chronix-server-function-metric*.jar")
+    include("*chronix-server-type-metric*.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
     include("*commons-math3-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")
+    include("*guice*.jar")
+    include("*aopalliance*.jar")
 }
 
 /**
@@ -125,7 +133,7 @@ class ExecWait extends DefaultTask {
 /**
  * Tasks to start and stop solr
  */
-String osName = System.getProperty("os.name").toLowerCase();
+String osName = System.getProperty("os.name").toLowerCase()
 task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd start -m 512m -p 8913'
