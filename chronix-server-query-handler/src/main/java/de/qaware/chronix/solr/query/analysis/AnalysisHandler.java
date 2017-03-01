@@ -20,10 +20,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import de.qaware.chronix.Schema;
+import de.qaware.chronix.server.ChronixPluginLoader;
 import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
-import de.qaware.chronix.server.functions.plugin.ChronixFunctionPluginLoader;
-import de.qaware.chronix.server.types.*;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
+import de.qaware.chronix.server.types.ChronixType;
+import de.qaware.chronix.server.types.ChronixTypePlugin;
+import de.qaware.chronix.server.types.ChronixTypes;
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
 import org.apache.solr.common.SolrDocument;
@@ -64,8 +67,8 @@ public class AnalysisHandler extends SearchHandler {
      */
     public AnalysisHandler(DocListProvider docListProvider) {
         Injector injector = Guice.createInjector(Stage.PRODUCTION,
-                ChronixTypeLoader.of(ChronixTypePlugin.class),
-                ChronixFunctionPluginLoader.of(ChronixFunctionPlugin.class));
+                ChronixPluginLoader.of(ChronixTypePlugin.class),
+                ChronixPluginLoader.of(ChronixFunctionPlugin.class));
 
         types = injector.getInstance(ChronixTypes.class);
 

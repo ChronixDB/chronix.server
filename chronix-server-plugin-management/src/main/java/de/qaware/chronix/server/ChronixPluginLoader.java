@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.server.types;
+package de.qaware.chronix.server;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -23,16 +23,16 @@ import java.util.ServiceLoader;
 /**
  * Created by flo on 1/3/17.
  */
-public class ChronixTypeLoader<M extends Module> extends AbstractModule {
+public class ChronixPluginLoader<M extends Module> extends AbstractModule {
 
     private final Class<M> type;
 
-    public ChronixTypeLoader(Class<M> type) {
+    public ChronixPluginLoader(Class<M> type) {
         this.type = type;
     }
 
-    public static <M extends Module> ChronixTypeLoader<M> of(Class<M> type) {
-        return new ChronixTypeLoader<>(type);
+    public static <M extends Module> ChronixPluginLoader<M> of(Class<M> type) {
+        return new ChronixPluginLoader<>(type);
     }
 
     @Override

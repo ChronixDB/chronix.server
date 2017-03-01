@@ -16,9 +16,8 @@
 package de.qaware.chronix.solr.query.analysis
 
 import com.google.inject.Guice
+import de.qaware.chronix.server.ChronixPluginLoader
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin
-import de.qaware.chronix.server.functions.plugin.ChronixFunctionPluginLoader
-import de.qaware.chronix.server.types.ChronixTypeLoader
 import de.qaware.chronix.server.types.ChronixTypePlugin
 import de.qaware.chronix.solr.type.metric.MetricType
 import spock.lang.Ignore
@@ -37,8 +36,8 @@ class QueryEvaluatorTest extends Specification {
 
     def setup() {
         def injector = Guice.createInjector(
-                ChronixTypeLoader.of(ChronixTypePlugin.class),
-                ChronixFunctionPluginLoader.of(ChronixFunctionPlugin.class))
+                ChronixPluginLoader.of(ChronixTypePlugin.class),
+                ChronixPluginLoader.of(ChronixFunctionPlugin.class))
         evaluator = injector.getInstance(QueryEvaluator.class)
     }
 
