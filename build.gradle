@@ -63,7 +63,7 @@ subprojects {
 
     dependencies {
         //Guava
-        compile 'com.google.guava:guava:18.0'
+        compile 'com.google.guava:guava:19.0'
 
         //Logging
         compile 'org.slf4j:slf4j-api:1.7.22'
@@ -167,7 +167,7 @@ sonarqube {
 
     properties {
         property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.host.url", "https://www.qaware.de/sonar"
+        property "sonar.host.url", "https://www.qaware.de/sonarqube"
         property "sonar.login", "$sonarUser"
         property "sonar.password", "$sonarPw"
         property "sonar.jdbc.url", "jdbc:mysql://nio-prj-2.intern.qaware.de:3306/sonardb?useUnicode=true&characterEncoding=utf8"

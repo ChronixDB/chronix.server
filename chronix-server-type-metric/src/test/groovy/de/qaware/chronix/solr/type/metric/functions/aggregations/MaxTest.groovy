@@ -26,7 +26,7 @@ import spock.lang.Specification
 class MaxTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Max");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Max","metric")
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -44,10 +44,10 @@ class MaxTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
-        new Max().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Max().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == Double.NaN
     }
@@ -65,7 +65,7 @@ class MaxTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def max = new Max();
+        def max = new Max()
         !max.equals(null)
         !max.equals(new Object())
         max.equals(max)

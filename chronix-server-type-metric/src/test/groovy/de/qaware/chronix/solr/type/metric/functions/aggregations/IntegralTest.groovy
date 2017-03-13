@@ -27,12 +27,12 @@ class IntegralTest extends Specification {
     def "test get last value"() {
 
         given:
-        def timeSeries = new MetricTimeSeries.Builder("Integral")
+        def timeSeries = new MetricTimeSeries.Builder("Integral","metric")
 
         10.times {
             timeSeries.point(it + 1, it)
         }
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new Integral().execute(timeSeries.build(), analysisResult)
@@ -46,7 +46,7 @@ class IntegralTest extends Specification {
         def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        new Integral().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Integral().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == Double.NaN
     }
@@ -64,7 +64,7 @@ class IntegralTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def last = new Integral();
+        def last = new Integral()
         !last.equals(null)
         !last.equals(new Object())
         last.equals(last)

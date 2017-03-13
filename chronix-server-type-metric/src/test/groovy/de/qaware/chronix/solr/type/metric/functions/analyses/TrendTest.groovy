@@ -26,13 +26,13 @@ import spock.lang.Specification
 class TrendTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Trend");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Trend","metric")
         10.times {
             timeSeries.point(it, it * 10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new Trend().execute(ts, analysisResult)
@@ -58,7 +58,7 @@ class TrendTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Trend();
+        def function = new Trend()
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

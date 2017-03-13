@@ -27,7 +27,7 @@ class CountTest extends Specification {
 
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Count");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Count","metric")
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -45,9 +45,9 @@ class CountTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
         when:
-        new Count().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Count().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == 0.0d
     }
@@ -65,7 +65,7 @@ class CountTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def count = new Count();
+        def count = new Count()
         !count.equals(null)
         !count.equals(new Object())
         count.equals(count)

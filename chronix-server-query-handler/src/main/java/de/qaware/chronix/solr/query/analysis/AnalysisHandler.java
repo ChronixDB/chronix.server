@@ -58,7 +58,8 @@ public class AnalysisHandler extends SearchHandler {
     private final DocListProvider docListProvider;
     private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
-    private ChronixTypes types;
+    private final ChronixTypes types;
+    private final QueryEvaluator evaluator;
 
     /**
      * Constructs an isAggregation handler
@@ -71,6 +72,8 @@ public class AnalysisHandler extends SearchHandler {
                 ChronixPluginLoader.of(ChronixFunctionPlugin.class));
 
         types = injector.getInstance(ChronixTypes.class);
+        evaluator = injector.getInstance(QueryEvaluator.class);
+
 
         this.docListProvider = docListProvider;
     }
@@ -118,10 +121,11 @@ public class AnalysisHandler extends SearchHandler {
         }
 
         SolrDocumentList results = new SolrDocumentList();
-        String[] filterQueries = req.getParams().getParams(CommonParams.FQ);
+        String[] chronixFunctions = req.getParams().getParams(ChronixQueryParams.CHRONIX_FUNCTION);
+        String chronixJoin = req.getParams().get(ChronixQueryParams.CHRONIX_JOIN);
 
         //Do a query and collect them on the join function
-        JoinFunction key = new JoinFunction(filterQueries);
+        JoinFunction key = new JoinFunction(chronixJoin);
         Map<String, List<SolrDocument>> collectedDocs = collectDocuments(req, key);
 
         //If no rows should returned, we only return the num found
@@ -129,7 +133,7 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final TypeFunctions typeFunctions = new QueryEvaluator().extractFunctions(filterQueries);
+            final TypeFunctions typeFunctions = evaluator.extractFunctions(chronixFunctions);
             final List<SolrDocument> resultDocuments = analyze(req, typeFunctions, key, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
@@ -164,8 +168,6 @@ public class AnalysisHandler extends SearchHandler {
         final boolean dataShouldReturned = fields.contains(DATA_WITH_LEADING_AND_TRAILING_COMMA);
         final boolean dataAsJson = fields.contains(ChronixQueryParams.DATA_AS_JSON);
 
-        //Get type from query
-
         //the data is needed if there are functions, or the data should be returned or the data is requested as json
         boolean decompressDataAsItIsRequested = (!functions.isEmpty() || dataAsJson || dataShouldReturned);
 
@@ -173,12 +175,20 @@ public class AnalysisHandler extends SearchHandler {
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                //TODO: replace with type from query
-                ChronixType chronixType = types.getTypeForName("metric");
+                //TODO: make this better...
+                String type = docs.getValue().get(0).getFieldValue("type").toString();
+                ChronixType chronixType = types.getTypeForName(type);
                 //For each type in the metric.
                 QueryFunctions typeFunctions = functions.getTypeFunctions(chronixType);
-                FunctionValueMap functionValues = new FunctionValueMap(typeFunctions.sizeOfAggregations(), typeFunctions.sizeOfAnalyses(), typeFunctions.sizeOfTransformations());
 
+                FunctionValueMap functionValues;
+
+                if (typeFunctions == null) {
+                    functionValues = new FunctionValueMap(0, 0, 0);
+
+                } else {
+                    functionValues = new FunctionValueMap(typeFunctions.sizeOfAggregations(), typeFunctions.sizeOfAnalyses(), typeFunctions.sizeOfTransformations());
+                }
 
                 //initialize the analysis handler
                 final ChronixTimeSeries timeSeries = chronixType.convert(docs.getValue(), queryStart, queryEnd, decompressDataAsItIsRequested);
@@ -248,14 +258,13 @@ public class AnalysisHandler extends SearchHandler {
                     timeSeries.attributes().forEach(doc::addField);
 
                     //add the metric field as it is not stored in the attributes
-                    doc.addField("metric", timeSeries.getName());
-                    doc.addField("type", timeSeries.getType());
+                    doc.addField(Schema.NAME, timeSeries.getName());
+                    doc.addField(Schema.TYPE, timeSeries.getType());
                     doc.addField(Schema.START, timeSeries.getStart());
                     doc.addField(Schema.END, timeSeries.getEnd());
 
 
                     if (dataShouldReturned) {
-                        byte[] data;
                         //ensure that the returned data is sorted
                         timeSeries.sort();
                         //data should returned serialized as json

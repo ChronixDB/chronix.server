@@ -15,6 +15,7 @@
  */
 package de.qaware.chronix.solr.query;
 
+import com.google.common.base.Strings;
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
@@ -53,8 +54,8 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         REQUIRED_FIELDS.add(Schema.DATA);
         REQUIRED_FIELDS.add(Schema.START);
         REQUIRED_FIELDS.add(Schema.END);
-        //TODO: Fix this within the api - every time series has a name
-        REQUIRED_FIELDS.add("metric");
+        REQUIRED_FIELDS.add(Schema.NAME);
+        REQUIRED_FIELDS.add(Schema.TYPE);
     }
 
     /**
@@ -100,12 +101,12 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         req.setParams(modifiableSolrParams);
 
         //check the filter queries
-        final String[] filterQueries = modifiableSolrParams.getParams(CommonParams.FQ);
-        final String[] chronixFunctions = modifiableSolrParams.getParams("cf");
+        final String[] chronixFunctions = modifiableSolrParams.getParams(ChronixQueryParams.CHRONIX_FUNCTION);
+        final String chronixJoin = modifiableSolrParams.get(ChronixQueryParams.CHRONIX_JOIN);
 
 
         //if we have an function query or someone wants the data as json
-        if (contains(chronixFunctions, ChronixQueryParams.FUNCTION_PARAM) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || contains(filterQueries, ChronixQueryParams.JOIN_PARAM)) {
+        if (arrayIsNotEmpty(chronixFunctions) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || !StringUtils.isEmpty(chronixJoin)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);
         } else {
@@ -117,6 +118,20 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         //add the converted start and end to the response
         rsp.getResponseHeader().add(ChronixQueryParams.QUERY_START_LONG, queryStart);
         rsp.getResponseHeader().add(ChronixQueryParams.QUERY_END_LONG, queryEnd);
+    }
+
+    private boolean arrayIsNotEmpty(String[] array) {
+
+        if (array == null) {
+            return false;
+        }
+
+        for (String entry : array) {
+            if (!Strings.isNullOrEmpty(entry)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private <T> T or(T value, T condition, T or) {
@@ -173,26 +188,6 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
             return String.join(ChronixQueryParams.JOIN_SEPARATOR, resultingFields);
 
         }
-    }
-
-    /**
-     * Checks if the given string array (filter queries) contains the given identifier.
-     *
-     * @param filterQueries the filter queries
-     * @param identifier    the identifier
-     * @return true if the filter queries contains the identifier, otherwise false.
-     */
-    private boolean contains(String[] filterQueries, String identifier) {
-        if (filterQueries == null) {
-            return false;
-        }
-
-        for (String filterQuery : filterQueries) {
-            if (filterQuery.contains(identifier)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean contains(String field, String fields) {

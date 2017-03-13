@@ -21,7 +21,9 @@ import com.google.inject.Module;
 import java.util.ServiceLoader;
 
 /**
- * Created by flo on 1/3/17.
+ * Loads Chronix plugins of the given type.
+ *
+ * @param <M> the module type to install
  */
 public class ChronixPluginLoader<M extends Module> extends AbstractModule {
 

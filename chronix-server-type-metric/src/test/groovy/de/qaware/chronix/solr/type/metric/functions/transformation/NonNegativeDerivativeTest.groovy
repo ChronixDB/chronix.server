@@ -28,7 +28,7 @@ import java.time.Instant
 class NonNegativeDerivativeTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series","metric")
         def derivative = new NonNegativeDerivative()
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
@@ -44,7 +44,7 @@ class NonNegativeDerivativeTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         derivative.execute(timeSeries, analysisResult)
@@ -69,7 +69,7 @@ class NonNegativeDerivativeTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new NonNegativeDerivative();
+        def function = new NonNegativeDerivative()
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

@@ -29,9 +29,9 @@ import java.time.Instant
 class DerivativeTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series","metric")
         def derivative = new Derivative()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)
@@ -53,7 +53,7 @@ class DerivativeTest extends Specification {
         timeSeries.size() == 7
     }
 
-    def long dateOf(def format) {
+    long dateOf(format) {
         Instant.parse(format as String).toEpochMilli()
     }
 
@@ -69,7 +69,7 @@ class DerivativeTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Derivative();
+        def function = new Derivative()
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

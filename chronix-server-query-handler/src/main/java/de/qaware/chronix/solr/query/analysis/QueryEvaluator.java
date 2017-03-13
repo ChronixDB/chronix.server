@@ -70,7 +70,7 @@ public final class QueryEvaluator {
         for (String unmodifiedAnalysis : chronixFunctions) {
 
             //For each type
-            String[] types = unmodifiedAnalysis.toLowerCase().split(TYPE_SPLITS);
+            String[] types = unmodifiedAnalysis.split(TYPE_SPLITS);
 
             for (String type : types) {
 

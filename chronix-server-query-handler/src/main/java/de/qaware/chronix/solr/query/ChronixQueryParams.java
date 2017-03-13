@@ -22,25 +22,20 @@ package de.qaware.chronix.solr.query;
  */
 public final class ChronixQueryParams {
 
+    public static final String CHRONIX_FUNCTION = "cf";
+
+    public static final String CHRONIX_JOIN = "cj";
+
     /**
      * The function: aggregation or analysis
      */
     public static final String FUNCTION = "function";
 
     /**
-     * Used to determine if a query contains a function
-     */
-    public static final String FUNCTION_PARAM = FUNCTION + "=";
-
-    /**
      * The aggregation arguments
      */
-    public static final String FUNCTION_ARGUMENTS = FUNCTION+"_arguments";
+    public static final String FUNCTION_ARGUMENTS = FUNCTION + "_arguments";
 
-    /**
-     * Used to join documents into one time series
-     */
-    public static final String JOIN_PARAM = "join=";
 
     /**
      * The resulting join key
@@ -71,22 +66,17 @@ public final class ChronixQueryParams {
     /**
      * The default join field
      */
-    public static final String DEFAULT_JOIN_FIELD = "metric";
+    public static final String DEFAULT_JOIN_FIELD_1 = "metric";
+    public static final String DEFAULT_JOIN_FIELD_2 = "type";
 
     /**
      * The character used to split fields in join filter query
      */
     public static final String JOIN_SEPARATOR = ",";
 
-    /**
-     * The solr version field. We remove that field in the function result
-     */
-    public static final String SOLR_VERSION_FIELD = "_version_";
-
     public static final String DATA_AS_JSON = "dataAsJson";
 
     private ChronixQueryParams() {
         //avoid instances
     }
-
 }

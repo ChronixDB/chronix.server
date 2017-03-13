@@ -19,7 +19,6 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;
-import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.io.IOUtils;
@@ -35,6 +34,7 @@ import java.util.*;
  * @author f.lautenschlager
  */
 public final class SolrDocumentBuilder {
+
 
     private SolrDocumentBuilder() {
         //avoid instances
@@ -58,7 +58,9 @@ public final class SolrDocumentBuilder {
         LongList timestamps = null;
         DoubleList values = null;
         Map<String, Object> attributes = new HashMap<>();
-        String metric = null;
+        String name = null;
+        String type = null;
+
 
         for (SolrDocument doc : documents) {
             MetricTimeSeries ts = convert(doc, queryStart, queryEnd, decompress);
@@ -83,13 +85,18 @@ public final class SolrDocumentBuilder {
 
             //we use the metric of the first time series.
             //metric is the default join key.
-            if (metric == null) {
-                metric = ts.getMetric();
+            if (name == null) {
+                name = ts.getName();
             }
+
+            if (type == null) {
+                type = ts.getType();
+            }
+
             merge(attributes, ts.getAttributesReference());
         }
 
-        return new MetricTimeSeries.Builder(metric)
+        return new MetricTimeSeries.Builder(name, type)
                 .points(timestamps, values)
                 .attributes(attributes)
                 .build();
@@ -145,15 +152,18 @@ public final class SolrDocumentBuilder {
      */
     private static MetricTimeSeries convert(SolrDocument doc, long queryStart, long queryEnd, boolean decompress) {
 
-        String metric = doc.getFieldValue(MetricTSSchema.METRIC).toString();
+
         long tsStart = (long) doc.getFieldValue(Schema.START);
         long tsEnd = (long) doc.getFieldValue(Schema.END);
         byte[] data = ((ByteBuffer) doc.getFieldValue(Schema.DATA)).array();
 
-        MetricTimeSeries.Builder ts = new MetricTimeSeries.Builder(metric);
+        String name = doc.getFieldValue(Schema.NAME).toString();
+        String type = doc.getFieldValue(Schema.TYPE).toString();
+
+        MetricTimeSeries.Builder ts = new MetricTimeSeries.Builder(name, type);
 
         for (Map.Entry<String, Object> field : doc) {
-            if (MetricTSSchema.isUserDefined(field.getKey())) {
+            if (Schema.isUserDefined(field.getKey())) {
                 if (field.getValue() instanceof ByteBuffer) {
                     ts.attribute(field.getKey(), ((ByteBuffer) field.getValue()).array());
                 } else {
@@ -170,8 +180,6 @@ public final class SolrDocumentBuilder {
         }
         return ts.build();
     }
-
-
 
 
 }

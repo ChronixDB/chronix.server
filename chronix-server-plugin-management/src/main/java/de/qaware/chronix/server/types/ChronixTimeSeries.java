@@ -16,7 +16,6 @@
 package de.qaware.chronix.server.types;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.FunctionValueMap;
 import org.apache.solr.common.SolrDocument;
@@ -60,7 +59,7 @@ public interface ChronixTimeSeries {
      * @param subQueryTimeSeries
      * @param functionValues
      */
-    void applyPairAnalysis(ChronixAnalysis analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues);
+    void applyPairAnalysis(ChronixFunction analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues);
 
     /**
      * @param key

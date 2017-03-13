@@ -17,11 +17,9 @@ package de.qaware.chronix.solr.type.metric;
 
 import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.common.Compression;
-import de.qaware.chronix.converter.common.MetricTSSchema;
 import de.qaware.chronix.converter.serializer.json.JsonMetricTimeSeriesSerializer;
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.FunctionValueMap;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
@@ -53,13 +51,13 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
     }
 
     @Override
-    public void applyAnalysis(ChronixFunction analysis, FunctionValueMap functionValueMap) {
-        analysis.execute(timeSeries, functionValueMap);
+    public void applyAnalysis(ChronixFunction function, FunctionValueMap functionValueMap) {
+        function.execute(timeSeries, functionValueMap);
     }
 
     @Override
-    public void applyPairAnalysis(ChronixAnalysis analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
-        analysis.execute(timeSeries, functionValues);
+    public void applyPairAnalysis(ChronixFunction analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
+        analysis.execute(new org.apache.solr.common.util.Pair(timeSeries, subQueryTimeSeries), functionValues);
     }
 
     @Override
@@ -84,7 +82,8 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
 
         timeSeries.attributes().forEach(doc::addField);
         //add the metric field as it is not stored in the attributes
-        doc.addField(MetricTSSchema.METRIC, timeSeries.getMetric());
+        doc.addField(Schema.NAME, timeSeries.getName());
+        doc.addField(Schema.TYPE, timeSeries.getType());
         doc.addField(Schema.START, timeSeries.getStart());
         doc.addField(Schema.END, timeSeries.getEnd());
 
@@ -98,7 +97,7 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
 
     @Override
     public String getName() {
-        return timeSeries.getMetric();
+        return timeSeries.getName();
     }
 
     @Override

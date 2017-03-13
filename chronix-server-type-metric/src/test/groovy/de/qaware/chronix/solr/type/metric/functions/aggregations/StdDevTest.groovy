@@ -26,13 +26,13 @@ import spock.lang.Specification
 class StdDevTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Stddev");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Stddev","metric")
         10.times {
             timeSeries.point(it, it * 10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new StdDev().execute(ts, analysisResult)
@@ -43,9 +43,9 @@ class StdDevTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
         when:
-        new StdDev().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new StdDev().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == Double.NaN
     }
@@ -62,7 +62,7 @@ class StdDevTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def stdDev = new StdDev();
+        def stdDev = new StdDev()
         !stdDev.equals(null)
         !stdDev.equals(new Object())
         stdDev.equals(stdDev)

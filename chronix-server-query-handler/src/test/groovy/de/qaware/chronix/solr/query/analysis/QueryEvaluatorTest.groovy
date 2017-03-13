@@ -122,7 +122,7 @@ class QueryEvaluatorTest extends Specification {
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
 
-        subQuery << [null, null, null, "metric:load* and group:(a or b)", "metric:load* and group:(a or b)"]
+        subQuery << [null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
         needSubQuery << [false, false, false, true, true]
     }
 

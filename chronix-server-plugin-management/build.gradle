@@ -12,9 +12,9 @@ dependencies {
     testCompile 'com.google.inject.extensions:guice-multibindings:4.1.0'
     testCompile 'de.qaware.chronix:chronix-timeseries:0.3'
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'
-    compile 'org.apache.solr:solr-solrj:6.3.0'
+    compile 'org.apache.solr:solr-solrj:6.4.2'
 
-    testCompile 'org.apache.solr:solr-core:6.3.0'
+    testCompile 'org.apache.solr:solr-core:6.4.2'
 
 
 }

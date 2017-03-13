@@ -29,7 +29,7 @@ import java.time.temporal.ChronoUnit
 class FrequencyTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Freq")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Freq","metric")
         def start = Instant.now()
 
         //First add a window with normal values
@@ -52,7 +52,7 @@ class FrequencyTest extends Specification {
         timeSeries.point(startOfHighFrequency.plus(60, ChronoUnit.SECONDS).toEpochMilli(), 12)
 
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new Frequency([windowSize, windowThreshold] as String[]).execute(ts, analysisResult)

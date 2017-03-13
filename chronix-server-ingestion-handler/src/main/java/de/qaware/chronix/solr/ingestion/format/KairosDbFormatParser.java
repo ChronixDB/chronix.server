@@ -41,6 +41,8 @@ public class KairosDbFormatParser implements FormatParser {
      * UTF-8 charset. Used for decoding the given input stream.
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
+    private static final String METRIC_TYPE = "metric";
+
 
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
@@ -53,7 +55,7 @@ public class KairosDbFormatParser implements FormatParser {
             Metric metric = new Metric(kairosMetric.getName(), kairosMetric.getTags());
             MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
             if (metricBuilder == null) {
-                metricBuilder = new MetricTimeSeries.Builder(kairosMetric.getName());
+                metricBuilder = new MetricTimeSeries.Builder(kairosMetric.getName(), METRIC_TYPE);
                 for (Map.Entry<String, String> tagEntry : kairosMetric.getTags().entrySet()) {
                     metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
                 }

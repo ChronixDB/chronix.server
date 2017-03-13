@@ -26,13 +26,13 @@ import spock.lang.Specification
 class TimeshiftTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Timeshift")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Timeshift","metric")
         10.times {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
 
         def timeshift = new Timeshift(["4", "MILLIS"] as String[])
@@ -50,7 +50,7 @@ class TimeshiftTest extends Specification {
 
     def "test transform for negative amount"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Timeshift")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Timeshift","metric")
         10.times {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
@@ -84,7 +84,7 @@ class TimeshiftTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Timeshift(["4", "DAYS"] as String[]);
+        def function = new Timeshift(["4", "DAYS"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

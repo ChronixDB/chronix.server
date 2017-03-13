@@ -26,13 +26,13 @@ import spock.lang.Specification
 class AddTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Add")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Add","metric")
         10.times {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         def add = new Add(["4"] as String[])
         when:
@@ -56,7 +56,7 @@ class AddTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Add(["4"] as String[]);
+        def function = new Add(["4"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

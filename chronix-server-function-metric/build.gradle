@@ -5,12 +5,9 @@ sonarqube {
 }
 
 dependencies {
-    compile 'de.qaware.chronix:chronix-timeseries:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
-
-
-    compile "org.apache.solr:solr-core:6.3.0"
+    compile 'de.qaware.chronix:chronix-timeseries:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-common:0.3.2-beta'
 
     compile 'com.google.inject:guice:4.1.0'
     compile 'com.google.inject.extensions:guice-multibindings:4.1.0'

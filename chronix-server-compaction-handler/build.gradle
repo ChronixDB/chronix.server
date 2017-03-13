@@ -6,13 +6,13 @@ sonarqube {
 
 
 dependencies {
-    compile "org.apache.solr:solr-core:6.3.0"
+    compile "org.apache.solr:solr-core:6.4.2"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
-    compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-timeseries:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
+    compile 'de.qaware.chronix:chronix-api:0.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-common:0.3.2-beta'
 
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'

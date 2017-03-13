@@ -28,12 +28,12 @@ class LastTest extends Specification {
     def "test get last value"() {
 
         given:
-        def timeSeries = new MetricTimeSeries.Builder("Last-Time-Series")
+        def timeSeries = new MetricTimeSeries.Builder("Last-Time-Series","metric")
 
         10.times {
             timeSeries.point(10 - it, it)
         }
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new Last().execute(timeSeries.build(), analysisResult)
@@ -47,7 +47,7 @@ class LastTest extends Specification {
         def analysisResult = new FunctionValueMap(1, 1, 1);
 
         when:
-        new Last().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Last().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == Double.NaN
     }
@@ -65,7 +65,7 @@ class LastTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def last = new Last();
+        def last = new Last()
         !last.equals(null)
         !last.equals(new Object())
         last.equals(last)

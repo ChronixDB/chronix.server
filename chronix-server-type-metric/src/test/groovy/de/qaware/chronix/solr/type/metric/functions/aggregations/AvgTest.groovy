@@ -27,7 +27,7 @@ class AvgTest extends Specification {
 
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Avg");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Avg","metric")
         10.times {
             timeSeries.point(it, it * 10)
         }
@@ -44,11 +44,11 @@ class AvgTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
         when:
-        new Avg().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Avg().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN;
+        analysisResult.getAggregationValue(0) == Double.NaN
     }
 
 
@@ -64,7 +64,7 @@ class AvgTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def avg = new Avg();
+        def avg = new Avg()
         !avg.equals(null)
         !avg.equals(new Object())
         avg.equals(avg)

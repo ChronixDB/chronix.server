@@ -30,7 +30,7 @@ class ScaleTest extends Specification {
 
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Scale")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Scale","metric")
         def now = Instant.now()
 
         100.times {
@@ -66,7 +66,7 @@ class ScaleTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Scale(["4"] as String[]);
+        def function = new Scale(["4"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

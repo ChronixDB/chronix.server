@@ -30,16 +30,16 @@ class DivideTest extends Specification {
 
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Div")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Div","metric")
         def now = Instant.now()
 
         100.times {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
-        def divide = new Divide(["2"] as String[]);
+        def divide = new Divide(["2"] as String[])
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         divide.execute(timeSeries, analysisResult)

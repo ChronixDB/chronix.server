@@ -26,7 +26,7 @@ import spock.lang.Specification
 class MinTest extends Specification {
     def "test execute with negative"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min","metric")
         10.times {
             timeSeries.point(it, it * -10)
         }
@@ -41,7 +41,7 @@ class MinTest extends Specification {
 
     def "test execute with positive number"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Min","metric")
         10.times {
             timeSeries.point(it, it * 10 + 1)
         }
@@ -57,9 +57,9 @@ class MinTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
         when:
-        new Min().execute(new MetricTimeSeries.Builder("Empty").build(), analysisResult)
+        new Min().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:
         analysisResult.getAggregationValue(0) == Double.NaN
     }
@@ -77,7 +77,7 @@ class MinTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def min = new Min();
+        def min = new Min()
         !min.equals(null)
         !min.equals(new Object())
         min.equals(min)

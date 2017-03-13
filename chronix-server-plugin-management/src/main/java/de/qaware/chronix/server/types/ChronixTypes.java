@@ -45,7 +45,7 @@ public class ChronixTypes {
      */
     public ChronixType getTypeForName(String typeName) {
         for (ChronixType type : chronixTypes) {
-            if (type.getType().equals(typeName)) {
+            if (type.getType().equalsIgnoreCase(typeName)) {
                 return type;
             }
         }

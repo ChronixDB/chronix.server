@@ -28,7 +28,7 @@ import java.time.Instant
 class MovingAverageTest extends Specification {
     def "test transform with last window contains only one point"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
         def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
@@ -49,7 +49,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//15
 
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         movAvg.execute(timeSeries, analysisResult)
@@ -89,7 +89,7 @@ class MovingAverageTest extends Specification {
 
     def "test transform with last window contains several points"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
         def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
@@ -109,7 +109,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
 
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         movAvg.execute(timeSeries, analysisResult)
@@ -147,7 +147,7 @@ class MovingAverageTest extends Specification {
 
     def "test transform with gaps"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
         def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
@@ -174,7 +174,7 @@ class MovingAverageTest extends Specification {
     }
 
 
-    def long dateOf(def format) {
+    long dateOf(format) {
         Instant.parse(format as String).toEpochMilli()
     }
 

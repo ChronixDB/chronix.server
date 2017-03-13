@@ -38,6 +38,7 @@ public class GraphiteFormatParser implements FormatParser {
      * UTF-8 charset. Used for decoding the given input stream.
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
+    private static final String METRIC_TYPE = "metric";
 
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
@@ -60,7 +61,7 @@ public class GraphiteFormatParser implements FormatParser {
                 // If the metric is already known, add a point. Otherwise create the metric and add the point.
                 MetricTimeSeries.Builder metricBuilder = metrics.get(metricName);
                 if (metricBuilder == null) {
-                    metricBuilder = new MetricTimeSeries.Builder(metricName);
+                    metricBuilder = new MetricTimeSeries.Builder(metricName, METRIC_TYPE);
                     metrics.put(metricName, metricBuilder);
                 }
                 metricBuilder.point(timestamp.toEpochMilli(), value);

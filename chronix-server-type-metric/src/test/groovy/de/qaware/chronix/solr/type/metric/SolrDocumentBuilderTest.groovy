@@ -77,7 +77,7 @@ class SolrDocumentBuilderTest extends Specification {
 
     def functionValueMapWithAg() {
         def functionValueMap = new FunctionValueMap(1, 0, 0)
-        functionValueMap.add(new Percentile(0.2d), 1000)
+        functionValueMap.add(new Percentile("[0.2d]"), 1000)
         functionValueMap
     }
 
@@ -89,7 +89,7 @@ class SolrDocumentBuilderTest extends Specification {
 
     def functionValueMapWithAn2() {
         def functionValueMap = new FunctionValueMap(0, 1, 0)
-        functionValueMap.add(new Frequency(20, 20), true, "identifier")
+        functionValueMap.add(new Frequency(["20, 20"]), true, "identifier")
         functionValueMap
     }
 
@@ -102,18 +102,18 @@ class SolrDocumentBuilderTest extends Specification {
 
     def functionValueMapWithTr2() {
         def functionValueMap = new FunctionValueMap(0, 0, 1)
-        functionValueMap.add(new Top(2))
+        functionValueMap.add(new Top(["2"]))
         functionValueMap
     }
 
 
     List<SolrDocument> fillDocs() {
-        def result = new ArrayList<SolrDocument>();
+        def result = new ArrayList<SolrDocument>()
 
         TimeSeriesConverter<MetricTimeSeries> converter = new MetricTimeSeriesConverter();
 
         10.times {
-            MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy")
+            MetricTimeSeries ts = new MetricTimeSeries.Builder("groovy","metric")
                     .attribute("host", "laptop")
                     .attribute("someInt", 1i + it)
                     .attribute("someFloat", 1.1f + it)
@@ -132,7 +132,8 @@ class SolrDocumentBuilderTest extends Specification {
         def doc = new SolrDocument()
         doc.addField("host", binaryStorageDocument.get("host"))
         doc.addField("data", ByteBuffer.wrap(binaryStorageDocument.getPoints()))
-        doc.addField("metric", binaryStorageDocument.get("metric"))
+        doc.addField("name", binaryStorageDocument.getName())
+        doc.addField("type", binaryStorageDocument.getType())
         doc.addField("start", binaryStorageDocument.getStart())
         doc.addField("end", binaryStorageDocument.getEnd())
         doc.addField("someInt", binaryStorageDocument.get("someInt"))

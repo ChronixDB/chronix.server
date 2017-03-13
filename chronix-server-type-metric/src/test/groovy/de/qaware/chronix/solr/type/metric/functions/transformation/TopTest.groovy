@@ -28,7 +28,7 @@ class TopTest extends Specification {
         given:
         def top = new Top(["4"] as String[])
 
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Top")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Top","metric")
         timeSeriesBuilder.point(1, 5d)
         timeSeriesBuilder.point(2, 99d)
         timeSeriesBuilder.point(3, 3d)
@@ -68,7 +68,7 @@ class TopTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new Top(["4"] as String[]);
+        def function = new Top(["4"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

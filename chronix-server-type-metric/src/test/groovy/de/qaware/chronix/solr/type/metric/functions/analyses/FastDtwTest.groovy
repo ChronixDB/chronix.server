@@ -27,14 +27,14 @@ import spock.lang.Specification
 class FastDtwTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW","metric")
         10.times {
             timeSeries.point(it, it + 10)
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts1 = timeSeries.build()
         MetricTimeSeries ts2 = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new FastDtw(["", "5", "20"] as String[]).execute(new Pair(ts1, ts2), analysisResult)
@@ -43,7 +43,7 @@ class FastDtwTest extends Specification {
     }
 
     def "test time series with equal timestamps"() {
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1","metric")
         timeSeries.point(0, 2)
         3.times {
             timeSeries.point(1, it)
@@ -63,15 +63,15 @@ class FastDtwTest extends Specification {
 
     def "test execute for -1 as result"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1");
-        MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2");
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1","metric")
+        MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2","metric")
         10.times {
             timeSeries.point(it, it * 10)
             secondTimeSeries.point(it, it * -10)
         }
         def ts1 = timeSeries.build()
         def ts2 = secondTimeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionValueMap(1, 1, 1)
 
         when:
         new FastDtw(["", "5", "0"] as String[]).execute(new Pair(ts1, ts2), analysisResult)

@@ -45,14 +45,14 @@ public class KairosDbFormatParserTest {
             assertThat(series.size(), is(2));
 
             MetricTimeSeries first = series.get(0);
-            assertThat(first.getMetric(), is("archive.file.tracked"));
+            assertThat(first.getName(), is("archive.file.tracked"));
             assertThat(first.getTimestamps().size(), is(1));
             assertThat(first.getValues().get(0), is(123.0));
             assertThat(first.getTimestamps().get(0), is(1349109376L));
             assertThat(first.getAttributesReference().get("host"), is("test"));
 
             MetricTimeSeries second = series.get(1);
-            assertThat(second.getMetric(), is("archive.file.search"));
+            assertThat(second.getName(), is("archive.file.search"));
             assertThat(second.getTimestamps().size(), is(1));
             assertThat(second.getValues().get(0), is(32.1));
             assertThat(second.getTimestamps().get(0), is(1349109665L));

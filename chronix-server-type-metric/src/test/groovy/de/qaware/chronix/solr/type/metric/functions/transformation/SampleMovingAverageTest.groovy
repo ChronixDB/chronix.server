@@ -29,7 +29,7 @@ class SampleMovingAverageTest extends Specification {
 
     def "test transform with last window contains only one point"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Sample Moving average")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Sample Moving average","metric")
         def movAvg = new SampleMovingAverage(["5"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
@@ -99,7 +99,7 @@ class SampleMovingAverageTest extends Specification {
 
     def "test equals and hash code"() {
         expect:
-        def function = new SampleMovingAverage(["5"] as String[]);
+        def function = new SampleMovingAverage(["5"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

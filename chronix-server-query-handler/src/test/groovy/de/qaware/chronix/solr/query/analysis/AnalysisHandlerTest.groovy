@@ -47,7 +47,8 @@ import java.util.function.Function
  */
 class AnalysisHandlerTest extends Specification {
 
-    def "test handle function request"() {
+    @Unroll
+    def "test handle function request for #params"() {
         given:
         def request = Mock(SolrQueryRequest)
         def indexSchema = Mock(IndexSchema)
@@ -71,13 +72,13 @@ class AnalysisHandlerTest extends Specification {
         params << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                            .add("rows", "0"),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                           .add("cf", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{max}").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", "myfield,start,end,data,metric")
-                           .add("cf", "analysis=fastdtw:(metric:* AND start:NOW),10,0.5").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{fastdtw:(metric:* AND start:NOW),10,0.5}").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                           .add("cf", "analysis=trend").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                           .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{trend}").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
         ]
 
@@ -113,7 +114,7 @@ class AnalysisHandlerTest extends Specification {
 
         def request = Mock(SolrQueryRequest)
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add("cf", "function=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                .add(ChronixQueryParams.CHRONIX_FUNCTION, "function=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         function()
 
@@ -164,7 +165,7 @@ class AnalysisHandlerTest extends Specification {
         request.getSchema() >> indexSchema
 
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add("cf", "ag=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{max}").add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         def analyses = new QueryFunctions<>()
         analyses.addAnalysis(new FastDtw(["ignored", "1", "0.8"] as String[]))
@@ -206,15 +207,18 @@ class AnalysisHandlerTest extends Specification {
 
     List<SolrDocument> solrDocument(Instant start) {
         def result = new ArrayList<SolrDocument>()
-        def ts = new MetricTimeSeries.Builder("test")
+        def ts = new MetricTimeSeries.Builder("test","metric")
                 .point(start.toEpochMilli(), 4711)
                 .point(start.plusSeconds(1).toEpochMilli(), 4712)
                 .point(start.plusSeconds(2).toEpochMilli(), 4713)
                 .build()
+
         SolrDocument doc = new SolrDocument()
         doc.put("start", start.toEpochMilli())
         doc.put("end", start.plusSeconds(10).toEpochMilli())
-        doc.put("metric", "test")
+        doc.put("name", "test")
+        doc.put("type", "metric")
+
         def data = ProtoBufMetricTimeSeriesSerializer.to(ts.points().iterator())
         def compressed = Compression.compress(data)
         doc.put("data", ByteBuffer.wrap(compressed))
