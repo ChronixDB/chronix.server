@@ -23,20 +23,13 @@ import java.util.Set;
 /**
  * Holds all plugged-in types
  */
-public class ChronixTypes {
+public final class ChronixTypes {
 
     private Set<ChronixType> chronixTypes;
 
     @Inject
     public ChronixTypes(Set<ChronixType> chronixTypes) {
         this.chronixTypes = chronixTypes;
-    }
-
-    /**
-     * @return all plugged-in functions
-     */
-    public Set<ChronixType> getChronixPlugins() {
-        return chronixTypes;
     }
 
     /**

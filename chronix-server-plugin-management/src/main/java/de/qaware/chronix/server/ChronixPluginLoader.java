@@ -25,7 +25,7 @@ import java.util.ServiceLoader;
  *
  * @param <M> the module type to install
  */
-public class ChronixPluginLoader<M extends Module> extends AbstractModule {
+public final class ChronixPluginLoader<M extends Module> extends AbstractModule {
 
     private final Class<M> type;
 
