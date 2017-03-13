@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * @author f.lautenschlager
  */
-public class ChronixFunctions {
+public final class ChronixFunctions {
 
     private Map<String, Set<ChronixFunction>> typePluginFunctions = new HashMap<>();
 

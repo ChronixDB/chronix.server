@@ -19,7 +19,7 @@ import org.apache.solr.common.SolrDocument
 import spock.lang.Specification
 
 /**
- * Unit test for the join function evaluator
+ * Unit test for the join function QUERY_EVALUATOR
  * @author f.lautenschlager
  */
 class JoinFunctionTest extends Specification {

@@ -23,6 +23,7 @@ import de.qaware.chronix.Schema;
 import de.qaware.chronix.server.ChronixPluginLoader;
 import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
+import de.qaware.chronix.server.functions.plugin.ChronixFunctions;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypePlugin;
@@ -58,8 +59,12 @@ public class AnalysisHandler extends SearchHandler {
     private final DocListProvider docListProvider;
     private final DateQueryParser subQueryDateRangeParser = new DateQueryParser(new String[]{ChronixQueryParams.DATE_START_FIELD, ChronixQueryParams.DATE_END_FIELD});
 
-    private final ChronixTypes types;
-    private final QueryEvaluator evaluator;
+    private static final Injector INJECTOR = Guice.createInjector(Stage.PRODUCTION,
+            ChronixPluginLoader.of(ChronixTypePlugin.class),
+            ChronixPluginLoader.of(ChronixFunctionPlugin.class));
+
+    private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
+    private static final ChronixFunctions FUNCTIONS = INJECTOR.getInstance(ChronixFunctions.class);
 
     /**
      * Constructs an isAggregation handler
@@ -67,14 +72,6 @@ public class AnalysisHandler extends SearchHandler {
      * @param docListProvider - the search provider for the DocList Result
      */
     public AnalysisHandler(DocListProvider docListProvider) {
-        Injector injector = Guice.createInjector(Stage.PRODUCTION,
-                ChronixPluginLoader.of(ChronixTypePlugin.class),
-                ChronixPluginLoader.of(ChronixFunctionPlugin.class));
-
-        types = injector.getInstance(ChronixTypes.class);
-        evaluator = injector.getInstance(QueryEvaluator.class);
-
-
         this.docListProvider = docListProvider;
     }
 
@@ -133,7 +130,7 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final TypeFunctions typeFunctions = evaluator.extractFunctions(chronixFunctions);
+            final TypeFunctions typeFunctions = QueryEvaluator.extractFunctions(chronixFunctions, TYPES, FUNCTIONS);
             final List<SolrDocument> resultDocuments = analyze(req, typeFunctions, key, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
@@ -175,111 +172,133 @@ public class AnalysisHandler extends SearchHandler {
 
         collectedDocs.entrySet().parallelStream().forEach(docs -> {
             try {
-                //TODO: make this better...
-                String type = docs.getValue().get(0).getFieldValue("type").toString();
-                ChronixType chronixType = types.getTypeForName(type);
-                //For each type in the metric.
-                QueryFunctions typeFunctions = functions.getTypeFunctions(chronixType);
+                String type = evaluateType(docs);
+                if (type != null) {
+                    ChronixType chronixType = TYPES.getTypeForName(type);
 
-                FunctionValueMap functionValues;
+                    if (chronixType != null) {
+                        //For each type in the metric.
+                        QueryFunctions typeFunctions = functions.getTypeFunctions(chronixType);
 
-                if (typeFunctions == null) {
-                    functionValues = new FunctionValueMap(0, 0, 0);
+                        //convert the documents into a time series
+                        final ChronixTimeSeries timeSeries = chronixType.convert(
+                                docs.getValue(),
+                                queryStart, queryEnd,
+                                decompressDataAsItIsRequested);
 
-                } else {
-                    functionValues = new FunctionValueMap(typeFunctions.sizeOfAggregations(), typeFunctions.sizeOfAnalyses(), typeFunctions.sizeOfTransformations());
-                }
+                        FunctionValueMap functionValues = null;
 
-                //initialize the analysis handler
-                final ChronixTimeSeries timeSeries = chronixType.convert(docs.getValue(), queryStart, queryEnd, decompressDataAsItIsRequested);
+                        if (typeFunctions != null) {
+                            functionValues = new FunctionValueMap(
+                                    typeFunctions.sizeOfAggregations(),
+                                    typeFunctions.sizeOfAnalyses(),
+                                    typeFunctions.sizeOfTransformations());
 
-                //Only if we have functions, execute the following block
-                if (!functions.isEmpty()) {
-                    //first we do the transformations
-                    if (typeFunctions.containsTransformations()) {
-                        for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
-                            timeSeries.applyTransformation(transformation, functionValues);
-                        }
-                    }
-
-                    //then we apply aggregations
-                    if (typeFunctions.containsAggregations()) {
-                        for (ChronixAggregation aggregation : typeFunctions.getAggregations()) {
-                            timeSeries.applyAggregation(aggregation, functionValues);
-                        }
-                    }
-
-                    //finally the analyses
-                    if (typeFunctions.containsAnalyses()) {
-                        for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
-
-                            if (analysis.needSubquery()) {
-                                //lets parse the sub-query for start and and end terms
-                                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
-                                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
-
-                                //execute the analysis with all sub documents
-                                subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
-                                    //Only if we have a different time series
-                                    if (!docs.getKey().equals(subDocs.getKey())) {
-
-                                        final ChronixTimeSeries subQueryTimeSeries = chronixType.convert(subDocs.getValue(), queryStart, queryEnd, true);
-                                        timeSeries.applyPairAnalysis((ChronixPairAnalysis) analysis, subQueryTimeSeries, functionValues);
+                            //Only if we have functions, execute the following block
+                            if (!functions.isEmpty()) {
+                                //first we do the transformations
+                                if (typeFunctions.containsTransformations()) {
+                                    for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
+                                        timeSeries.applyTransformation(transformation, functionValues);
                                     }
-                                });
+                                }
 
-                            } else {
-                                //Execute analysis and store the result
-                                timeSeries.applyAnalysis(analysis, functionValues);
+                                //then we apply aggregations
+                                if (typeFunctions.containsAggregations()) {
+                                    for (ChronixAggregation aggregation : typeFunctions.getAggregations()) {
+                                        timeSeries.applyAggregation(aggregation, functionValues);
+                                    }
+                                }
+                                //finally the analyses
+                                if (typeFunctions.containsAnalyses()) {
+                                    applyFunctions(req, key, queryStart, queryEnd, docs, chronixType, typeFunctions, functionValues, timeSeries);
+                                }
                             }
                         }
-                    }
 
-                }
-
-                //We Return the document, if
-                // 1) the data is explicit requested as json
-                // 2) there are aggregations / transformations
-                // 3) there are matching analyses
-                if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues) || isJoined) {
-                    //Here we have to build the document with the results of the analyses
-
-                    SolrDocument doc = new SolrDocument();
-
-                    //Add the function results
-                    addAnalysesAndResults(functionValues, doc);
-
-                    //add the join key
-                    doc.put(ChronixQueryParams.JOIN_KEY, docs.getKey());
-
-                    //add the attributes
-                    timeSeries.attributes().forEach(doc::addField);
-
-                    //add the metric field as it is not stored in the attributes
-                    doc.addField(Schema.NAME, timeSeries.getName());
-                    doc.addField(Schema.TYPE, timeSeries.getType());
-                    doc.addField(Schema.START, timeSeries.getStart());
-                    doc.addField(Schema.END, timeSeries.getEnd());
-
-                    if (dataShouldReturned) {
-                        //ensure that the returned data is sorted
-                        timeSeries.sort();
-                        //data should returned serialized as json
-                        if (dataAsJson) {
-                            doc.setField(ChronixQueryParams.DATA_AS_JSON, timeSeries.dataAsJson());
-                        } else {
-                            doc.addField(Schema.DATA, timeSeries.dataAsBlob());
+                        //We Return the document, if
+                        // 1) the data is explicit requested as json
+                        // 2) there are aggregations / transformations
+                        // 3) there are matching analyses
+                        if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues) || isJoined) {
+                            //Here we have to build the document with the results of the analyses
+                            resultDocuments.add(asSolrDocument(dataShouldReturned, dataAsJson, docs, functionValues, timeSeries));
                         }
                     }
-
-                    resultDocuments.add(doc);
                 }
-
             } catch (ParseException | IOException e) {
                 LOGGER.info("Could not parse query due to an exception", e);
             }
+
         });
         return resultDocuments;
+    }
+
+    private String evaluateType(Map.Entry<String, List<SolrDocument>> docs) {
+        if (docs.getValue() == null || docs.getValue().isEmpty()) {
+            return null;
+        }
+
+        return docs.getValue().get(0).getFieldValue(Schema.TYPE).toString();
+    }
+
+    private void applyFunctions(SolrQueryRequest req, JoinFunction key, long queryStart, long queryEnd, Map.Entry<String, List<SolrDocument>> docs, ChronixType chronixType, QueryFunctions typeFunctions, FunctionValueMap functionValues, ChronixTimeSeries timeSeries) throws ParseException, IOException {
+        for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
+
+            if (analysis.needSubquery()) {
+                //lets parse the sub-query for start and and end terms
+                String modifiedSubQuery = subQueryDateRangeParser.replaceRangeQueryTerms(analysis.getSubquery());
+                Map<String, List<SolrDocument>> subQueryDocuments = collectDocuments(modifiedSubQuery, req, key);
+
+                //execute the analysis with all sub documents
+                subQueryDocuments.entrySet().parallelStream().forEach(subDocs -> {
+                    //Only if we have a different time series
+                    if (!docs.getKey().equals(subDocs.getKey())) {
+
+                        final ChronixTimeSeries subQueryTimeSeries = chronixType.convert(subDocs.getValue(), queryStart, queryEnd, true);
+                        timeSeries.applyPairAnalysis((ChronixPairAnalysis) analysis, subQueryTimeSeries, functionValues);
+                    }
+                });
+
+            } else {
+                //Execute analysis and store the result
+                timeSeries.applyAnalysis(analysis, functionValues);
+            }
+        }
+    }
+
+
+    private SolrDocument asSolrDocument(boolean dataShouldReturned, boolean dataAsJson, Map.Entry<String, List<SolrDocument>> docs, FunctionValueMap functionValues, ChronixTimeSeries timeSeries) {
+        SolrDocument doc = new SolrDocument();
+
+        if (functionValues != null) {
+            //Add the function results
+            addAnalysesAndResults(functionValues, doc);
+        }
+
+        //add the join key
+        doc.put(ChronixQueryParams.JOIN_KEY, docs.getKey());
+
+        //add the attributes
+        timeSeries.attributes().forEach(doc::addField);
+
+        //add the metric field as it is not stored in the attributes
+        doc.addField(Schema.NAME, timeSeries.getName());
+        doc.addField(Schema.TYPE, timeSeries.getType());
+        doc.addField(Schema.START, timeSeries.getStart());
+        doc.addField(Schema.END, timeSeries.getEnd());
+
+        if (dataShouldReturned) {
+            //ensure that the returned data is sorted
+            timeSeries.sort();
+            //data should returned serialized as json
+            if (dataAsJson) {
+                doc.setField(ChronixQueryParams.DATA_AS_JSON, timeSeries.dataAsJson());
+            } else {
+                doc.addField(Schema.DATA, timeSeries.dataAsBlob());
+            }
+        }
+        return doc;
     }
 
     /**

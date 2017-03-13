@@ -15,7 +15,6 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import com.google.inject.Inject;
 import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.ChronixFunction;
@@ -41,19 +40,13 @@ public final class QueryEvaluator {
 
     private static final String TYPE_FUNCTION_START = "{";
 
-    @Inject
-    private ChronixTypes plugInTypes;
-
-    @Inject
-    private ChronixFunctions plugInFunctions;
-
     /**
      * Analyzes the filter queries and parses them for chronix fucntions
      *
      * @param chronixFunctions the filter queries (solr api)
      * @return a set of chronix analyses asked in the filter queries
      */
-    public TypeFunctions extractFunctions(String[] chronixFunctions) {
+    public static TypeFunctions extractFunctions(String[] chronixFunctions, ChronixTypes plugInTypes, ChronixFunctions plugInFunctions) {
 
         //The result that contains the asked analyses
         final TypeFunctions result = new TypeFunctions();
