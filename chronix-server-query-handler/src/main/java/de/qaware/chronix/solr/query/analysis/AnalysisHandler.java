@@ -179,18 +179,20 @@ public class AnalysisHandler extends SearchHandler {
                     if (chronixType != null) {
                         //For each type in the metric.
                         QueryFunctions typeFunctions = functions.getTypeFunctions(chronixType);
-                        if (typeFunctions != null) {
 
-                            FunctionValueMap functionValues = new FunctionValueMap(
+                        //convert the documents into a time series
+                        final ChronixTimeSeries timeSeries = chronixType.convert(
+                                docs.getValue(),
+                                queryStart, queryEnd,
+                                decompressDataAsItIsRequested);
+
+                        FunctionValueMap functionValues = null;
+
+                        if (typeFunctions != null) {
+                            functionValues = new FunctionValueMap(
                                     typeFunctions.sizeOfAggregations(),
                                     typeFunctions.sizeOfAnalyses(),
                                     typeFunctions.sizeOfTransformations());
-
-                            //initialize the analysis handler
-                            final ChronixTimeSeries timeSeries = chronixType.convert(
-                                    docs.getValue(),
-                                    queryStart, queryEnd,
-                                    decompressDataAsItIsRequested);
 
                             //Only if we have functions, execute the following block
                             if (!functions.isEmpty()) {
@@ -212,15 +214,15 @@ public class AnalysisHandler extends SearchHandler {
                                     applyFunctions(req, key, queryStart, queryEnd, docs, chronixType, typeFunctions, functionValues, timeSeries);
                                 }
                             }
+                        }
 
-                            //We Return the document, if
-                            // 1) the data is explicit requested as json
-                            // 2) there are aggregations / transformations
-                            // 3) there are matching analyses
-                            if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues) || isJoined) {
-                                //Here we have to build the document with the results of the analyses
-                                resultDocuments.add(asSolrDocument(dataShouldReturned, dataAsJson, docs, functionValues, timeSeries));
-                            }
+                        //We Return the document, if
+                        // 1) the data is explicit requested as json
+                        // 2) there are aggregations / transformations
+                        // 3) there are matching analyses
+                        if (dataAsJson || hasTransformationsOrAggregations(functionValues) || hasMatchingAnalyses(functionValues) || isJoined) {
+                            //Here we have to build the document with the results of the analyses
+                            resultDocuments.add(asSolrDocument(dataShouldReturned, dataAsJson, docs, functionValues, timeSeries));
                         }
                     }
                 }
@@ -269,8 +271,10 @@ public class AnalysisHandler extends SearchHandler {
     private SolrDocument asSolrDocument(boolean dataShouldReturned, boolean dataAsJson, Map.Entry<String, List<SolrDocument>> docs, FunctionValueMap functionValues, ChronixTimeSeries timeSeries) {
         SolrDocument doc = new SolrDocument();
 
-        //Add the function results
-        addAnalysesAndResults(functionValues, doc);
+        if (functionValues != null) {
+            //Add the function results
+            addAnalysesAndResults(functionValues, doc);
+        }
 
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, docs.getKey());
