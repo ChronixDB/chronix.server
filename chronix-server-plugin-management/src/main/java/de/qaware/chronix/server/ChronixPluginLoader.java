@@ -29,7 +29,7 @@ public class ChronixPluginLoader<M extends Module> extends AbstractModule {
 
     private final Class<M> type;
 
-    public ChronixPluginLoader(Class<M> type) {
+    private ChronixPluginLoader(Class<M> type) {
         this.type = type;
     }
 

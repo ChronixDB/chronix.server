@@ -26,12 +26,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  */
 public final class Avg implements ChronixAggregation<MetricTimeSeries> {
 
-    /**
-     * Calculates the average value of the first time series.
-     *
-     * @param functionValueMap
-     * @return the average or 0 if the list is empty
-     */
     @Override
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
 

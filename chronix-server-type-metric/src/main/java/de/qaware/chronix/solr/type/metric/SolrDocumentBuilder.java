@@ -118,7 +118,7 @@ public final class SolrDocumentBuilder {
             String key = newEntry.getKey();
 
             //we ignore the version in the result
-            if (key.equals(ChronixQueryParams.SOLR_VERSION_FIELD)) {
+            if (key.equals("_version_")) {
                 continue;
             }
 

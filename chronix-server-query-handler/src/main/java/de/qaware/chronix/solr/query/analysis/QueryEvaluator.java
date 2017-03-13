@@ -20,7 +20,7 @@ import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.plugin.PluginFunctions;
+import de.qaware.chronix.server.functions.plugin.ChronixFunctions;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypes;
 import org.apache.solr.common.StringUtils;
@@ -45,7 +45,7 @@ public final class QueryEvaluator {
     private ChronixTypes plugInTypes;
 
     @Inject
-    private PluginFunctions plugInFunctions;
+    private ChronixFunctions plugInFunctions;
 
     /**
      * Analyzes the filter queries and parses them for chronix fucntions

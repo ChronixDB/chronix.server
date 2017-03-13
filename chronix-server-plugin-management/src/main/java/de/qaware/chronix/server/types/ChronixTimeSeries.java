@@ -15,59 +15,48 @@
  */
 package de.qaware.chronix.server.types;
 
-import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.ChronixFunction;
-import de.qaware.chronix.server.functions.FunctionValueMap;
-import org.apache.solr.common.SolrDocument;
+import de.qaware.chronix.server.functions.*;
 
 import java.util.Map;
 
 /**
- * The chronix time series interface
+ * The Chronix time series interface.
+ * It is typically a wrapper for a time series class
  *
  * @author f.lautenschlager
  */
 public interface ChronixTimeSeries {
 
-
     /**
-     * Applies the given transformation on the time series
+     * Applies the given transformation
      *
      * @param transformation the actual transformation
-     * @param functionValues the functionValues to add the result
+     * @param functionValues the function values to add the result
      */
-    void applyTransformation(ChronixFunction transformation, FunctionValueMap functionValues);
+    void applyTransformation(ChronixTransformation transformation, FunctionValueMap functionValues);
 
     /**
-     * Applies the given aggregation on the time series
+     * Applies the given aggregation
      *
      * @param aggregation    the actual aggregation
-     * @param functionValues the functionValues to add the result
+     * @param functionValues the function values to add the result
      */
     void applyAggregation(ChronixAggregation aggregation, FunctionValueMap functionValues);
 
     /**
-     * Applies the actual analysis
+     * Applies the given analysis
      *
-     * @param analysis
-     * @param functionValueMap
+     * @param analysis         the actual analysis
+     * @param functionValueMap the function values to add the result
      */
-    void applyAnalysis(ChronixFunction analysis, FunctionValueMap functionValueMap);
+    void applyAnalysis(ChronixAnalysis analysis, FunctionValueMap functionValueMap);
 
     /**
-     * @param analysis
-     * @param subQueryTimeSeries
-     * @param functionValues
+     * @param pairAnalysis       the acutal pair analysis
+     * @param subQueryTimeSeries the time series from the sub query
+     * @param functionValues     the function values to add the result
      */
-    void applyPairAnalysis(ChronixFunction analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues);
-
-    /**
-     * @param key
-     * @param dataShouldReturned
-     * @param dataAsJson
-     * @return a solr document
-     */
-    SolrDocument convert(String key, boolean dataShouldReturned, boolean dataAsJson);
+    void applyPairAnalysis(ChronixPairAnalysis pairAnalysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues);
 
     /**
      * @return the type of the chronix time series

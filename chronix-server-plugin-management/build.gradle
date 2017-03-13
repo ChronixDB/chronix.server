@@ -8,11 +8,8 @@ sonarqube {
 dependencies {
     compile 'com.google.inject:guice:4.1.0'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.solr:solr-core:6.4.2'
 
-    testCompile 'com.google.inject.extensions:guice-multibindings:4.1.0'
-    compile 'org.apache.solr:solr-solrj:6.4.2'
-
-    testCompile 'org.apache.solr:solr-core:6.4.2'
-
-
+    testCompile project(':chronix-server-type-metric')
+    testCompile project(':chronix-server-function-metric')
 }

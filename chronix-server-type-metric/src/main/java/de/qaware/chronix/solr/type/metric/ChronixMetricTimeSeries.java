@@ -15,35 +15,35 @@
  */
 package de.qaware.chronix.solr.type.metric;
 
-import de.qaware.chronix.Schema;
 import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.serializer.json.JsonMetricTimeSeriesSerializer;
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
-import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.ChronixFunction;
-import de.qaware.chronix.server.functions.ChronixPairAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.util.Pair;
 
 import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
- * Created by flo on 1/30/17.
+ * Implementation of the chronix time series interface for the metric time series
+ *
+ * @author f.lautenschlager
  */
 public class ChronixMetricTimeSeries implements ChronixTimeSeries {
 
     private MetricTimeSeries timeSeries;
 
-    public ChronixMetricTimeSeries(MetricTimeSeries metricTimeSeries) {
+    /**
+     * @param metricTimeSeries the wrapped time series
+     */
+    ChronixMetricTimeSeries(MetricTimeSeries metricTimeSeries) {
         timeSeries = metricTimeSeries;
     }
 
     @Override
-    public void applyTransformation(ChronixFunction transformation, FunctionValueMap functionValues) {
+    public void applyTransformation(ChronixTransformation transformation, FunctionValueMap functionValues) {
         transformation.execute(timeSeries, functionValues);
     }
 
@@ -53,12 +53,12 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
     }
 
     @Override
-    public void applyAnalysis(ChronixFunction function, FunctionValueMap functionValueMap) {
+    public void applyAnalysis(ChronixAnalysis function, FunctionValueMap functionValueMap) {
         function.execute(timeSeries, functionValueMap);
     }
 
     @Override
-    public void applyPairAnalysis(ChronixFunction analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
+    public void applyPairAnalysis(ChronixPairAnalysis analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
         ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> pairAnalysis = ((ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>>) analysis);
 
         ChronixMetricTimeSeries secondMetricTimeSeries = (ChronixMetricTimeSeries) subQueryTimeSeries;
@@ -66,38 +66,8 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
     }
 
     @Override
-    public SolrDocument convert(String key, boolean dataShouldReturned, boolean dataAsJson) {
-        SolrDocument doc = new SolrDocument();
-
-        if (dataShouldReturned) {
-            byte[] data;
-            //ensure that the returned data is sorted
-            timeSeries.sort();
-            //data should returned serialized as json
-            if (dataAsJson) {
-                data = new JsonMetricTimeSeriesSerializer().toJson(timeSeries);
-                doc.setField(ChronixQueryParams.DATA_AS_JSON, new String(data, Charset.forName("UTF-8")));
-            } else {
-                data = ProtoBufMetricTimeSeriesSerializer.to(timeSeries.points().iterator());
-                //compress data
-                data = Compression.compress(data);
-                doc.addField(Schema.DATA, data);
-            }
-        }
-
-        timeSeries.attributes().forEach(doc::addField);
-        //add the metric field as it is not stored in the attributes
-        doc.addField(Schema.NAME, timeSeries.getName());
-        doc.addField(Schema.TYPE, timeSeries.getType());
-        doc.addField(Schema.START, timeSeries.getStart());
-        doc.addField(Schema.END, timeSeries.getEnd());
-
-        return doc;
-    }
-
-    @Override
     public String getType() {
-        return ChronixQueryParams.TYPE_NAME;
+        return timeSeries.getType();
     }
 
     @Override

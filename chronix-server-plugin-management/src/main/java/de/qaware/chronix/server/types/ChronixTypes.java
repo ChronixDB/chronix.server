@@ -21,7 +21,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.Set;
 
 /**
- * Created by flo on 2/24/17.
+ * Holds all plugged-in types
  */
 public class ChronixTypes {
 

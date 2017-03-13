@@ -15,7 +15,9 @@
  */
 package de.qaware.chronix.solr.type.metric.functions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The current implemented AGGREGATIONS
@@ -24,53 +26,12 @@ import java.util.*;
  */
 public class MetricFunctions {
 
-    //Sets to hold the aggregations, analyses and transformations.
-    //Otherwise the complexity of if(type == X || type == X ...) is to high
-    private static final Set<String> AGGREGATIONS = new HashSet<>();
-    private static final Set<String> ANALYSES = new HashSet<>();
-    private static final Set<String> TRANSFORMATIONS = new HashSet<>();
-
-    public static List<String> ALL_FUNCTIONS = new ArrayList<>();
+    public static List<String> ALL = new ArrayList<>();
 
     static {
-        Collections.addAll(AGGREGATIONS, "AVG", "MIN", "MAX", "DEV", "P", "SUM", "COUNT", "FIRST", "LAST", "RANGE", "DIFF", "SDIFF", "INTEGRAL");
-        Collections.addAll(ANALYSES, "TREND", "OUTLIER", "FREQUENCY", "FASTDTW");
-        Collections.addAll(TRANSFORMATIONS, "VECTOR", "DIVIDE", "SCALE", "BOTTOM", "TOP", "MOVAVG", "SMOVAVG", "DERIVATIVE", "NNDERIVATIVE", "ADD", "SUB", "TIMESHIFT", "DISTINCT");
-
-        Collections.addAll(ALL_FUNCTIONS, "avg", "min", "max", "dev", "p", "sum", "count", "first", "last", "range", "diff", "sdiff", "integral");
-        Collections.addAll(ALL_FUNCTIONS, "trend", "outlier", "frequency", "fastdtw");
-        Collections.addAll(ALL_FUNCTIONS, "vector", "divide", "scale", "bottom", "top", "movavg", "smovavg", "derivative", "nnderivative", "add", "sub", "timeshift", "distinct");
+        Collections.addAll(ALL, "avg", "min", "max", "dev", "p", "sum", "count", "first", "last", "range", "diff", "sdiff", "integral");
+        Collections.addAll(ALL, "trend", "outlier", "frequency", "fastdtw");
+        Collections.addAll(ALL, "vector", "divide", "scale", "bottom", "top", "movavg", "smovavg", "derivative", "nnderivative", "add", "sub", "timeshift", "distinct");
 
     }
-
-    /**
-     * Checks if the given type is a high level analysis
-     *
-     * @param type the function type
-     * @return true if the analysis type is a high level analysis, otherwise false
-     */
-    public static boolean isAnalysis(String type) {
-        return ANALYSES.contains(type);
-    }
-
-    /**
-     * Check if the given type is an aggregation
-     *
-     * @param type the function type
-     * @return true if an aggregation, otherwise false
-     */
-    public static boolean isAggregation(String type) {
-        return AGGREGATIONS.contains(type);
-    }
-
-    /**
-     * Checks if the given type is a transformation
-     *
-     * @param type the function type
-     * @return true if the type is a transformation, otherwise false
-     */
-    public static boolean isTransformation(String type) {
-        return TRANSFORMATIONS.contains(type);
-    }
-
 }

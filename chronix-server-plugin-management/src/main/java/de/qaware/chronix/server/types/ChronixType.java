@@ -21,12 +21,14 @@ import org.apache.solr.common.SolrDocument;
 import java.util.List;
 
 /**
+ * The interface defines a Chronix type.
+ *
  * @author f.lautenschlager
  */
-public interface ChronixType<T> {
+public interface ChronixType {
 
     /**
-     * @return the type name as string
+     * @return the type name. Must be unique within an index.
      */
     String getType();
 
@@ -40,7 +42,16 @@ public interface ChronixType<T> {
      */
     ChronixTimeSeries convert(List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested);
 
+    /**
+     * @param function the query name of the function
+     * @return true if the type supports the function, otherwise false
+     */
     boolean supportsFunction(String function);
 
-    ChronixFunction<T> getFunction(String function, String[] args);
+    /**
+     * @param function the query name of the function
+     * @param args     the arguments that are passed to the function
+     * @return the matching function
+     */
+    ChronixFunction getFunction(String function, String[] args);
 }

@@ -39,13 +39,13 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public class MetricType implements ChronixType<MetricTimeSeries> {
+public class MetricType implements ChronixType {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricType.class);
 
     @Override
     public String getType() {
-        return ChronixQueryParams.TYPE_NAME;
+        return "metric";
     }
 
     @Override
@@ -56,7 +56,7 @@ public class MetricType implements ChronixType<MetricTimeSeries> {
 
     @Override
     public boolean supportsFunction(String function) {
-        return MetricFunctions.ALL_FUNCTIONS.indexOf(function) >= 0;
+        return MetricFunctions.ALL.indexOf(function) >= 0;
     }
 
     @Override

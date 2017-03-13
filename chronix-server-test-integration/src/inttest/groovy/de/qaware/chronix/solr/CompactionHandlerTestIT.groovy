@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr
 
-import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer
+import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.apache.solr.client.solrj.request.QueryRequest
 import org.apache.solr.common.SolrDocumentList
 import org.apache.solr.common.util.NamedList
@@ -23,14 +23,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import static de.qaware.chronix.Schema.*
-import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
-import static de.qaware.chronix.solr.SolrServerFactory.newEmbeddedSolrServer
 import static de.qaware.chronix.solr.TestUtils.*
 import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
 import static java.lang.Math.cos
 import static java.lang.Math.sin
-import static org.apache.solr.common.params.CommonParams.Q
-import static org.apache.solr.common.params.CommonParams.QT
+import static org.apache.solr.common.params.CommonParams.*
 
 /**
  * Integration test for {@link de.qaware.chronix.solr.compaction.ChronixCompactionHandler}.
@@ -39,13 +36,10 @@ import static org.apache.solr.common.params.CommonParams.QT
  */
 class CompactionHandlerTestIT extends Specification {
 
-    def QueryRequest ALL_DOCS_QUERY = new QueryRequest(params((QT): '/select', (Q): '*:*'))
+    QueryRequest ALL_DOCS_QUERY = new QueryRequest(params((QT): '/select', (Q): '*:*'))
     @Shared
-    def EmbeddedSolrServer solr
+    HttpSolrClient solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
 
-    def setupSpec() {
-        solr = newEmbeddedSolrServer()
-    }
 
     def setup() {
         solr.deleteByQuery("*:*")
@@ -60,9 +54,9 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test status code"() {
         given:
-        solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', (DATA): compress(1L: 10d, 2L: 20d))])
+        solr.add([doc((START): 1, (END): 2, (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(1L: 10d, 2L: 20d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 10))
 
         when:
         NamedList rsp = solr.request(compactionQuery).get('responseHeader')
@@ -73,13 +67,13 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test compaction of a small number of documents"() {
         given:
-        solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', (DATA): compress(1L: 10d, 2L: 20d)),
-                  doc((START): 3, (END): 4, (METRIC): 'cpu', (DATA): compress(3L: 30d, 4L: 40d)),
-                  doc((START): 5, (END): 6, (METRIC): 'cpu', (DATA): compress(5L: 50d, 6L: 60d))])
+        solr.add([doc((START): 1, (END): 2, (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(1L: 10d, 2L: 20d)),
+                  doc((START): 3, (END): 4, (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(3L: 30d, 4L: 40d)),
+                  doc((START): 5, (END): 6, (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(5L: 50d, 6L: 60d))])
         solr.commit()
 
         when:
-        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10)))
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 10)))
         SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
@@ -91,12 +85,12 @@ class CompactionHandlerTestIT extends Specification {
         given:
         (1L..100L).collate(5).each { range ->
             def data = range.collectEntries { it -> [it, sin(it)] }
-            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(data)))
+            solr.add(doc((START): range.first(), (END): range.last(), (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(data)))
         }
         solr.commit()
 
         when:
-        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 100)))
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 100)))
         SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
@@ -106,16 +100,16 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test special chars as value of a join key field"() {
         given:
-        solr.add([doc((START): 5, (END): 6, (METRIC): 'a:AND() {!$#}\\', (DATA): compress(1L: 10d))])
+        solr.add([doc((START): 5, (END): 6, (NAME): 'a:AND() {!$#}\\', (TYPE): 'metric', (DATA): compress(1L: 10d))])
         solr.commit()
 
         when:
-        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 10)))
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 10)))
         SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
         docs.size() == 1
-        docs[0].get(METRIC) == 'a:AND() {!$#}\\'
+        docs[0].get(NAME) == 'a:AND() {!$#}\\'
         decompress(docs[0].get(DATA), 1, 6) == [1L: 10d]
     }
 
@@ -123,12 +117,12 @@ class CompactionHandlerTestIT extends Specification {
         given:
         (1L..10L).collate(5).each { range ->
             def data = range.collectEntries { it -> [it, sin(it)] }
-            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(data)))
+            solr.add(doc((START): range.first(), (END): range.last(), (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(data)))
         }
         solr.commit()
 
         when:
-        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 4)))
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 4)))
         SolrDocumentList docs = solr.request(ALL_DOCS_QUERY).get('response')
 
         then:
@@ -140,15 +134,15 @@ class CompactionHandlerTestIT extends Specification {
         (1L..100L).collate(5).each { def range ->
             def cpuData = range.collectEntries { it -> [it, sin(it)] }
             def heapData = range.collectEntries { it -> [it, cos(it)] }
-            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'cpu', (DATA): compress(cpuData)))
-            solr.add(doc((START): range.first(), (END): range.last(), (METRIC): 'heap', (DATA): compress(heapData)))
+            solr.add(doc((START): range.first(), (END): range.last(), (NAME): 'cpu', (TYPE): 'metric', (DATA): compress(cpuData)))
+            solr.add(doc((START): range.first(), (END): range.last(), (NAME): 'heap', (TYPE): 'metric', (DATA): compress(heapData)))
         }
         solr.commit()
-        def cpuDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:cpu"))
-        def heapDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$METRIC:heap"))
+        def cpuDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$NAME:cpu"))
+        def heapDocsQuery = new QueryRequest(params((QT): '/select', (Q): "$NAME:heap"))
 
         when:
-        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): METRIC, (POINTS_PER_CHUNK): 100)))
+        solr.request(new QueryRequest(params((QT): '/compact', (JOIN_KEY): NAME, (POINTS_PER_CHUNK): 100)))
         SolrDocumentList cpuDocs = solr.request(cpuDocsQuery).get('response')
         SolrDocumentList heapDocs = solr.request(heapDocsQuery).get('response')
 
@@ -161,9 +155,9 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test fq"() {
         given:
-        solr.add([doc((START): 1, (END): 2, (METRIC): 'cpu', host: '1', (DATA): compress(1L: 10d, 2L: 20d)),
-                  doc((START): 3, (END): 4, (METRIC): 'cpu', host: '1', (DATA): compress(3L: 30d, 4L: 40d)),
-                  doc((START): 5, (END): 6, (METRIC): 'cpu', host: '2', (DATA): compress(5L: 50d, 6L: 60d))])
+        solr.add([doc((START): 1, (END): 2, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(1L: 10d, 2L: 20d)),
+                  doc((START): 3, (END): 4, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(3L: 30d, 4L: 40d)),
+                  doc((START): 5, (END): 6, (NAME): 'cpu', host: '2', (TYPE): 'metric', (DATA): compress(5L: 50d, 6L: 60d))])
         solr.commit()
         def compactionQuery = new QueryRequest(params((QT): '/compact', (FQ): 'host:1'))
         def h1Query = new QueryRequest(params((QT): '/select', (Q): 'host:1'))
@@ -183,18 +177,18 @@ class CompactionHandlerTestIT extends Specification {
 
     def "test fq with joinKey"() {
         given:
-        solr.add([doc((START): 10, (END): 11, (METRIC): 'cpu', host: '1', (DATA): compress(10L: 10d, 11L: 11d)),
-                  doc((START): 12, (END): 13, (METRIC): 'cpu', host: '1', (DATA): compress(12L: 12d, 13L: 13d)),
-                  doc((START): 14, (END): 15, (METRIC): 'cpu', host: '2', (DATA): compress(14L: 14d, 15L: 15d)),
-                  doc((START): 16, (END): 17, (METRIC): 'mem', host: '1', (DATA): compress(16L: 16d, 17L: 17d)),
-                  doc((START): 18, (END): 19, (METRIC): 'mem', host: '1', (DATA): compress(18L: 18d, 19L: 19d)),
-                  doc((START): 20, (END): 21, (METRIC): 'mem', host: '2', (DATA): compress(20L: 20d, 21L: 21d))])
+        solr.add([doc((START): 10, (END): 11, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(10L: 10d, 11L: 11d)),
+                  doc((START): 12, (END): 13, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(12L: 12d, 13L: 13d)),
+                  doc((START): 14, (END): 15, (NAME): 'cpu', host: '2', (TYPE): 'metric', (DATA): compress(14L: 14d, 15L: 15d)),
+                  doc((START): 16, (END): 17, (NAME): 'mem', host: '1', (TYPE): 'metric', (DATA): compress(16L: 16d, 17L: 17d)),
+                  doc((START): 18, (END): 19, (NAME): 'mem', host: '1', (TYPE): 'metric', (DATA): compress(18L: 18d, 19L: 19d)),
+                  doc((START): 20, (END): 21, (NAME): 'mem', host: '2', (TYPE): 'metric', (DATA): compress(20L: 20d, 21L: 21d))])
         solr.commit()
-        def compactionQuery = new QueryRequest(params((QT): '/compact', (FQ): 'host:1', (JOIN_KEY): METRIC))
-        def h1CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $METRIC:cpu"))
-        def h2CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $METRIC:cpu"))
-        def h1MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $METRIC:mem"))
-        def h2MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $METRIC:mem"))
+        def compactionQuery = new QueryRequest(params((QT): '/compact', (FQ): 'host:1', (JOIN_KEY): NAME))
+        def h1CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $NAME:cpu"))
+        def h2CpuQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $NAME:cpu"))
+        def h1MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:1 AND $NAME:mem"))
+        def h2MemQuery = new QueryRequest(params((QT): '/select', (Q): "host:2 AND $NAME:mem"))
 
         when:
         solr.request(compactionQuery).get('responseHeader')

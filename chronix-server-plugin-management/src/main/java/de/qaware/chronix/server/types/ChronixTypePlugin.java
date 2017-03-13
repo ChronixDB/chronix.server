@@ -18,7 +18,7 @@ package de.qaware.chronix.server.types;
 import com.google.inject.AbstractModule;
 
 /**
- * Created by flo on 2/24/17.
+ * Chronix module to load types via Guice.
  */
 public abstract class ChronixTypePlugin extends AbstractModule{
 }

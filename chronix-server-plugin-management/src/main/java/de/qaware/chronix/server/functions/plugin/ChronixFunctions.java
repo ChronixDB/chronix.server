@@ -29,12 +29,15 @@ import java.util.Set;
  *
  * @author f.lautenschlager
  */
-public class PluginFunctions {
+public class ChronixFunctions {
 
     private Map<String, Set<ChronixFunction>> typePluginFunctions = new HashMap<>();
 
+    /**
+     * @param chronixPlugins the plugged-in functions
+     */
     @Inject
-    PluginFunctions(Set<ChronixFunction> chronixPlugins) {
+    ChronixFunctions(Set<ChronixFunction> chronixPlugins) {
         for (ChronixFunction pluginFunction : chronixPlugins) {
             if (!typePluginFunctions.containsKey(pluginFunction.getTimeSeriesType())) {
                 typePluginFunctions.put(pluginFunction.getTimeSeriesType(), new HashSet<>());
@@ -55,10 +58,7 @@ public class PluginFunctions {
                     return function;
                 }
             }
-        } else {
-            return null;
         }
-
         return null;
     }
 

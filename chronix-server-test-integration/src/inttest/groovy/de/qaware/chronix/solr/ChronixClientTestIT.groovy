@@ -20,6 +20,8 @@ import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.solr.query.ChronixQueryParams
+import de.qaware.chronix.solr.util.CSVImporter
+import de.qaware.chronix.solr.util.ChronixTestFunctions
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
@@ -58,7 +60,7 @@ class ChronixClientTestIT extends Specification {
                 new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
-        sleep(3_000)
+        sleep(10_000)
         solr.deleteByQuery("*:*")
         def result = solr.commit()
 

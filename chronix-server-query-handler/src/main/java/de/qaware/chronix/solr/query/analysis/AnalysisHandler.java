@@ -197,7 +197,7 @@ public class AnalysisHandler extends SearchHandler {
                 if (!functions.isEmpty()) {
                     //first we do the transformations
                     if (typeFunctions.containsTransformations()) {
-                        for (ChronixFunction transformation : typeFunctions.getTransformations()) {
+                        for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
                             timeSeries.applyTransformation(transformation, functionValues);
                         }
                     }
@@ -211,7 +211,6 @@ public class AnalysisHandler extends SearchHandler {
 
                     //finally the analyses
                     if (typeFunctions.containsAnalyses()) {
-                        //applyAnalyses(req, functions.getAnalyses(), key, queryStart, queryEnd, docs, functionValues, chronix);
                         for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
 
                             if (analysis.needSubquery()) {
@@ -225,8 +224,7 @@ public class AnalysisHandler extends SearchHandler {
                                     if (!docs.getKey().equals(subDocs.getKey())) {
 
                                         final ChronixTimeSeries subQueryTimeSeries = chronixType.convert(subDocs.getValue(), queryStart, queryEnd, true);
-
-                                        timeSeries.applyPairAnalysis(analysis, subQueryTimeSeries, functionValues);
+                                        timeSeries.applyPairAnalysis((ChronixPairAnalysis) analysis, subQueryTimeSeries, functionValues);
                                     }
                                 });
 
@@ -262,7 +260,6 @@ public class AnalysisHandler extends SearchHandler {
                     doc.addField(Schema.TYPE, timeSeries.getType());
                     doc.addField(Schema.START, timeSeries.getStart());
                     doc.addField(Schema.END, timeSeries.getEnd());
-
 
                     if (dataShouldReturned) {
                         //ensure that the returned data is sorted

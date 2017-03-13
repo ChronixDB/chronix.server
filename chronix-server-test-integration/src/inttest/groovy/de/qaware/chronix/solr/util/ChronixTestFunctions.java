@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr;
+package de.qaware.chronix.solr.util;
 
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;

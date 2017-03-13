@@ -11,21 +11,16 @@ apply plugin: 'de.undercouch.download'
 
 sourceSets {
     intTest {
-        java.srcDir 'src/inttest/java'
+        groovy.srcDir 'src/inttest/groovy'
         resources.srcDir 'src/inttest/resources'
     }
 }
+configurations {
+    intTestCompile.extendsFrom testCompile
+    intTestRuntime.extendsFrom testRuntime
+}
 
 dependencies {
-    intTestCompile sourceSets.main.output
-    intTestCompile sourceSets.test.output
-
-    intTestCompile configurations.compile
-    intTestCompile configurations.testCompile
-
-    intTestRuntime configurations.runtime
-    intTestRuntime configurations.testRuntime
-
     testCompile project(':chronix-server-query-handler')
     testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-compaction-handler')
@@ -43,7 +38,7 @@ def solrVersion = "6.4.2"
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src "https://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    src "http://www-eu.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
