@@ -71,9 +71,35 @@ task copyJettySSL(dependsOn: copyContextsWithGZIP, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/etc/"
     from "$projectDir/src/inttest/resources/de/qaware/chronix/etc/"
 }
+/**
+ * Copy some chronix icons
+ */
+task copyFavicon(dependsOn: copyJettySSL, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/"
+    include("favicon.ico")
 
 
-task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
+}
+
+/**
+ * Copy some chronix icons
+ */
+task copyChronixLogo(dependsOn: copyFavicon, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/img/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/img/"
+}
+
+/**
+ * Copy some chronix icons
+ */
+task copyModifiedCSS(dependsOn: copyChronixLogo, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/css/angular/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/css/angular/"
+}
+
+
+task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
