@@ -72,7 +72,7 @@ class QueryEvaluatorTest extends Specification {
         def functions = evaluator.extractFunctions(fqs)
         then:
         def aggregation = functions.getTypeFunctions(new MetricType()).getAggregations()[0]
-        aggregation.getQueryName() == expectedType
+        aggregation.getQueryName() == expectedQueryName
         aggregation.getArguments() == expectedArguments
 
         where:
@@ -91,9 +91,9 @@ class QueryEvaluatorTest extends Specification {
                 ["metric{integral}"] as String[]
         ]
 
-        expectedType << ["min", "max", "avg", "dev", "sum",
-                         "count", "first", "last", "range",
-                         "diff", "sdiff", "p", "integral"]
+        expectedQueryName << ["min", "max", "avg", "dev", "sum",
+                              "count", "first", "last", "range",
+                              "diff", "sdiff", "p", "integral"]
         expectedArguments << [new String[0], new String[0], new String[0], new String[0], new String[0], new String[0], new String[0],
                               new String[0], new String[0], new String[0], new String[0], ["percentile=0.4"] as String[], new String[0]]
     }
@@ -103,7 +103,7 @@ class QueryEvaluatorTest extends Specification {
         def functions = evaluator.extractFunctions(fqs)
         then:
         def analysis = functions.getTypeFunctions(new MetricType()).getAnalyses()[0]
-        analysis.getQueryName() == expectedAggreation
+        analysis.getQueryName() == expectedQueryName
         analysis.getArguments() == expectedValue
         analysis.needSubquery() == needSubQuery
         analysis.getSubquery() == subQuery
@@ -115,8 +115,8 @@ class QueryEvaluatorTest extends Specification {
                 ["metric{fastdtw:metric:load* AND group:(A OR B),5,0.4}"] as String[]
         ]
 
-        expectedAggreation << ["trend", "outlier", "frequency",
-                               "fastdtw", "fastdtw"]
+        expectedQueryName << ["trend", "outlier", "frequency",
+                              "fastdtw", "fastdtw"]
         expectedValue << [new String[0], new String[0],
                           ["window size=10", "window threshold=6"] as String[],
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
@@ -133,7 +133,7 @@ class QueryEvaluatorTest extends Specification {
         def functions = evaluator.extractFunctions(fqs)
         then:
         def transformation = functions.getTypeFunctions(new MetricType()).getTransformations()[0]
-        transformation.getQueryName() == expectedType
+        transformation.getQueryName() == expectedQueryName
         transformation.getArguments()[0] == expectedArgs
 
         where:
@@ -149,9 +149,9 @@ class QueryEvaluatorTest extends Specification {
                 ["metric{smovavg:10}"] as String[]
         ]
 
-        expectedType << ["vector", "scale", "divide", "top",
-                         "bottom", "movavg", "add", "sub",
-                         "timeshift", "smovavg"]
+        expectedQueryName << ["vector", "scale", "divide", "top",
+                              "bottom", "movavg", "add", "sub",
+                              "timeshift", "smovavg"]
         expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
                          "value=10", "timeSpan=10", "value=10.0", "value=10.0",
                          "amount=10", "samples=10"]
@@ -163,14 +163,14 @@ class QueryEvaluatorTest extends Specification {
         def functions = evaluator.extractFunctions(fqs)
         then:
         def transformation = functions.getTypeFunctions(new MetricType()).getTransformations()[0]
-        transformation.getQueryName() == expectedType
+        transformation.getQueryName() == expectedQueryName
 
         where:
         fqs << [["metric{derivative}"] as String[],
                 ["metric{nnderivative}"] as String[],
                 ["metric{distinct}"] as String[]]
 
-        expectedType << ["derivative", "nnderivative", "distinct"]
+        expectedQueryName << ["derivative", "nnderivative", "distinct"]
     }
 
     //TODO: Fix.
@@ -214,14 +214,14 @@ class QueryEvaluatorTest extends Specification {
         when:
         def functions = evaluator.extractFunctions(fqs)
         then:
-        def aggregation = functions.getTypeFunctions(new MetricType()).getAggregations()[0]
-        aggregation.getQueryName() == expectedType
+        def aggregation = functions.getTypeFunctions(new MetricType()).getTransformations()[0]
+        aggregation.getQueryName() == queryName
         aggregation.getArguments() == expectedArguments
 
         where:
-        fqs << [["metric{nonsense}"] as String[]]
+        fqs << [["metric{noop}"] as String[]]
 
-        expectedType << ["nonsense"]
+        queryName << ["noop"]
         expectedArguments << [new String[0]]
     }
 

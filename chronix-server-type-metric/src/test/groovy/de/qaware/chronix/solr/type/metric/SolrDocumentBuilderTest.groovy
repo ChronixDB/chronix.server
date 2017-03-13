@@ -128,7 +128,7 @@ class SolrDocumentBuilderTest extends Specification {
         result
     }
 
-    def SolrDocument asSolrDoc(BinaryTimeSeries binaryStorageDocument) {
+    SolrDocument asSolrDoc(BinaryTimeSeries binaryStorageDocument) {
         def doc = new SolrDocument()
         doc.addField("host", binaryStorageDocument.get("host"))
         doc.addField("data", ByteBuffer.wrap(binaryStorageDocument.getPoints()))
@@ -146,7 +146,7 @@ class SolrDocumentBuilderTest extends Specification {
         doc
     }
 
-    def LongList times(int i) {
+    LongList times(int i) {
         def times = new LongList()
         100.times {
             times.add(it * 15 + i as long)
@@ -154,7 +154,7 @@ class SolrDocumentBuilderTest extends Specification {
         times
     }
 
-    def DoubleList values(int i) {
+    DoubleList values(int i) {
         def values = new DoubleList()
 
         100.times {

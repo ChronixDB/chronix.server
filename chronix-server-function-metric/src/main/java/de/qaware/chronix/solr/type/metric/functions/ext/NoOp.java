@@ -15,16 +15,27 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.ext;
 
-import com.google.inject.multibindings.Multibinder;
-import de.qaware.chronix.server.functions.ChronixFunction;
-import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
+import de.qaware.chronix.server.functions.ChronixTransformation;
+import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.timeseries.MetricTimeSeries;
 
 /**
- * Created by flo on 2/28/17.
+ * The NoOp transformation to show how plugins work
+ *
+ * @author f.lautenschlager
  */
-public class NonsenseGuiceBinding extends ChronixFunctionPlugin {
+public class NoOp implements ChronixTransformation<MetricTimeSeries> {
 
-    protected void configure() {
-        Multibinder.newSetBinder(binder(), ChronixFunction.class).addBinding().to(Nonsense.class);
+    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+        functionValueMap.add(this);
     }
+
+    public String getQueryName() {
+        return "noop";
+    }
+
+    public String getTimeSeriesType() {
+        return "metric";
+    }
+
 }

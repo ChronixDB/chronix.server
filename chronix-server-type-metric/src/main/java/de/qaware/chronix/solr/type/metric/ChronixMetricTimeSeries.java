@@ -21,10 +21,12 @@ import de.qaware.chronix.converter.serializer.json.JsonMetricTimeSeriesSerialize
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
 import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixFunction;
+import de.qaware.chronix.server.functions.ChronixPairAnalysis;
 import de.qaware.chronix.server.functions.FunctionValueMap;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.util.Pair;
 
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -57,7 +59,10 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
 
     @Override
     public void applyPairAnalysis(ChronixFunction analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
-        analysis.execute(new org.apache.solr.common.util.Pair(timeSeries, subQueryTimeSeries), functionValues);
+        ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> pairAnalysis = ((ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>>) analysis);
+
+        ChronixMetricTimeSeries secondMetricTimeSeries = (ChronixMetricTimeSeries) subQueryTimeSeries;
+        pairAnalysis.execute(new Pair(timeSeries, secondMetricTimeSeries.timeSeries), functionValues);
     }
 
     @Override

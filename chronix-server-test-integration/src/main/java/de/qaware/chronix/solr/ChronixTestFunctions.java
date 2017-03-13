@@ -32,9 +32,10 @@ public final class ChronixTestFunctions {
     public static final Function<MetricTimeSeries, String> GROUP_BY = ts -> ts.attribute("host") + "-" +
             ts.attribute("source") + "-" +
             ts.attribute("group") + "-" +
-            ts.getMetric();
+            ts.getType() + "-" +
+            ts.getName();
     public static final BinaryOperator<MetricTimeSeries> REDUCE = (t1, t2) -> {
-        MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getMetric())
+        MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(t1.getName(), t1.getType())
                 .points(concat(t1.getTimestamps(), t2.getTimestamps()),
                         concat(t1.getValues(), t2.getValues()))
                 .attributes(t1.attributes());

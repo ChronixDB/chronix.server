@@ -66,7 +66,7 @@ public final class ChronixQueryParams {
     /**
      * The default join field
      */
-    public static final String DEFAULT_JOIN_FIELD_1 = "metric";
+    public static final String DEFAULT_JOIN_FIELD_1 = "name";
     public static final String DEFAULT_JOIN_FIELD_2 = "type";
 
     /**

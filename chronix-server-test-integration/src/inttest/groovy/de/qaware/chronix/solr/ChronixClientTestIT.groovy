@@ -53,7 +53,9 @@ class ChronixClientTestIT extends Specification {
         given:
         LOGGER.info("Setting up the integration test.")
         solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-        chronix = new ChronixClient(new MetricTimeSeriesConverter<>(), new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
+        chronix = new ChronixClient(
+                new MetricTimeSeriesConverter<>(),
+                new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
 
         when: "We clean the index to ensure that no old data is loaded."
         sleep(3_000)
@@ -96,7 +98,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "Test aggregation query #aggregation"() {
         when:
-        def query = new SolrQuery("metric:\\\\Load\\\\avg")
+        def query = new SolrQuery("name:\\\\Load\\\\avg")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, aggregation)
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -123,7 +125,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "Test analysis query #analysis"() {
         when:
-        def query = new SolrQuery("metric:\\\\Load\\\\avg")
+        def query = new SolrQuery("name:\\\\Load\\\\avg")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, analysis)
         query.setFields("+data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
@@ -142,14 +144,14 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
 
         where:
-        analysis << ["metric{trend}", "metric{outlier}", "metric{frequency:10,1}", "metric{fastdtw:(metric:*Load*max),5,0.8}"]
+        analysis << ["metric{trend}", "metric{outlier}", "metric{frequency:10,1}", "metric{fastdtw:(name:*Load*max),5,0.8}"]
         points << [7000, 7000, 7000, 7000]
     }
 
     @Unroll
     def "test transformation query: #transformation"() {
         when:
-        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
+        def query = new SolrQuery("name:\\\\Tasks\\\\running")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, transformation)
         query.setFields("+data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
@@ -173,7 +175,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "test transformation query #analysisQuery with empty arguments"() {
         when:
-        def query = new SolrQuery("metric:\\\\Tasks\\\\running")
+        def query = new SolrQuery("name:\\\\Tasks\\\\running")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, analysisQuery)
         query.setFields("+data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
@@ -192,17 +194,17 @@ class ChronixClientTestIT extends Specification {
 
     def "Test analysis fastdtw"() {
         when:
-        def query = new SolrQuery("metric:*Load*min")
-        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{fastdtw:(metric:*Load*max),5,0.8}")
-        query.setFields("metric", "data")
+        def query = new SolrQuery("name:*Load*min")
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{fastdtw:(name:*Load*max),5,0.8}")
+        query.setFields("name", "data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size()
-        selectedTimeSeries.getMetric() == "\\Load\\min"
-        selectedTimeSeries.attribute("join_key") == "\\Load\\min"
+        selectedTimeSeries.getName() == "\\Load\\min"
+        selectedTimeSeries.attribute("join_key") == "\\Load\\min-metric"
         selectedTimeSeries.attribute("0_function_fastdtw_\\Load\\max") == true
         selectedTimeSeries.attribute("0_function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
@@ -210,7 +212,7 @@ class ChronixClientTestIT extends Specification {
 
     def "test function query with data as json"() {
         when:
-        def query = new SolrQuery("metric:\\\\Cpu\\\\sy")
+        def query = new SolrQuery("name:\\\\Cpu\\\\sy")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{vector:0.1}")
         query.setFields("dataAsJson")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
@@ -221,8 +223,8 @@ class ChronixClientTestIT extends Specification {
 
     def "test function query with dataAsJson and join"() {
         when:
-        def query = new SolrQuery("metric:\\\\Cpu*")
-        query.setParam(ChronixQueryParams.CHRONIX_JOIN, "dynamic_s,metric")
+        def query = new SolrQuery("name:\\\\Cpu*")
+        query.setParam(ChronixQueryParams.CHRONIX_JOIN, "dynamic_s,name")
         query.setFields("dataAsJson")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
 
@@ -230,14 +232,14 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 8
         def ts = timeSeries.get(0)
         ts.size() == 9693
-        def joinKey = ts.attribute("dynamic_s")[0] + "-" + ts.getMetric()
+        def joinKey = ts.attribute("dynamic_s")[0] + "-" + ts.getName()
         timeSeries.get(0).attribute("join_key") == joinKey
     }
 
     @Unroll
     def "test join documents with data: #ifData on dynamic field"() {
         when:
-        def query = new SolrQuery("metric:\\\\Cpu*")
+        def query = new SolrQuery("name:\\\\Cpu*")
         query.setParam(ChronixQueryParams.CHRONIX_JOIN, "dynamic_s")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -257,7 +259,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "test join documents with data: #ifData"() {
         when:
-        def query = new SolrQuery("metric:\\\\Cpu*")
+        def query = new SolrQuery("name:\\\\Cpu*")
         query.setParam(ChronixQueryParams.CHRONIX_JOIN, "group")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -275,7 +277,7 @@ class ChronixClientTestIT extends Specification {
 
     def "test analysis with empty result"() {
         when:
-        def query = new SolrQuery("metric:\\\\Load\\\\min")
+        def query = new SolrQuery("name:\\\\Load\\\\min")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{frequency:10,9}")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
@@ -317,7 +319,7 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attributes().size() == 14 //TODO: Fix this! Type is not an attribute"
+        selectedTimeSeries.attributes().size() == 13
     }
 
     def "Test query with compression result"() {
@@ -333,7 +335,7 @@ class ChronixClientTestIT extends Specification {
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attributes().size() == 14 //TODO: Fix this! Type is not an attribute!
+        selectedTimeSeries.attributes().size() == 13
     }
 
     @Unroll

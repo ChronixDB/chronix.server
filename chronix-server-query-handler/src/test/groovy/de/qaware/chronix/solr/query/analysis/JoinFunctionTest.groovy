@@ -28,7 +28,7 @@ class JoinFunctionTest extends Specification {
         def doc = new SolrDocument()
         doc.addField("host", "laptop")
         doc.addField("source", "groovy")
-        doc.addField("metric", "unitTest")
+        doc.addField("name", "unitTest")
         doc.addField("type", "metric")
 
 
@@ -40,7 +40,7 @@ class JoinFunctionTest extends Specification {
         JoinFunction.isDefaultJoinFunction(joinFunction) == isDefault
 
         where:
-        joinOn << ["host, metric, source", "", null]
+        joinOn << ["host, name, source", "", null]
         result << ["laptop-unitTest-groovy", "unitTest-metric", "unitTest-metric"]
         isDefault << [false, true, true]
     }

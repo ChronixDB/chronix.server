@@ -35,7 +35,7 @@ public final class Top implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Constructs the top value transformation
      *
-     * @param value number of largest values that are returned
+     * @param args number of largest values that are returned
      */
     public Top(String[] args) {
         this.value = Integer.parseInt(args[0]);

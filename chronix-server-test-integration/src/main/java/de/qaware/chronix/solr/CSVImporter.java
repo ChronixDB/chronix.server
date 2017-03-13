@@ -99,8 +99,7 @@ public final class CSVImporter {
                     if (onlyOnce.get()) {
 
                         for (int j = 1; j < fields.length; j++) {
-                            MetricTimeSeries ts = new MetricTimeSeries.Builder(fields[j])
-                                    .attribute("type", "metric")
+                            MetricTimeSeries ts = new MetricTimeSeries.Builder(fields[j], "metric")
                                     .attribute("host", attributes[0])
                                     .attribute("source", attributes[1])
                                     .attribute("group", attributes[2])
