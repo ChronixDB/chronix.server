@@ -307,6 +307,16 @@ Example Result:
    ]
 }
 ```
+### Chronix Plug-ins
+Chronix provides a plug-in mechanism to add user-defined types as well as function for types. 
+#### Types
+See the [Metric](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-type-metric/src/main/java/de/qaware/chronix/solr/type/metric) type for an example.
+
+
+#### Functions
+See the [NoOp](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-function-metric/src/main/java/de/qaware/chronix/solr/type/metric/functions/ext) funtion for metric types for an example.
+
+We will provide more information in the new documentation of Chronix.
 
 ### Chronix Server Retention ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-retention))
 The Chronix Server Retention plugin deletes time series data that is older than a given threshold.
