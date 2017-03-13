@@ -46,7 +46,7 @@ public class OpenTsdbTelnetFormatParserTest {
 
             // CPU 0 series has two points
             MetricTimeSeries cpu0series = findWithCpu(series, 0);
-            assertThat(cpu0series.getMetric(), is("sys.cpu.user"));
+            assertThat(cpu0series.getName(), is("sys.cpu.user"));
             assertThat(cpu0series.getTimestamps().size(), is(2));
             assertThat(cpu0series.getTimestamps().get(0), is(1356998400000L));
             assertThat(cpu0series.getTimestamps().get(1), is(1356998401000L));
@@ -55,7 +55,7 @@ public class OpenTsdbTelnetFormatParserTest {
 
             // CPU 1 series has only one point
             MetricTimeSeries cpu1series = findWithCpu(series, 1);
-            assertThat(cpu1series.getMetric(), is("sys.cpu.user"));
+            assertThat(cpu1series.getName(), is("sys.cpu.user"));
             assertThat(cpu1series.getTimestamps().size(), is(1));
             assertThat(cpu1series.getTimestamps().get(0), is(1356998400000L));
             assertThat(cpu1series.getAttributesReference().get("cpu"), is("1"));
@@ -63,7 +63,7 @@ public class OpenTsdbTelnetFormatParserTest {
 
             // CPU 2 series has only one point
             MetricTimeSeries cpu2series = findWithCpu(series, 2);
-            assertThat(cpu2series.getMetric(), is("sys.cpu.user"));
+            assertThat(cpu2series.getName(), is("sys.cpu.user"));
             assertThat(cpu2series.getTimestamps().size(), is(1));
             assertThat(cpu2series.getTimestamps().get(0), is(1356998400000L));
             assertThat(cpu2series.getAttributesReference().get("cpu"), is("2"));

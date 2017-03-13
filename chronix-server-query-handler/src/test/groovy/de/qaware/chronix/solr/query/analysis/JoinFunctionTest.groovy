@@ -28,32 +28,21 @@ class JoinFunctionTest extends Specification {
         def doc = new SolrDocument()
         doc.addField("host", "laptop")
         doc.addField("source", "groovy")
-        doc.addField("metric", "unitTest")
+        doc.addField("name", "unitTest")
+        doc.addField("type", "metric")
 
 
         when:
-        def joinFunction = new JoinFunction(filterQueries)
+        def joinFunction = new JoinFunction(joinOn)
         def joinKey = joinFunction.apply(doc)
         then:
         joinKey == result
         JoinFunction.isDefaultJoinFunction(joinFunction) == isDefault
 
         where:
-        filterQueries << [validJoinFilterQuery(), noJoinFilterQuery(), noFilterQueries(), null]
-        result << ["laptop-unitTest-groovy", "unitTest", "unitTest", "unitTest"]
-        isDefault << [false, true, true, true]
-    }
-
-    private static String[] noFilterQueries() {
-        []
-    }
-
-    private static String[] noJoinFilterQuery() {
-        ["ag=max"]
-    }
-
-    private static String[] validJoinFilterQuery() {
-        ["ag=max", "join=host,metric,source"]
+        joinOn << ["host, name, source", "", null]
+        result << ["laptop-unitTest-groovy", "unitTest-metric", "unitTest-metric"]
+        isDefault << [false, true, true]
     }
 
     def "test private constructor"() {

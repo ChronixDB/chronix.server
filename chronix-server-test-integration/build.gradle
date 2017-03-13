@@ -9,12 +9,12 @@ apply from: "$rootDir/gradle/intTest.gradle"
 dependencies {
     compile 'org.apache.commons:commons-lang3:3.1'
     compile 'commons-codec:commons-codec:1.10'
-    compile 'org.apache.solr:solr-solrj:6.3.0'
+    compile 'org.apache.solr:solr-solrj:6.4.2'
 
-    compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-timeseries:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
+    compile 'de.qaware.chronix:chronix-api:0.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3.2-beta'
+    compile 'de.qaware.chronix:chronix-timeseries-common:0.3.2-beta'
 
     testCompile project(':chronix-server-client')
     testCompile project(':chronix-server-test-extensions')
@@ -124,7 +124,24 @@ bintray {
     }
 }
 
-def solrVersion = "6.2.1"
+def solrVersion = "6.4.2"
+
+task deleteUnusedDirs(type: Delete) {
+
+    //delete the following dirs
+    def solrDir = "$buildDir/solr-${solrVersion}/"
+
+    delete "$solrDir/docs"
+    delete "$solrDir/example"
+    delete "$solrDir/dist/solrj-lib"
+    delete "$solrDir/dist/test-framework"
+    delete "$solrDir/dist/solr-solrj-${solrVersion}.jar"
+    delete "$solrDir/dist/solr-test-framework-${solrVersion}.jar"
+
+    delete fileTree("$solrDir/server/logs").include("**/*")
+    delete "$solrDir/server/solr/configsets"
+    delete fileTree("$solrDir/server/solr").include("hsperfdata*")
+}
 
 task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
     def solrDir = "$buildDir/solr-${solrVersion}/"

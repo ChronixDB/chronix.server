@@ -39,6 +39,7 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
      * UTF-8 charset. Used for decoding the given input stream.
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
+    private static final String METRIC_TYPE = "metric";
 
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
@@ -70,7 +71,7 @@ public class OpenTsdbTelnetFormatParser implements FormatParser {
                 Metric metric = new Metric(metricName, tags);
                 MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
                 if (metricBuilder == null) {
-                    metricBuilder = new MetricTimeSeries.Builder(metricName);
+                    metricBuilder = new MetricTimeSeries.Builder(metricName, METRIC_TYPE);
                     for (Map.Entry<String, String> tagEntry : tags.entrySet()) {
                         metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
                     }

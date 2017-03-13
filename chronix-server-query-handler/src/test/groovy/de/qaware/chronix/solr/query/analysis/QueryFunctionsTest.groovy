@@ -15,10 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis
 
-import de.qaware.chronix.solr.query.analysis.functions.aggregations.Max
-import de.qaware.chronix.solr.query.analysis.functions.analyses.Trend
-import de.qaware.chronix.solr.query.analysis.functions.transformation.Vectorization
-import de.qaware.chronix.timeseries.MetricTimeSeries
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
+import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
+import de.qaware.chronix.solr.type.metric.functions.transformation.Vectorization
 import spock.lang.Specification
 
 /**
@@ -29,8 +28,8 @@ class QueryFunctionsTest extends Specification {
 
     def "test query functions"() {
         given:
-        def queryFunctions = new QueryFunctions<MetricTimeSeries>();
-        def vectorization = new Vectorization(0.01f)
+        def queryFunctions = new QueryFunctions()
+        def vectorization = new Vectorization(["0.01f"] as String[])
 
         when:
         queryFunctions.addAggregation(new Max())
@@ -56,7 +55,7 @@ class QueryFunctionsTest extends Specification {
 
     def "test empty query functions"() {
         when:
-        def queryFunctions = new QueryFunctions<MetricTimeSeries>();
+        def queryFunctions = new QueryFunctions<>()
 
         then:
         queryFunctions.isEmpty()
@@ -67,7 +66,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 0
 
         !queryFunctions.getAggregations().contains(new Max())
-        !queryFunctions.getTransformations().contains(new Vectorization(0.01f))
+        !queryFunctions.getTransformations().contains(new Vectorization(["0.01f"] as String[]))
         !queryFunctions.getAnalyses().contains(new Trend())
 
         !queryFunctions.containsAggregations()

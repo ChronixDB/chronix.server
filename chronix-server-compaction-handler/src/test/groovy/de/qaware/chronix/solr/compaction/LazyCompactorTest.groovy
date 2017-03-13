@@ -19,7 +19,6 @@ import org.apache.solr.schema.*
 import spock.lang.Specification
 
 import static de.qaware.chronix.Schema.*
-import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
 import static de.qaware.chronix.solr.compaction.TestUtils.*
 
 /**
@@ -34,7 +33,7 @@ class LazyCompactorTest extends Specification {
         schema = Mock()
         schema.getField(START) >> new SchemaField(START, new TrieDoubleField())
         schema.getField(END) >> new SchemaField(END, new TrieDoubleField())
-        schema.getField(METRIC) >> new SchemaField(METRIC, new StrField())
+        schema.getField(NAME) >> new SchemaField(NAME, new StrField())
         schema.getField(DATA) >> new SchemaField(DATA, new BinaryField())
     }
 
@@ -50,7 +49,7 @@ class LazyCompactorTest extends Specification {
         result.size() == 1
         result[0].inputDocuments == [doc] as Set
         result[0].outputDocuments.size() == 1
-        outDoc1 hasAttributes((START): 1, (END): 2, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20))
+        outDoc1 hasAttributes((START): 1, (END): 2, (NAME): 'load_avg', (DATA): compress(1: 10, 2: 20))
     }
 
     def "test compact 2 documents into 1"() {
@@ -67,7 +66,7 @@ class LazyCompactorTest extends Specification {
         result[0].inputDocuments == [doc1, doc2] as Set
         result[0].outputDocuments.size() == 1
 
-        outDoc1 hasAttributes((START): 1, (END): 4, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20, 3: 30, 4: 40))
+        outDoc1 hasAttributes((START): 1, (END): 4, (NAME): 'load_avg', (DATA): compress(1: 10, 2: 20, 3: 30, 4: 40))
     }
 
     def "test 3 documents compacted into 2"() {
@@ -86,8 +85,8 @@ class LazyCompactorTest extends Specification {
         result[0].inputDocuments == [doc1, doc2] as Set
         result[1].inputDocuments == [doc3] as Set
 
-        outDoc1 hasAttributes((START): 1, (END): 4, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20, 3: 30, 4: 40))
-        outDoc2 hasAttributes((START): 5, (END): 6, (METRIC): 'load_avg', (DATA): compress(5: 50, 6: 60))
+        outDoc1 hasAttributes((START): 1, (END): 4, (NAME): 'load_avg', (DATA): compress(1: 10, 2: 20, 3: 30, 4: 40))
+        outDoc2 hasAttributes((START): 5, (END): 6, (NAME): 'load_avg', (DATA): compress(5: 50, 6: 60))
     }
 
     def "test fq"() {
@@ -102,6 +101,6 @@ class LazyCompactorTest extends Specification {
         result.size() == 1
         result[0].inputDocuments == [doc] as Set
         result[0].outputDocuments.size() == 1
-        outDoc1 hasAttributes((START): 1, (END): 2, (METRIC): 'load_avg', (DATA): compress(1: 10, 2: 20))
+        outDoc1 hasAttributes((START): 1, (END): 2, (NAME): 'load_avg', (DATA): compress(1: 10, 2: 20))
     }
 }

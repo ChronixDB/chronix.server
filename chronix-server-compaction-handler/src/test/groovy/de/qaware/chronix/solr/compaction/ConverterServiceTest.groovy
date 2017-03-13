@@ -25,7 +25,7 @@ import org.apache.solr.schema.TrieDoubleField
 import spock.lang.Specification
 
 import static de.qaware.chronix.Schema.ID
-import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
+import static de.qaware.chronix.Schema.NAME
 import static de.qaware.chronix.solr.compaction.TestUtils.*
 
 /**
@@ -42,7 +42,7 @@ class ConverterServiceTest extends Specification {
 
     def "test convert timeseries to solr input document"() {
         given:
-        def ts = new MetricTimeSeries.Builder('heap_usage').attributes([
+        def ts = new MetricTimeSeries.Builder('heap_usage',"metric").attributes([
                 attr1    : 0,
                 attr2    : 'hello',
                 _version_: 1549200241530503168L,
@@ -52,7 +52,7 @@ class ConverterServiceTest extends Specification {
         def result = service.toInputDocument(ts)
 
         then:
-        result hasAttributes((METRIC): 'heap_usage', attr1: 0, attr2: 'hello')
+        result hasAttributes((NAME): 'heap_usage', attr1: 0, attr2: 'hello')
         result['_version_'] == null
         result[ID] != 'b515202e-d3fb-4d1c-878f-85bb45f89a69'
     }
@@ -65,7 +65,7 @@ class ConverterServiceTest extends Specification {
             setField('host', 'some-host')
             setField('id', 'b515202e-d3fb-4d1c-878f-85bb45f89a69')
             setField('data', compress([1: 11, 2: 12, 4: 14]))
-            setField('metric', 'heap_average')
+            setField('name', 'heap_average')
             (SolrDocument) it
         }
 
@@ -73,7 +73,7 @@ class ConverterServiceTest extends Specification {
         def result = service.toTimeSeries(doc)
 
         then:
-        result timeseriesHasAttributes(metric: 'heap_average', start: 1, end: 4, valuesAsArray: [11, 12, 14])
+        result timeseriesHasAttributes(name: 'heap_average', start: 1, end: 4, valuesAsArray: [11, 12, 14])
         result.attribute('host') == 'some-host'
     }
 
@@ -95,7 +95,7 @@ class ConverterServiceTest extends Specification {
 
     def "test copy time series"() {
         given:
-        def ts = new MetricTimeSeries.Builder('cpu')
+        def ts = new MetricTimeSeries.Builder('cpu',"metric")
                 .attribute('host', 'h01')
                 .point(1, 10)
                 .point(2, 20)
@@ -105,7 +105,7 @@ class ConverterServiceTest extends Specification {
         def result = service.copy(ts).build()
 
         then:
-        result.metric == 'cpu'
+        result.name == 'cpu'
         result.attribute('host') == 'h01'
         result.getTimestamps().toArray() == [1, 2] as long[]
         result.getValues().toArray() == [10, 20] as double[]

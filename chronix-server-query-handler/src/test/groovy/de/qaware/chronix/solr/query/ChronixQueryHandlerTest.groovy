@@ -27,6 +27,7 @@ import org.apache.solr.schema.IndexSchema
 import org.apache.solr.schema.SchemaField
 import org.apache.solr.schema.TextField
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Unit test for the date range query handler
@@ -84,7 +85,8 @@ class ChronixQueryHandlerTest extends Specification {
         1 * aggregationHandler.init(info)
     }
 
-    def "test handle default request"() {
+    @Unroll
+    def "test handle default request for params #modifiableSolrParams"() {
         given:
         def defaultHandler = Mock(SearchHandler)
         def analysisHandler = Mock(AnalysisHandler.class)
@@ -116,9 +118,9 @@ class ChronixQueryHandlerTest extends Specification {
         modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW"),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", null),
                                  new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", ""),
-                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", null),
-                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", ""),
-                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric")]
+                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("cf", null),
+                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("cf", ""),
+                                 new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("cj", "host,metric")]
 
         defaultHandlerCount << [1,1,1,1,1,0]
         analysisHandlerCount << [0,0,0,0,0,1]
@@ -158,7 +160,7 @@ class ChronixQueryHandlerTest extends Specification {
         queryEnd > 0
 
         where:
-        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fq", "join=host,metric", "function=max")]
+        modifiableSolrParams << [new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("cj", "host,metric")]
 
     }
 
