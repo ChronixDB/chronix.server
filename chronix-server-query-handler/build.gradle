@@ -3,28 +3,24 @@ sonarqube {
         property "sonar.projectName", "de.qaware.chronix:chronix-server-query-handler"
     }
 }
-repositories {
-    flatDir {
-        dirs '../extLibs'
-    }
-}
 
 dependencies {
-    compile "org.apache.solr:solr-core:6.3.0"
+    compile "org.apache.solr:solr-core:6.4.2"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
-    compile 'de.qaware.chronix:chronix-api:0.1'
-    compile 'de.qaware.chronix:chronix-timeseries:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-converter:0.3'
-    compile 'de.qaware.chronix:chronix-timeseries-common:0.3'
+    compile 'de.qaware.chronix:chronix-api:0.2-beta'
 
-    //Chronix FastDTW for time series similarity
-    compile 'de.qaware.chronix:chronix.fastdtw:0.3'
+    //Plugins and functions
+    compile project(':chronix-server-plugin-management')
+
+    testCompile 'de.qaware.chronix:chronix.fastdtw:0.3'
 
     testCompile 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
-    testCompile project(':chronix-server-test-extensions')
 
-    compile 'org.apache.commons:commons-math3:3.6.1'
+    testCompile project(':chronix-server-test-extensions')
+    testCompile project(':chronix-server-type-metric')
+    testCompile project(':chronix-server-function-metric')
+
 }
 task copyTestResources(type: Copy) {
     from "${projectDir}/src/test/resources"

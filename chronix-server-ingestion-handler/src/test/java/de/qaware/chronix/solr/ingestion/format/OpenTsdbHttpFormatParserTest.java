@@ -45,7 +45,7 @@ public class OpenTsdbHttpFormatParserTest {
             assertThat(series.size(), is(1));
 
             MetricTimeSeries metric = series.get(0);
-            assertThat(metric.getMetric(), is("sys.cpu.nice"));
+            assertThat(metric.getName(), is("sys.cpu.nice"));
             assertThat(metric.getTimestamps().size(), is(1));
             assertThat(metric.getValues().get(0), is(18.0));
             assertThat(metric.getTimestamps().get(0), is(1346846400000L));
@@ -62,7 +62,7 @@ public class OpenTsdbHttpFormatParserTest {
             assertThat(series.size(), is(2));
 
             MetricTimeSeries first = series.get(0);
-            assertThat(first.getMetric(), is("sys.cpu.nice"));
+            assertThat(first.getName(), is("sys.cpu.nice"));
             assertThat(first.getTimestamps().size(), is(2));
             assertThat(first.getValues().get(0), is(1.0));
             assertThat(first.getTimestamps().get(0), is(1346846400000L));
@@ -70,7 +70,7 @@ public class OpenTsdbHttpFormatParserTest {
             assertThat(first.getTimestamps().get(1), is(1346846400100L));
 
             MetricTimeSeries second = series.get(1);
-            assertThat(second.getMetric(), is("sys.cpu.load"));
+            assertThat(second.getName(), is("sys.cpu.load"));
             assertThat(second.getTimestamps().size(), is(1));
             assertThat(second.getValues().get(0), is(2.0));
             assertThat(second.getTimestamps().get(0), is(1346846400000L));

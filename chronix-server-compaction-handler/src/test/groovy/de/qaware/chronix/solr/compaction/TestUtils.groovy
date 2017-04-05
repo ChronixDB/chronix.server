@@ -26,7 +26,6 @@ import org.hamcrest.Description
 import org.hamcrest.TypeSafeDiagnosingMatcher
 
 import static de.qaware.chronix.Schema.*
-import static de.qaware.chronix.converter.common.MetricTSSchema.METRIC
 import static de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer.to
 
 /**
@@ -71,7 +70,7 @@ final class TestUtils {
             add(new LongPoint(START, start))
             add(new LongPoint(END, end))
             add(new StoredField(DATA, data))
-            add(new StringField(METRIC, metric, Field.Store.YES))
+            add(new StringField(NAME, metric, Field.Store.YES))
             (Document) it
         }
     }

@@ -39,6 +39,8 @@ public class OpenTsdbHttpFormatParser implements FormatParser {
      * UTF-8 charset. Used for decoding the given input stream.
      */
     private static final Charset UTF_8 = Charset.forName("utf-8");
+    private static final String METRIC_TYPE = "metric";
+
 
     @Override
     public Iterable<MetricTimeSeries> parse(InputStream stream) throws FormatParseException {
@@ -51,7 +53,7 @@ public class OpenTsdbHttpFormatParser implements FormatParser {
             Metric metric = new Metric(tsdbMetric.getMetric(), tsdbMetric.getTags());
             MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
             if (metricBuilder == null) {
-                metricBuilder = new MetricTimeSeries.Builder(tsdbMetric.getMetric());
+                metricBuilder = new MetricTimeSeries.Builder(tsdbMetric.getMetric(), METRIC_TYPE);
                 for (Map.Entry<String, String> tagEntry : tsdbMetric.getTags().entrySet()) {
                     metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
                 }

@@ -46,7 +46,7 @@ public class GraphiteFormatParserTest {
 
             // test.bash.stats has 5 timestamps with 5 values
             MetricTimeSeries bashSeries = series.get(0);
-            assertThat(bashSeries.getMetric(), is("test.bash.stats"));
+            assertThat(bashSeries.getName(), is("test.bash.stats"));
             assertThat(bashSeries.getTimestamps().size(), is(5));
             assertThat(bashSeries.getTimestamps().get(0), is(1475754111000L));
             assertThat(bashSeries.getTimestamps().get(1), is(1475754112000L));
@@ -63,7 +63,7 @@ public class GraphiteFormatParserTest {
 
             // test.ps.stats has 4 timestamps with 4 values
             MetricTimeSeries psSeries = series.get(1);
-            assertThat(psSeries.getMetric(), is("test.ps.stats"));
+            assertThat(psSeries.getName(), is("test.ps.stats"));
             assertThat(psSeries.getTimestamps().size(), is(4));
             assertThat(psSeries.getTimestamps().get(0), is(1475754116000L));
             assertThat(psSeries.getTimestamps().get(1), is(1475754117000L));

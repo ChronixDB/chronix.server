@@ -46,15 +46,15 @@ public class PrometheusTextFormatParserTest {
 
             assertThat(series.size(), is(3));
 
-            MetricTimeSeries metricWithoutTimestampAndLabel = series.stream().filter(s -> s.getMetric().equals("metric_without_timestamp_and_labels")).findFirst().get();
+            MetricTimeSeries metricWithoutTimestampAndLabel = series.stream().filter(s -> s.getName().equals("metric_without_timestamp_and_labels")).findFirst().get();
             assertThat(metricWithoutTimestampAndLabel.getTime(0), is(NOW.toEpochMilli()));
             assertThat(metricWithoutTimestampAndLabel.getValue(0), is(12.47));
 
-            MetricTimeSeries httpRequestsTotal200 = series.stream().filter(s -> s.getMetric().equals("http_requests_total") && s.getAttributesReference().get("code").equals("200")).findFirst().get();
+            MetricTimeSeries httpRequestsTotal200 = series.stream().filter(s -> s.getName().equals("http_requests_total") && s.getAttributesReference().get("code").equals("200")).findFirst().get();
             assertThat(httpRequestsTotal200.getTime(0), is(1395066363000L));
             assertThat(httpRequestsTotal200.getValue(0), is(1027.0));
 
-            MetricTimeSeries httpRequestsTotal400 = series.stream().filter(s -> s.getMetric().equals("http_requests_total") && s.getAttributesReference().get("code").equals("400")).findFirst().get();
+            MetricTimeSeries httpRequestsTotal400 = series.stream().filter(s -> s.getName().equals("http_requests_total") && s.getAttributesReference().get("code").equals("400")).findFirst().get();
             assertThat(httpRequestsTotal400.getTime(0), is(1395066363000L));
             assertThat(httpRequestsTotal400.getValue(0), is(3.0));
         }

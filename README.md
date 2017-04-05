@@ -65,7 +65,8 @@ A time series has at least the following required fields:
 | ------------- | ------------- |
 | start      | Long    |
 | end        | Long    |
-| metric     | String  |
+| name     | String  |
+| type     | String  |
 | data       | Byte[]  |
 
 The data field contains json serialized and gzip compressed points of time stamp (long) and numeric value (double).
@@ -83,11 +84,11 @@ The examples uses the [Chronix API](https://github.com/ChronixDB/chronix.api), C
 SolrClient solr = new HttpSolrClient("http://localhost:8983/solr/chronix/");
 
 //Define a group by function for the time series records
-Function<MetricTimeSeries, String> groupBy = ts -> ts.getMetric() + "-" + ts.attribute("host");
+Function<MetricTimeSeries, String> groupBy = ts -> ts.getName() + "-" + ts.attribute("host");
 
 //Define a reduce function for the grouped time series records
 BinaryOperator<MetricTimeSeries> reduce = (ts1, ts2) -> {
-      MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(ts1.getMetric())
+      MetricTimeSeries.Builder reduced = new MetricTimeSeries.Builder(ts1.getName(),ts1.getType())
             .points(concat(ts1.getTimestamps(), ts2.getTimestamps()),
                   concat(ts1.getValues(), ts2.getValues()))
             .attributes(ts1.attributes());
@@ -100,8 +101,8 @@ ChronixClient<MetricTimeSeries,SolrClient,SolrQuery> chronix =
                                           new ChronixSolrStorage<>(nrOfDocsPerBatch,groupBy,reduce));
 
 //Lets stream time series from Chronix. We want the maximum of all time series that metric matches *load*.
-SolrQuery query = new SolrQuery("metric:*load*");
-query.addFilterQuery("function=max");
+SolrQuery query = new SolrQuery("name:*load*");
+query.setParam("cf","metric{max}");
 
 //The result is a Java Stream. We simply collect the result into a list.
 List<MetricTimeSeries> maxTS = chronix.stream(solr, query).collect(Collectors.toList());
@@ -113,24 +114,24 @@ Hence there is no need to build a custom modified Solr.
 We just plug the Chronix server parts into a standard Solr.
 
 The following sub projects are Solr extensions and ship with the binary release of Chronix.
-The latest release of Chronix server is based on Apache Solr version 6.3.0
+The latest release of Chronix server is based on Apache Solr version 6.4.2
 
 ## Chronix Server Query Handler ([Source](https://github.com/ChronixDB/chronix.server/tree/master/chronix-server-query-handler))
 The Chronix Server Query Handler is the entry point for requests asking for time series.
 It splits a request based on the filter queries up in range or function queries:
 
-- fq=function=* (for aggregations, analyses, or transformations)
-- fq='' (empty, for range queries)
+- cf=<type>{function;function};<type>{function;function};... (for aggregations, analyses, or transformations)
+- cf='' (empty, for range queries)
 
 But before the Chronix Query Handler delegates a request, it modifies the user query string.
 This is necessary as Chronix stores records and hence a query asking for a specific time range has to be modified.
 As a result it converts a query:
 ```
-host:prodI4 AND metric:\\HeapMemory\\Usage\\Used AND start:NOW-1MONTH AND end:NOW-10DAYS
+host:prodI4 AND name:\\HeapMemory\\Usage\\Used AND start:NOW-1MONTH AND end:NOW-10DAYS
 ```
 in the following query:
 ```
-host:prodI4 AND metric:\\HeapMemory\\Usage\\Used AND -start:[NOW-10DAYS-1ms TO *] AND -end:[* TO NOW-1MONTH-1ms]
+host:prodI4 AND name:\\HeapMemory\\Usage\\Used AND -start:[NOW-10DAYS-1ms TO *] AND -end:[* TO NOW-1MONTH-1ms]
 ```
 
 ### Range Query
@@ -147,7 +148,7 @@ Example Result:
   "response":{"numFound":21,"start":0,"docs":[
       {
         "start":1377468017361,
-        "metric":"\\Load\\max",
+        "name":"\\Load\\max",
         "end":1377554376850,
         "data":"byte[]" // serialized and compressed points
        },...
@@ -164,34 +165,34 @@ Currently the following functions are available:
 
 (See the GPL2 branch that has more functions)
 
-- Maximum (function=max)
-- Minimum (function=min)
-- Average (function=avg)
-- Standard Deviation (function=dev)
-- Percentiles (function=p:[0.1,...,1.0])
-- Count (function=count) (*Release 0.2*)
-- Sum (function=sum) (*Release 0.2*)
-- Range (function=range) (*Release 0.2*)
-- First/Last (function=first/last) (*Release 0.2*)
-- Bottom/Top (function=bottom/top:10) (*Release 0.2*)
-- Derivative (function=derivative) (*Release 0.2*)
-- Non Negative Derivative (function=nnderivative) (*Release 0.2*)
-- Difference (function=diff) (*Release 0.2*)
-- Signed Difference (function=sdiff) (*Release 0.2*)
-- Scale (function=scale:0.5) (*Release 0.2*)
-- Divide (function=divide:4) (*Release 0.2*)
-- Time window based Moving Average (function=movavg:10,MINUTES) (*Release 0.2*)
-- Samples based Moving Average (function=smovavg:10) (*Release 0.4*)
-- Add (function=add:4) (*Release 0.2*)
-- Subtract (function=sub:4) (*Release 0.2*)
-- A linear trend detection (function=trend)
-- Outlier detection (function=outlier)
-- Frequency detection (function=frequency:10,6)
-- Time series similarity search (function=fastdtw:(metric:\*Load\*),1,0.8)
-- Timeshift (function=timeshift:[+/-]10,DAYS) (*Release 0.3*)
-- Distinct (function=distinct) (*Release 0.4*)
-- Integral (function=integral) (*Release 0.4*)
-- SAX (function=sax:\*af\*,10,60,0.01)
+- Maximum (metric{max})
+- Minimum (metric{min})
+- Average (metric{avg})
+- Standard Deviation (metric{dev})
+- Percentiles (metric{p:[0.1,...,1.0]})
+- Count (metric{count}) (*Release 0.2*)
+- Sum (metric{sum}) (*Release 0.2*)
+- Range (metric{range}) (*Release 0.2*)
+- First/Last (metric{first/last}) (*Release 0.2*)
+- Bottom/Top (metric{bottom/top:10}) (*Release 0.2*)
+- Derivative (metric{derivative}) (*Release 0.2*)
+- Non Negative Derivative (metric{nnderivative}) (*Release 0.2*)
+- Difference (metric{diff}) (*Release 0.2*)
+- Signed Difference (metric{sdiff}) (*Release 0.2*)
+- Scale (metric{scale:0.5}) (*Release 0.2*)
+- Divide (metric{divide:4}) (*Release 0.2*)
+- Time window based Moving Average (metric{movavg:10,MINUTES}) (*Release 0.2*)
+- Samples based Moving Average (metric{smovavg:10}) (*Release 0.4*)
+- Add (metric{add:4}) (*Release 0.2*)
+- Subtract (metric{sub:4}) (*Release 0.2*)
+- A linear trend detection (metric{trend})
+- Outlier detection (metric{outlier})
+- Frequency detection (metric{frequency:10,6})
+- Time series similarity search (metric{fastdtw:(metric:\*Load\*),1,0.8})
+- Timeshift (metric{timeshift:[+/-]10,DAYS}) (*Release 0.3*)
+- Distinct (metric{distinct}) (*Release 0.4*)
+- Integral (metric{integral}) (*Release 0.4*)
+- SAX (metric{sax:\*af\*,10,60,0.01})
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.
@@ -199,7 +200,7 @@ Then it executes the analyses and aggregations on the result of the chained tran
 For example the query:
 
 ```
-fq=function=max;min;trend;movavg:10,minutes;scale:4
+cf=metric{max;min;trend;movavg:10,minutes;scale:4}
 ```
 
 is executed as follows:
@@ -223,7 +224,7 @@ For example a query for a metric that is collected on several hosts might return
   "response":{"numFound":21,"start":0,"docs":[
       {
         "start":1377468017361,
-        "metric":"\\Load\\max",
+        "name":"\\Load\\max",
         "end":1377554376850,
         "host:"["host-1","host-2", ...]
        }...
@@ -233,23 +234,23 @@ For example a query for a metric that is collected on several hosts might return
 
 A few example analyses:
 ```
-q=metric:*load* // Get all time series that metric name matches *load*
+q=name:*load* // Get all time series that metric name matches *load*
 
-+ fq=function=max //Get the maximum of 
-+ fq=function=p:0.25 //To get the 25% percentile of the time series data
-+ fq=function=trend //Returns all time series that have a positive trend
-+ fq=function=frequency=10,6 //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
-+ fq=function=fastdtw(metric:*load*),1,0.8 //Uses fast dynamic time warping to search for similar time series
++ cf=metric{max} //Get the maximum of 
++ cf=metric{p:0.25} //To get the 25% percentile of the time series data
++ cf=metric{trend} //Returns all time series that have a positive trend
++ cf=metric{frequency=10,6} //Checks time frames of 10 minutes if there are more than 6 points. If true it returns the time series.
++ cf=metric{fastdtw(metric:*load*),1,0.8} //Uses fast dynamic time warping to search for similar time series
 ```
 
 ### Join Time Series Records
 An query can include multiple records of time series and therefore Chronix has to know how to group records that belong together.
 Chronix uses a so called *join function* that can use any arbitrary set of time series attributes to group records.
-For example we want to join all records that have the same attribute values for host, process, and metric:
+For example we want to join all records that have the same attribute values for host, process, and name:
 ```
-fq=join=host,process,metric
+cj=host,process,name
 ```
-If no join function is defined Chronix applies a default join function that uses the metric name.
+If no join function is defined Chronix applies a default join function that uses the name.
 
 ### Modify Chronix' response
 Per default Chronix returns (as Solr does) all defined fields in the *schema.xml*.
@@ -282,8 +283,8 @@ fl=+data
 This allows one to query raw (uncompressed) data from Chronix in JSON format.
 To execute the transformer you have to add it to the *fl* parameter:
 ```
-q=metric:*load*&fl=+dataAsJson //to get all fields and the dataAsJson field
-q=metric:*load*&fl=dataAsJson //to get only the required fields (except the data field) and dataAsJson
+q=name:*load*&fl=+dataAsJson //to get all fields and the dataAsJson field
+q=name:*load*&fl=dataAsJson //to get only the required fields (except the data field) and dataAsJson
 ```
 The records in the result contains a field called *dataAsJson* that holds the raw time series data as json.
 Note: The data field that normally ship the compressed data is not included in the result.
@@ -299,7 +300,7 @@ Example Result:
   "response":{"numFound":21,"start":0,"docs":[
       {
         "start":1377468017361,
-        "metric":"\\Load\\max",
+        "name":"\\Load\\max",
         "end":1377554376850,
         "dataAsJson":"[[timestamps],[values]]" //as json string
        }...

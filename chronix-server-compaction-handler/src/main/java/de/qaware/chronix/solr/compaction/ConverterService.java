@@ -69,10 +69,10 @@ public class ConverterService {
      * Converts a solr document to a time series.
      * <p>
      * The resulting time series does not contain user defined attributes present in the solr document
-     * (see {@link de.qaware.chronix.converter.common.MetricTSSchema#isUserDefined(String)}).
+     * (see {@link de.qaware.chronix.Schema#isUserDefined(String)} ).
      *
      * @param solrDoc the solr document
-     * @return time series representing the given solr documentr
+     * @return time series representing the given solr document
      */
     public MetricTimeSeries toTimeSeries(SolrDocument solrDoc) {
         BinaryTimeSeries.Builder btsBuilder = new BinaryTimeSeries.Builder();
@@ -120,7 +120,7 @@ public class ConverterService {
      * @return builder preconfigured with values from the given time series
      */
     public MetricTimeSeries.Builder copy(MetricTimeSeries ts) {
-        MetricTimeSeries.Builder result = new MetricTimeSeries.Builder(ts.getMetric());
+        MetricTimeSeries.Builder result = new MetricTimeSeries.Builder(ts.getName(), ts.getType());
         result.start(ts.getStart());
         result.end(ts.getEnd());
         result.points(ts.getTimestamps(), ts.getValues());

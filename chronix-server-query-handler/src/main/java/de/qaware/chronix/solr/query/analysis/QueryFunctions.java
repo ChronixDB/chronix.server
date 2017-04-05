@@ -15,8 +15,9 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import de.qaware.chronix.solr.query.analysis.functions.ChronixAnalysis;
-import de.qaware.chronix.solr.query.analysis.functions.ChronixFunction;
+import de.qaware.chronix.server.functions.ChronixAggregation;
+import de.qaware.chronix.server.functions.ChronixAnalysis;
+import de.qaware.chronix.server.functions.ChronixTransformation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,8 +35,8 @@ import java.util.Set;
 class QueryFunctions {
 
     private Set<ChronixAnalysis> analyses;
-    private Set<ChronixFunction> aggregations;
-    private List<ChronixFunction> transformations;
+    private Set<ChronixAggregation> aggregations;
+    private List<ChronixTransformation> transformations;
 
     QueryFunctions() {
         analyses = new HashSet<>();
@@ -53,14 +54,14 @@ class QueryFunctions {
     /**
      * @return the aggregations in the query
      */
-    public Set<ChronixFunction> getAggregations() {
+    public Set<ChronixAggregation> getAggregations() {
         return aggregations;
     }
 
     /**
      * @return the transformations in the query
      */
-    public List<ChronixFunction> getTransformations() {
+    public List<ChronixTransformation> getTransformations() {
         return transformations;
     }
 
@@ -78,7 +79,7 @@ class QueryFunctions {
      *
      * @param aggregation the aggregation
      */
-    public void addAggregation(ChronixFunction aggregation) {
+    public void addAggregation(ChronixAggregation aggregation) {
         this.aggregations.add(aggregation);
     }
 
@@ -87,7 +88,7 @@ class QueryFunctions {
      *
      * @param transformation the transformation
      */
-    public void addTransformation(ChronixFunction transformation) {
+    public void addTransformation(ChronixTransformation transformation) {
         this.transformations.add(transformation);
     }
 
@@ -145,5 +146,14 @@ class QueryFunctions {
      */
     public int sizeOfAnalyses() {
         return analyses.size();
+    }
+
+    /**
+     * @param functions the other query functions
+     */
+    public void merge(QueryFunctions functions) {
+        aggregations.addAll(functions.aggregations);
+        transformations.addAll(functions.transformations);
+        analyses.addAll(functions.analyses);
     }
 }

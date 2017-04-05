@@ -11,36 +11,34 @@ apply plugin: 'de.undercouch.download'
 
 sourceSets {
     intTest {
-        java.srcDir 'src/inttest/java'
+        groovy.srcDir 'src/inttest/groovy'
         resources.srcDir 'src/inttest/resources'
     }
 }
+configurations {
+    intTestCompile.extendsFrom testCompile
+    intTestRuntime.extendsFrom testRuntime
+}
 
 dependencies {
-    intTestCompile sourceSets.main.output
-    intTestCompile sourceSets.test.output
-
-    intTestCompile configurations.compile
-    intTestCompile configurations.testCompile
-
-    intTestRuntime configurations.runtime
-    intTestRuntime configurations.testRuntime
-
     testCompile project(':chronix-server-query-handler')
     testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-compaction-handler')
     testCompile project(':chronix-server-retention')
+    testCompile project(':chronix-server-type-metric')
+    testCompile project(':chronix-server-function-metric')
+    testCompile project(':chronix-server-plugin-management')
 }
 
 import de.undercouch.gradle.tasks.download.Download
 
-def solrVersion = "6.3.0"
+def solrVersion = "6.4.2"
 
 //Apache archive
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src "https://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    src "http://www-eu.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
@@ -73,9 +71,35 @@ task copyJettySSL(dependsOn: copyContextsWithGZIP, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/etc/"
     from "$projectDir/src/inttest/resources/de/qaware/chronix/etc/"
 }
+/**
+ * Copy some chronix icons
+ */
+task copyFavicon(dependsOn: copyJettySSL, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/"
+    include("favicon.ico")
 
 
-task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
+}
+
+/**
+ * Copy some chronix icons
+ */
+task copyChronixLogo(dependsOn: copyFavicon, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/img/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/img/"
+}
+
+/**
+ * Copy some chronix icons
+ */
+task copyModifiedCSS(dependsOn: copyChronixLogo, type: Copy) {
+    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/css/angular/"
+    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/css/angular/"
+}
+
+
+task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
     from(configurations)
     include("*chronix-api*.jar")
@@ -83,13 +107,20 @@ task copyIntegrationRuntimeLibs(dependsOn: copyJettySSL, type: Copy) {
     include("*chronix-server-query*.jar")
     include("*chronix-server-ingestion*.jar")
     include("*chronix-server-compaction*.jar")
-    include("*chronix-server-retention.jar")
+    include("*chronix-server-retention*.jar")
+    include("*chronix-server-plugin-management*.jar")
+    include("*chronix-server-function-metric*.jar")
+    include("*chronix-server-type-metric*.jar")
     include("*chronix.fastdtw-*.jar")
     include("*commons-lang3-*.jar")
     include("*commons-math3-*.jar")
     include("*quartz*.jar")
     include("*gson*.jar")
     include("*proto*.jar")
+    include("*guice*.jar")
+    include("*aopalliance*.jar")
+    include("*javax.inject-1.jar")
+
 }
 
 /**
@@ -116,7 +147,7 @@ class ExecWait extends DefaultTask {
             println line
             if (line.contains(ready)) {
                 println "$command is ready"
-                break;
+                break
             }
         }
     }
@@ -125,7 +156,7 @@ class ExecWait extends DefaultTask {
 /**
  * Tasks to start and stop solr
  */
-String osName = System.getProperty("os.name").toLowerCase();
+String osName = System.getProperty("os.name").toLowerCase()
 task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd start -m 512m -p 8913'

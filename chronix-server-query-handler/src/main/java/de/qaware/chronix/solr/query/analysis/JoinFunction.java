@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.solr.query.ChronixQueryParams;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.StringUtils;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -35,21 +36,13 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      * If not, it returns a function with a default join key that uses the metric field.
      * Otherwise it uses the defined fields to build a join key field1-field2-field-3.
      *
-     * @param filterQueries - the solr filter queries
+     * @param joinFields - the chronix join parameter
      */
-    public JoinFunction(String[] filterQueries) {
-        if (filterQueries == null || filterQueries.length == 0) {
-            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD};
+    public JoinFunction(String joinFields) {
+        if (StringUtils.isEmpty(joinFields)) {
+            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD_1, ChronixQueryParams.DEFAULT_JOIN_FIELD_2};
         } else {
-            for (String filterQuery : filterQueries) {
-                if (filterQuery.startsWith(ChronixQueryParams.JOIN_PARAM)) {
-                    involvedFields = fields(filterQuery);
-                    break;
-                }
-            }
-        }
-        if (involvedFields == null) {
-            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD};
+            involvedFields = joinFields.split(ChronixQueryParams.JOIN_SEPARATOR);
         }
     }
 
@@ -60,13 +53,9 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      * @return true if it is the same as the default join function (default = join on metric field)
      */
     public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
-        return joinFunction.involvedFields.length == 1 && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD);
-    }
-
-    private static String[] fields(String filterQuery) {
-        int startIndex = filterQuery.indexOf('=') + 1;
-        String stringFields = filterQuery.substring(startIndex);
-        return stringFields.split(ChronixQueryParams.JOIN_SEPARATOR);
+        return joinFunction.involvedFields.length == 2
+                && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD_1)
+                && joinFunction.involvedFields[1].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD_2);
     }
 
     @Override

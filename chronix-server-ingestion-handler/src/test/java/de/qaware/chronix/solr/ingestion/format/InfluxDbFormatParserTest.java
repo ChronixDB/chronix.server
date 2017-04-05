@@ -48,7 +48,7 @@ public class InfluxDbFormatParserTest {
             assertThat(series.size(), is(3));
 
             MetricTimeSeries server01 = findWithHost(series, "server01");
-            assertThat(server01.getMetric(), is("cpu_load_short"));
+            assertThat(server01.getName(), is("cpu_load_short"));
             assertThat(server01.getTimestamps().size(), is(1));
             assertThat(server01.getTimestamps().get(0), is(NOW.toEpochMilli()));
             assertThat(server01.getValues().size(), is(1));
@@ -56,7 +56,7 @@ public class InfluxDbFormatParserTest {
             assertThat(server01.getAttributesReference().get("host"), is("server01"));
 
             MetricTimeSeries server02 = findWithHost(series, "server02");
-            assertThat(server02.getMetric(), is("cpu_load_short"));
+            assertThat(server02.getName(), is("cpu_load_short"));
             assertThat(server02.getTimestamps().size(), is(1));
             assertThat(server02.getTimestamps().get(0), is(1422568543702900L));
             assertThat(server02.getValues().size(), is(1));
@@ -64,7 +64,7 @@ public class InfluxDbFormatParserTest {
             assertThat(server02.getAttributesReference().get("host"), is("server02"));
 
             MetricTimeSeries server03 = findWithHost(series, "server03");
-            assertThat(server03.getMetric(), is("cpu_load_long"));
+            assertThat(server03.getName(), is("cpu_load_long"));
             assertThat(server03.getTimestamps().size(), is(2));
             assertThat(server03.getTimestamps().get(0), is(1422568543702900L));
             assertThat(server03.getTimestamps().get(1), is(1422568544702900L));

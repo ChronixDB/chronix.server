@@ -12,15 +12,17 @@
     </types>
 
     <fields>
-        <!-- The required fields -->
+
+        <!-- Solr -->
         <field name="id" type="string" indexed="true" stored="true" required="true"/>
         <field name="_version_" type="long" indexed="true" stored="true"/>
+
+        <!-- API: The required fields -->
+        <field name="name" type="string" indexed="true" stored="true" required="true"/>
+        <field name="type" type="string" indexed="true" stored="true" required="true"/>
         <field name="start" type="long" indexed="true" stored="true" required="true"/>
         <field name="end" type="long" indexed="true" stored="true" required="true"/>
         <field name="data" type="binary" indexed="true" stored="true" required="false"/>
-
-        <!-- The required field to use kassiopeia time series -->
-        <field name="metric" type="string" indexed="true" stored="true" required="true"/>
 
         <!-- Some fields used within the integration test  -->
         <field name="host" type="string" indexed="true" stored="true" required="false"/>
