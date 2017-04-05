@@ -34,25 +34,27 @@ import java.util.Iterator;
 public class LazyDocumentLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(LazyDocumentLoader.class);
     private final int pageLimit;
+    private final IndexSearcher searcher;
 
     /**
      * Creates a new instance.
      *
      * @param pageLimit the number of documents to be loaded into memory at a time.
+     * @param searcher  the index searcher
      */
-    public LazyDocumentLoader(int pageLimit) {
+    public LazyDocumentLoader(int pageLimit, IndexSearcher searcher) {
         this.pageLimit = pageLimit;
+        this.searcher = searcher;
     }
 
     /**
      * Loads documents sorted in index order.
      *
-     * @param searcher the index searcher
-     * @param query    the query
-     * @param sort     the sort criterion
+     * @param query the query
+     * @param sort  the sort criterion
      * @return found documents
      */
-    public Iterable<Document> load(IndexSearcher searcher, Query query, Sort sort) {
+    public Iterable<Document> load(Query query, Sort sort) {
         return new LazySolrDocumentSet(searcher, query, sort);
     }
 
