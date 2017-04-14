@@ -32,23 +32,23 @@ Storing records instead of individual pairs of time stamp and value has two majo
 The architecture of Chronix has the four building blocks shown in Figure.
 It is well-suited to the parallelism of multi-core systems.
 All blocks can work in parallel to each other to increase the throughput.
-###Semantic Compression
+### Semantic Compression
 Semantic Compression is **optional** and reduces the amount of time series with the goal of storing fewer records.
 It uses techniques that exploit knowledge on the shape and the significance of a time series to remove irrelevant details even if some accuracy is lost, e.g. dimensionality reduction through aggregation.
 
-###Attributes and Chunks
+### Attributes and Chunks
 Attributes and Chunks breaks down time series into chunks of *n* data points that are serialized into *c* Bytes.
 It also calculates the attributes and the pre-calculated values of the records.
 Part of this serialization is a *Date-Delta Compaction* that compares the deltas between time stamps.
 It serializes only the value if the aberration of two deltas is within a defined range, otherwise it writes both the time stamp and the value to the record's data field.
 
-###Basic Compression
+### Basic Compression
 Then Basic Compression uses gzip, a lossless compression technique that operates on *c* consecutive bytes.
 Only the record's data field is compressed to reduce the storage demand while the attributes remain uncompressed for access.
 Compression of operational time series data yields a high compression rate due its value characteristics.
 In spite of the decompression costs when accessing data, compression actually improves query times as data is processed faster.
 
-###Multi-Dimensional Storage
+### Multi-Dimensional Storage
 The Multi-Dimensional Storage holds the records in a compressed binary format.
 Only the fields that are necessary to locate the records are visible as so-called dimensions to the data storage system.
 Queries can then use any combination of those dimensions to locate records.
