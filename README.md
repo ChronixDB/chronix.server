@@ -8,6 +8,8 @@
 [![Dependency Status](https://dependencyci.com/github/ChronixDB/chronix.server/badge)](https://dependencyci.com/github/ChronixDB/chronix.server)
 
 # Chronix Server
+
+[![Join the chat at https://gitter.im/ChronixDB/chronix.server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ChronixDB/chronix.server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 The Chronix Server is an implementation of the Chronix API that stores time series in [Apache Solr](http://lucene.apache.org/solr/).
 Chronix uses several techniques to optimize query times and storage demand.
 Thus Chronix achieves on a benchmark asking serveral ranges (.5 day up to 180 days) an average runtime per range-query of 23 milliseconds.
