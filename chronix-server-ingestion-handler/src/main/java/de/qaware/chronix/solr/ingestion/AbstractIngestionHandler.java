@@ -51,7 +51,7 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
         byte [] signature = new byte[2];
         pb.read(signature);
         pb.unread(signature);
-        if(signature[0] == (byte) GZIPInputStream.GZIP_MAGIC && signature[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8)) {
+        if (signature[0] == (byte) GZIPInputStream.GZIP_MAGIC && signature[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8)) {
           return new GZIPInputStream(pb);
         }   else {
           return pb;
