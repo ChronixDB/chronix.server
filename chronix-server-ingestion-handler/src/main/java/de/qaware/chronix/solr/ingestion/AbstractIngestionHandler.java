@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Abstract class for every ingestion handler.
@@ -39,7 +41,22 @@ import java.io.InputStream;
  * The concrete class only has to provide a suitable {@link FormatParser} instance.
  */
 public abstract class AbstractIngestionHandler extends RequestHandlerBase {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIngestionHandler.class);
+
+/* added to handle gzipped data in */
+
+    public static InputStream detectGzip(InputStream is) throws IOException {
+        PushbackInputStream pb = new PushbackInputStream(is, 2);
+        byte [] signature = new byte[2];
+        pb.read(signature);
+        pb.unread(signature);
+        if(signature[0] == (byte) GZIPInputStream.GZIP_MAGIC && signature[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8)) {
+          return new GZIPInputStream(pb);
+        }   else {
+          return pb;
+        }
+    }
 
     private final FormatParser formatParser;
 
@@ -64,6 +81,7 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
         }
 
         InputStream stream = req.getContentStreams().iterator().next().getStream();
+        stream = detectGzip(stream);
 
         MetricTimeSeriesConverter converter = new MetricTimeSeriesConverter();
 
