@@ -38,7 +38,7 @@ def solrVersion = "6.4.2"
 //"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
 task downloadZipFile(type: Download) {
     onlyIfNewer true
-    src "http://www-eu.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
+    src "http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
     dest new File(buildDir, "solr-${solrVersion}.zip")
 }
 
