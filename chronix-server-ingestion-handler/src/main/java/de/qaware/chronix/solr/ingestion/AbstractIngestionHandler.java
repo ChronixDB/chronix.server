@@ -82,7 +82,7 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
                 LOGGER.debug("Committing transaction...");
                 processor.processCommit(new CommitUpdateCommand(req, false));
                 LOGGER.debug("Committed transaction");
-            }else{
+            } else {
                 LOGGER.debug("Only adding documents.");
             }
         } finally {
