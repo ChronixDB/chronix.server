@@ -63,6 +63,8 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
             return;
         }
 
+        boolean commit = Boolean.parseBoolean(req.getParams().get("commit", "true"));
+
         InputStream stream = req.getContentStreams().iterator().next().getStream();
 
         MetricTimeSeriesConverter converter = new MetricTimeSeriesConverter();
@@ -76,9 +78,13 @@ public abstract class AbstractIngestionHandler extends RequestHandlerBase {
                 storeDocument(document, processor, req);
             }
 
-            LOGGER.debug("Committing transaction...");
-            processor.processCommit(new CommitUpdateCommand(req, false));
-            LOGGER.debug("Committed transaction");
+            if (commit) {
+                LOGGER.debug("Committing transaction...");
+                processor.processCommit(new CommitUpdateCommand(req, false));
+                LOGGER.debug("Committed transaction");
+            } else {
+                LOGGER.debug("Only adding documents.");
+            }
         } finally {
             processor.finish();
         }
