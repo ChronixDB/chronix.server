@@ -54,8 +54,9 @@ public class OpenTsdbHttpFormatParser implements FormatParser {
             MetricTimeSeries.Builder metricBuilder = metrics.get(metric);
             if (metricBuilder == null) {
                 metricBuilder = new MetricTimeSeries.Builder(tsdbMetric.getMetric(), METRIC_TYPE);
+                // Assuming tag entry is always a string, which it should be
                 for (Map.Entry<String, String> tagEntry : tsdbMetric.getTags().entrySet()) {
-                    metricBuilder.attribute(tagEntry.getKey(), tagEntry.getValue());
+                    metricBuilder.attribute(tagEntry.getKey().concat("_s"), tagEntry.getValue());
                 }
                 metrics.put(metric, metricBuilder);
             }
