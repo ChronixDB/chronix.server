@@ -90,7 +90,7 @@ class ChronixCompactionHandlerTest extends Specification {
         1 * updateService.delete([inputDocs[0]])
         1 * updateService.add([outputDocs[0]])
         1 * dependencyProvider.documentLoader(100, _) >> documentLoader
-        1 * dependencyProvider.compactor(100000, _) >> compactor
+        1 * dependencyProvider.compactor(10000, _) >> compactor
     }
 
     def "test parameters"() {
