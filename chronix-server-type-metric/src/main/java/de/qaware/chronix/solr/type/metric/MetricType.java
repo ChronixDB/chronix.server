@@ -113,6 +113,8 @@ public class MetricType implements ChronixType {
                 return new Timeshift(args);
             case "distinct":
                 return new Distinct();
+            case "resample":
+                return new Resample();
             //Analyses
             case "outlier":
                 return new Outlier();
