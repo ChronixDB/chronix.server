@@ -78,7 +78,7 @@ public class ChronixCompactionHandler extends RequestHandlerBase {
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         String joinKey = req.getParams().get(JOIN_KEY);
         String fq = req.getParams().get(FQ);
-        int ppc = req.getParams().getInt(POINTS_PER_CHUNK, 100000);
+        int ppc = req.getParams().getInt(POINTS_PER_CHUNK, 10000);
         int pageSize = req.getParams().getInt(PAGE_SIZE, 100);
 
         depProvider.init(req, rsp);
