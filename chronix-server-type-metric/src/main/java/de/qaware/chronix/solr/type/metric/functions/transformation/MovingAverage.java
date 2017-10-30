@@ -38,8 +38,7 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
     /**
      * Constructs a moving average transformation
      *
-     * @param timeSpan the time span e.g. 5, 10
-     * @param unit     the unit of the time span
+     * @param args the first value is the time span e.g. 5, 10, the second one is the unit of the time span
      */
     public MovingAverage(String[] args) {
 
@@ -91,7 +90,7 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
             i -= 1;
 
             //calculate the average of the values and the time
-            evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, i);
+            evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, i);
 
             //slide the window
             startIdx++;
@@ -109,7 +108,7 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
             timeSeries.add(times[timeSeriesSize - 1], values[timeSeriesSize - 1]);
         } else {
             //add the last window
-            evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
+            evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
         }
 
         functionValueMap.add(this);
@@ -124,7 +123,7 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
      * @param startIdx   the start index of the window
      * @param end        the end index of the window
      */
-    private void evaluteAveragesAndAddToTimeSeries(MetricTimeSeries timeSeries, double[] values, long[] times, int startIdx, int end) {
+    private void evaluateAveragesAndAddToTimeSeries(MetricTimeSeries timeSeries, double[] values, long[] times, int startIdx, int end) {
 
         //If the indices are equals, just return the value at the index position
         if (startIdx == end) {

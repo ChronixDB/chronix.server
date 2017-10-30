@@ -34,7 +34,7 @@ public final class Scale implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Scales the time series by the given factor
      *
-     * @param value the value factor
+     * @param args the first value is the factor
      */
     public Scale(String[] args) {
         this.value = Double.parseDouble(args[0]);

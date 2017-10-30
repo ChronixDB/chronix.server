@@ -38,8 +38,7 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
     /**
      * Constructs a timeshift transformation
      *
-     * @param amount the amount, e.g 10
-     * @param unit   the unit, e.g HOURS
+     * @param args the first value is the amount, e.g 10, the second one is the unit, e.g HOURS
      */
     public Timeshift(String[] args) {
         this.amount = Long.parseLong(args[0]);

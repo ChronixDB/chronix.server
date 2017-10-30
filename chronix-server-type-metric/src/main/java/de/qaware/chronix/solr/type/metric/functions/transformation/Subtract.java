@@ -35,7 +35,7 @@ public final class Subtract implements ChronixTransformation<MetricTimeSeries> {
      * Constructs the subtract transformation.
      * The value is subtracted from each time series value
      *
-     * @param value the value that is subtracted
+     * @param args the first value is the amount that is subtracted
      */
     public Subtract(String[] args) {
         this.value = Double.parseDouble(args[0]);

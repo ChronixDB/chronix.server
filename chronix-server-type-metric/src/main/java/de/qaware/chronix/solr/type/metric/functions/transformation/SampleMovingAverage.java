@@ -34,7 +34,7 @@ public final class SampleMovingAverage implements ChronixTransformation<MetricTi
     /**
      * Constructs a moving average transformation based on a fixed samples amount per window
      *
-     * @param samples the amount of samples within a sliding window
+     * @param args the first value is the amount of samples within a sliding window
      */
     public SampleMovingAverage(String[] args) {
         this.samples = Integer.parseInt(args[0]);

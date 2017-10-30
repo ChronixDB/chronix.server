@@ -44,12 +44,6 @@ public interface ChronixType {
 
     /**
      * @param function the query name of the function
-     * @return true if the type supports the function, otherwise false
-     */
-    boolean supportsFunction(String function);
-
-    /**
-     * @param function the query name of the function
      * @param args     the arguments that are passed to the function
      * @return the matching function
      */

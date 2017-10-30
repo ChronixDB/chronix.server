@@ -33,7 +33,7 @@ public final class Divide implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Scales the time series by the given value
      *
-     * @param value the divisor
+     * @param args the first value is the divisor
      */
     public Divide(String[] args) {
         this.value = Double.parseDouble(args[0]);

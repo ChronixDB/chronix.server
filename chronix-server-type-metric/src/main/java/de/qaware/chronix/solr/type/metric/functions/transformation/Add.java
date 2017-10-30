@@ -34,7 +34,7 @@ public final class Add implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Constructs the add transformation
      *
-     * @param value the value that is added to each measurement
+     * @param args the first parameter is double that is added to evey value.
      */
     public Add(String[] args) {
         this.value = Double.parseDouble(args[0]);
@@ -48,7 +48,7 @@ public final class Add implements ChronixTransformation<MetricTimeSeries> {
      * }
      * </pre>
      *
-     * @param functionValueMap
+     * @param functionValueMap to add the this transformation to.
      */
     @Override
     public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {

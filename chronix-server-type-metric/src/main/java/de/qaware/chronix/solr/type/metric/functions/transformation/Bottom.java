@@ -35,7 +35,7 @@ public final class Bottom implements ChronixTransformation<MetricTimeSeries> {
     /**
      * Constructs the bottom value values transformation
      *
-     * @param value the threshold for the lowest values
+     * @param args the first parameter is the threshold for the lowest values
      */
     public Bottom(String[] args) {
         this.value = Integer.parseInt(args[0]);

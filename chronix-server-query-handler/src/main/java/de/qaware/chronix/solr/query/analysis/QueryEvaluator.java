@@ -89,11 +89,10 @@ public final class QueryEvaluator {
                         queryFunction = queryFunction.substring(0, queryFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                     }
 
-                    ChronixFunction chronixFunction;
+                    ChronixFunction chronixFunction = chronixType.getFunction(queryFunction, arguments);
 
-                    if (chronixType.supportsFunction(queryFunction)) {
-                        chronixFunction = chronixType.getFunction(queryFunction, arguments);
-                    } else {
+                    //No function found.
+                    if (chronixFunction == null) {
                         //check the plugins for this type
                         LOGGER.debug("Try to find plugin for type {} and function {}", typeName, queryFunction);
                         chronixFunction = plugInFunctions.getFunctionForQueryName(typeName, queryFunction);

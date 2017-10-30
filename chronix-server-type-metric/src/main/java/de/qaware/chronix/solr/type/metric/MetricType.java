@@ -18,7 +18,6 @@ package de.qaware.chronix.solr.type.metric;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
-import de.qaware.chronix.solr.type.metric.functions.MetricFunctions;
 import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
 import de.qaware.chronix.solr.type.metric.functions.analyses.FastDtw;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
@@ -52,11 +51,6 @@ public class MetricType implements ChronixType {
     public ChronixTimeSeries convert(List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested) {
         MetricTimeSeries metricTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, records, rawDataIsRequested);
         return new ChronixMetricTimeSeries(metricTimeSeries);
-    }
-
-    @Override
-    public boolean supportsFunction(String function) {
-        return MetricFunctions.ALL.indexOf(function) >= 0;
     }
 
     @Override
