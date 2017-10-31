@@ -118,7 +118,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     include("*guice*.jar")
     include("*aopalliance*.jar")
     include("*javax.inject-1.jar")
-
+    include("*jmotif-sax-*.jar")
 }
 
 /**
