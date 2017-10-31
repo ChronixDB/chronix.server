@@ -212,6 +212,23 @@ class ChronixClientTestIT extends Specification {
 
     }
 
+    def "Test analysis sax"() {
+        when:
+        def query = new SolrQuery("name:*Load*min")
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{sax:*af*,7,7,0.01}")
+        query.setFields("name", "data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        then:
+        timeSeries.size() == 1
+        def selectedTimeSeries = timeSeries.get(0)
+
+        selectedTimeSeries.size()
+        selectedTimeSeries.getName() == "\\Load\\min"
+        selectedTimeSeries.attribute("join_key") == "\\Load\\min-metric"
+        selectedTimeSeries.attribute("0_function_fastdtw_\\Load\\max") == true
+        selectedTimeSeries.attribute("0_function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
+    }
+
     def "test function query with data as json"() {
         when:
         def query = new SolrQuery("name:\\\\Cpu\\\\sy")
