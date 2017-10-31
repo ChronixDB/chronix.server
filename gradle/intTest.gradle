@@ -16,8 +16,8 @@ sourceSets {
     }
 }
 configurations {
-    intTestCompile.extendsFrom testCompile
-    intTestRuntime.extendsFrom testRuntime
+    intTestCompile.extendsFrom(testCompile)
+    intTestRuntime.extendsFrom(testRuntime)
 }
 
 dependencies {
@@ -78,8 +78,6 @@ task copyFavicon(dependsOn: copyJettySSL, type: Copy) {
     into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/"
     from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/"
     include("favicon.ico")
-
-
 }
 
 /**
@@ -100,8 +98,8 @@ task copyModifiedCSS(dependsOn: copyChronixLogo, type: Copy) {
 
 
 task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
+    from(configurations.testCompile + configurations.testRuntime)
     into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
-    from(configurations)
     include("*chronix-api*.jar")
     include("*chronix-timeseries*.jar")
     include("*chronix-server-query*.jar")
@@ -188,14 +186,14 @@ task intTest(dependsOn: copyIntegrationRuntimeLibs, type: Test) {
 
     maxHeapSize = '512m'
 
-    testClassesDir = sourceSets.intTest.output.classesDir
+    testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
 
     binResultsDir = file("$buildDir/integration-test-results/binary/inttest")
 
     reports {
-        html.destination = "$buildDir/reports/integration-test"
-        junitXml.destination = "$buildDir/integration-test-results"
+        html.setDestination("$buildDir/reports/integration-test" as File)
+        junitXml.setDestination("$buildDir/integration-test-results" as File)
     }
 }
 
