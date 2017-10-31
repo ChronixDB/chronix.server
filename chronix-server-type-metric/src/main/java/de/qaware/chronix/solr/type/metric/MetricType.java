@@ -19,10 +19,7 @@ import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
-import de.qaware.chronix.solr.type.metric.functions.analyses.FastDtw;
-import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
-import de.qaware.chronix.solr.type.metric.functions.analyses.Outlier;
-import de.qaware.chronix.solr.type.metric.functions.analyses.Trend;
+import de.qaware.chronix.solr.type.metric.functions.analyses.*;
 import de.qaware.chronix.solr.type.metric.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -120,6 +117,8 @@ public class MetricType implements ChronixType {
                 return new Frequency(args);
             case "fastdtw":
                 return new FastDtw(args);
+            case "sax":
+                return new Sax(args);
             default:
                 LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", function, function);
                 return null;
