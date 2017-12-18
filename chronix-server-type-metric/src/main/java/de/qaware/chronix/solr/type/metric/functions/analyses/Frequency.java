@@ -93,11 +93,9 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
                 if (result >= windowThreshold) {
                     //add the time series as there are more points per window than the threshold
                     functionCtx.add(this, true, null);
-                    return;
+                    break;
                 }
             }
-            //Nothing bad found
-            functionCtx.add(this, false, null);
         }
 
     }
