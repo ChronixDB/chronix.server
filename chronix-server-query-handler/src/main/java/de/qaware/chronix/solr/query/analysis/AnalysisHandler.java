@@ -349,8 +349,10 @@ public class AnalysisHandler extends SearchHandler {
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, timeSeries.getJoinKey());
 
-        //add the getAttributes
-        timeSeries.getAttributes().forEach(doc::addField);
+        for (Map.Entry<String, Object> entry : (Set<Map.Entry<String, Object>>) timeSeries.getAttributes().entrySet()) {
+            doc.addField(entry.getKey(), entry.getValue());
+        }
+
 
         //add the metric field as it is not stored in the getAttributes
         doc.addField(Schema.NAME, timeSeries.getName());
