@@ -15,8 +15,6 @@
  */
 package de.qaware.chronix.server.types;
 
-import de.qaware.chronix.server.functions.*;
-
 import java.util.Map;
 
 /**
@@ -25,38 +23,7 @@ import java.util.Map;
  *
  * @author f.lautenschlager
  */
-public interface ChronixTimeSeries {
-
-    /**
-     * Applies the given transformation
-     *
-     * @param transformation the actual transformation
-     * @param functionValues the function values to add the result
-     */
-    void applyTransformation(ChronixTransformation transformation, FunctionValueMap functionValues);
-
-    /**
-     * Applies the given aggregation
-     *
-     * @param aggregation    the actual aggregation
-     * @param functionValues the function values to add the result
-     */
-    void applyAggregation(ChronixAggregation aggregation, FunctionValueMap functionValues);
-
-    /**
-     * Applies the given analysis
-     *
-     * @param analysis         the actual analysis
-     * @param functionValueMap the function values to add the result
-     */
-    void applyAnalysis(ChronixAnalysis analysis, FunctionValueMap functionValueMap);
-
-    /**
-     * @param pairAnalysis       the acutal pair analysis
-     * @param subQueryTimeSeries the time series from the sub query
-     * @param functionValues     the function values to add the result
-     */
-    void applyPairAnalysis(ChronixPairAnalysis pairAnalysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues);
+public interface ChronixTimeSeries<T> {
 
     /**
      * @return the type of the chronix time series
@@ -79,9 +46,9 @@ public interface ChronixTimeSeries {
     long getEnd();
 
     /**
-     * @return the attributes
+     * @return the getAttributes
      */
-    Map<String, Object> attributes();
+    Map<String, Object> getAttributes();
 
     /**
      * Sorts the time series by time acceding
@@ -98,4 +65,13 @@ public interface ChronixTimeSeries {
      */
     byte[] dataAsBlob();
 
+    /**
+     * @return the join key
+     */
+    String getJoinKey();
+
+    /**
+     * @return get raw time series
+     */
+    T getRawTimeSeries();
 }

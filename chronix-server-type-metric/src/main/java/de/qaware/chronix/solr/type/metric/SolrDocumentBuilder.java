@@ -43,8 +43,8 @@ public final class SolrDocumentBuilder {
 
     /**
      * Collects the documents into a single time series.
-     * Merges the time series attributes using a {@link Set}.
-     * Arrays are added as a single entry in the result attributes.
+     * Merges the time series getAttributes using a {@link Set}.
+     * Arrays are added as a single entry in the result getAttributes.
      *
      * @param queryStart the user query start
      * @param queryEnd   the user query end
@@ -103,13 +103,13 @@ public final class SolrDocumentBuilder {
     }
 
     /**
-     * Merges to sets of time series attributes.
+     * Merges to sets of time series getAttributes.
      * The result is set for each key holding the values.
      * If the other value is a collection, than all values
      * of the collection are added instead of the collection object.
      *
-     * @param merged     the merged attributes
-     * @param attributes the attributes of the other time series
+     * @param merged     the merged getAttributes
+     * @param attributes the getAttributes of the other time series
      */
     private static void merge(Map<String, Object> merged, Map<String, Object> attributes) {
 

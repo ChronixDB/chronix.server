@@ -18,10 +18,8 @@ package de.qaware.chronix.solr.type.metric;
 import de.qaware.chronix.converter.common.Compression;
 import de.qaware.chronix.converter.serializer.json.JsonMetricTimeSeriesSerializer;
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer;
-import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.solr.common.util.Pair;
 
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -31,38 +29,17 @@ import java.util.Map;
  *
  * @author f.lautenschlager
  */
-public class ChronixMetricTimeSeries implements ChronixTimeSeries {
+public class ChronixMetricTimeSeries implements ChronixTimeSeries<MetricTimeSeries> {
 
     private MetricTimeSeries timeSeries;
+    private String joinKey;
 
     /**
      * @param metricTimeSeries the wrapped time series
      */
-    ChronixMetricTimeSeries(MetricTimeSeries metricTimeSeries) {
+    ChronixMetricTimeSeries(String joinKey, MetricTimeSeries metricTimeSeries) {
         timeSeries = metricTimeSeries;
-    }
-
-    @Override
-    public void applyTransformation(ChronixTransformation transformation, FunctionValueMap functionValues) {
-        transformation.execute(timeSeries, functionValues);
-    }
-
-    @Override
-    public void applyAggregation(ChronixAggregation aggregation, FunctionValueMap functionValues) {
-        aggregation.execute(timeSeries, functionValues);
-    }
-
-    @Override
-    public void applyAnalysis(ChronixAnalysis function, FunctionValueMap functionValueMap) {
-        function.execute(timeSeries, functionValueMap);
-    }
-
-    @Override
-    public void applyPairAnalysis(ChronixPairAnalysis analysis, ChronixTimeSeries subQueryTimeSeries, FunctionValueMap functionValues) {
-        ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> pairAnalysis = ((ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>>) analysis);
-
-        ChronixMetricTimeSeries secondMetricTimeSeries = (ChronixMetricTimeSeries) subQueryTimeSeries;
-        pairAnalysis.execute(new Pair(timeSeries, secondMetricTimeSeries.timeSeries), functionValues);
+        this.joinKey = joinKey;
     }
 
     @Override
@@ -86,7 +63,7 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
     }
 
     @Override
-    public Map<String, Object> attributes() {
+    public Map<String, Object> getAttributes() {
         return timeSeries.getAttributesReference();
     }
 
@@ -106,5 +83,15 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries {
         byte[] data = ProtoBufMetricTimeSeriesSerializer.to(timeSeries.points().iterator());
         //compress data
         return Compression.compress(data);
+    }
+
+    @Override
+    public String getJoinKey() {
+        return joinKey;
+    }
+
+    @Override
+    public MetricTimeSeries getRawTimeSeries() {
+        return timeSeries;
     }
 }

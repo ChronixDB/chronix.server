@@ -17,7 +17,8 @@ package de.qaware.chronix.solr.type.metric.functions.analyses;
 
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -56,11 +57,11 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
      * <p>
      * The frequency detector splits a time series using the constructor argument.
      *
-     * @param functionValueMap
+     * @param functionCtx
      * @return true if the time series has a pair of windows 1 and 2 where 2 has th
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries> timeSeries, FunctionCtx functionCtx) {
 
         LongList timestamps = timeSeries.getTimestamps();
 
@@ -98,12 +99,12 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
             int result = current - former;
             if (result >= windowThreshold) {
                 //add the time series as there are more points per window than the threshold
-                functionValueMap.add(this, true, null);
+                functionCtx.add(this, true, null);
                 return;
             }
         }
         //Nothing bad found
-        functionValueMap.add(this, false, null);
+        functionCtx.add(this, false, null);
 
     }
 
@@ -118,7 +119,7 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

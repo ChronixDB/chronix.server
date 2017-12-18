@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.analyses
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ class OutlierTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         new Outlier().execute(ts, analysisResult)
@@ -48,7 +48,7 @@ class OutlierTest extends Specification {
             timeSeries.point(it, 4711)
         }
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         new Outlier().execute(ts, analysisResult)
@@ -58,7 +58,7 @@ class OutlierTest extends Specification {
 
     def "test execute with empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         new Outlier().execute(new MetricTimeSeries.Builder("Out","metric").build(), analysisResult)

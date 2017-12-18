@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.solr.type.metric.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -35,7 +35,7 @@ public final class NonNegativeDerivative implements ChronixTransformation<Metric
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
         //we need a sorted time series
         timeSeries.sort();
 
@@ -61,7 +61,7 @@ public final class NonNegativeDerivative implements ChronixTransformation<Metric
                 timeSeries.add(derivativeTime, derivativeValue);
             }
         }
-        functionValueMap.add(this);
+        functionCtx.add(this);
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class NonNegativeDerivative implements ChronixTransformation<Metric
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

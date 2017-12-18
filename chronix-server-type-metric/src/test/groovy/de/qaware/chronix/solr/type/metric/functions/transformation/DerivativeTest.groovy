@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -31,7 +31,7 @@ class DerivativeTest extends Specification {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series","metric")
         def derivative = new Derivative()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)

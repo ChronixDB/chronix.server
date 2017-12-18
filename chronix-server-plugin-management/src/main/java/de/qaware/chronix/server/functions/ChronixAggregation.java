@@ -25,7 +25,16 @@ public interface ChronixAggregation<T> extends ChronixFunction<T> {
 
 
     @Override
-    default FunctionType getType() {
+    default FunctionType getFunctionType() {
         return FunctionType.AGGREGATION;
+    }
+
+    default String[] getArguments() {
+        return new String[0];
+    }
+
+    @Override
+    default void setArguments(String[] args) {
+        //do nothing
     }
 }

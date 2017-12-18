@@ -22,7 +22,7 @@
         <field name="type" type="string" indexed="true" stored="true" required="true"/>
         <field name="start" type="long" indexed="true" stored="true" required="true"/>
         <field name="end" type="long" indexed="true" stored="true" required="true"/>
-        <field name="data" type="binary" indexed="true" stored="true" required="false"/>
+        <field name="data" type="binary" indexed="false" stored="true" required="false"/>
 
         <!-- Some fields used within the integration test  -->
         <field name="host" type="string" indexed="true" stored="true" required="false"/>

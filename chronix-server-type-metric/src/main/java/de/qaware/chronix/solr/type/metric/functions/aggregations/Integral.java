@@ -16,11 +16,14 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.math3.analysis.integration.SimpsonIntegrator;
+
+import java.util.List;
 
 /**
  * Integral aggregation
@@ -33,20 +36,20 @@ public final class Integral implements ChronixAggregation<MetricTimeSeries> {
      * Calculates the integral of the given time series using the simpson integrator of commons math lib
      *
      * @param timeSeries       the time series as argument for the chronix function
-     * @param functionValueMap the analysis and values result map
+     * @param functionCtx the analysis and values result map
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
         if (timeSeries.isEmpty()) {
-            functionValueMap.add(this, Double.NaN);
+            functionCtx.add(this, Double.NaN);
             return;
         }
 
         SimpsonIntegrator simpsonIntegrator = new SimpsonIntegrator();
         double integral = simpsonIntegrator.integrate(Integer.MAX_VALUE, x -> timeSeries.getValue((int) x), 0, timeSeries.size() - 1);
 
-        functionValueMap.add(this, integral);
+        functionCtx.add(this, integral);
     }
 
     @Override
@@ -55,7 +58,7 @@ public final class Integral implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

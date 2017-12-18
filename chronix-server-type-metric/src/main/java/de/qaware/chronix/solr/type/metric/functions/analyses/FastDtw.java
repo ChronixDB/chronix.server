@@ -21,7 +21,7 @@ import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
 import de.qaware.chronix.server.functions.ChronixPairAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -60,14 +60,14 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
     }
 
     @Override
-    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionValueMap functionValueMap) {
+    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionCtx functionCtx) {
         //We have to build a multivariate time series
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
         MultivariateTimeSeries other = buildMultiVariateTimeSeries(timeSeriesPair.second());
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        functionValueMap.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
+        functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
 
     }
 
@@ -128,7 +128,7 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
 
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

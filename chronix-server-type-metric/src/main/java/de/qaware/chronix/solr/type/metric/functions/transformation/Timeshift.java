@@ -16,13 +16,15 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * Shifts a time series by a given amount and unit, e.g. 2 hours.
@@ -47,18 +49,23 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        double[] values = timeSeries.getValuesAsArray();
-        long[] times = timeSeries.getTimestampsAsArray();
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        timeSeries.clear();
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        for (int i = 0; i < times.length; i++) {
-            times[i] += shift;
+            if (timeSeries.isEmpty()) {
+                continue;
+            }
+            long[] times = timeSeries.getTimestampsAsArray();
+
+            for (int i = 0; i < times.length; i++) {
+                times[i] += shift;
+            }
+
+            timeSeries.setTimes(times);
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-
-        timeSeries.addAll(times, values);
-        functionValueMap.add(this);
     }
 
     @Override
@@ -67,7 +74,7 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

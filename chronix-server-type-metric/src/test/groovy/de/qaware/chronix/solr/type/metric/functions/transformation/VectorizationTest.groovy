@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Shared
 import spock.lang.Specification
@@ -43,7 +43,7 @@ class VectorizationTest extends Specification {
         }
 
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
         vectorization.execute(timeSeries, analysisResult)
@@ -57,7 +57,7 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector","metric")
 
         def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         vectorization.execute(timeSeries, analysisResult)
@@ -73,7 +73,7 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder3 = new MetricTimeSeries.Builder("Vector","metric")
 
         def now = Instant.now()
-        def analysisResult = new FunctionValueMap(1, 1, 3)
+        def analysisResult = new FunctionCtx(1, 1, 3)
 
         when:
         1.times {

@@ -18,7 +18,7 @@ package de.qaware.chronix.solr.type.metric.functions.transformation;
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -37,10 +37,10 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
      * The distinct operation uses the first occurrence of a point.
      *
      * @param timeSeries        the time series that is transformed
-     * @param functionValueMap the function value map
+     * @param functionCtx the function value map
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
 
         if (timeSeries.isEmpty()) {
             return;
@@ -66,7 +66,7 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
         timeSeries.clear();
         timeSeries.addAll(timeList, valueList);
 
-        functionValueMap.add(this);
+        functionCtx.add(this);
     }
 
     @Override
@@ -75,7 +75,7 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

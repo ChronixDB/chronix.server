@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * Sum aggregation for a time series
@@ -34,10 +37,10 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
      * @return the sum of the values
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
+            functionCtx.add(this, Double.NaN);
             return;
         }
 
@@ -50,7 +53,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
 
         }
         //return it
-        functionValueMap.add(this, sum);
+        functionCtx.add(this, sum);
     }
 
     @Override
@@ -59,7 +62,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

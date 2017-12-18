@@ -19,6 +19,7 @@ import de.qaware.chronix.server.types.ChronixType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Holds the functions per type
@@ -42,4 +43,12 @@ public class TypeFunctions {
     public boolean isEmpty() {
         return typeFunctions.isEmpty();
     }
+
+    /**
+     * @return the types
+     */
+    public Set<ChronixType> getTypes() {
+        return typeFunctions.keySet();
+    }
+
 }

@@ -251,6 +251,4 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
     public String getSource() {
         return "www.chronix.io";
     }
-
-
 }

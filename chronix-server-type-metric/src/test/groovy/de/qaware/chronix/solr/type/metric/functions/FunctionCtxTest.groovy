@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
 import de.qaware.chronix.solr.type.metric.functions.transformation.Vectorization
@@ -27,11 +27,11 @@ import spock.lang.Unroll
  * Unit test for the analysis value map
  * @author f.lautenschlager
  */
-class FunctionValueMapTest extends Specification {
+class FunctionCtxTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def functionValueMap = new FunctionValueMap(3, 3, 3)
+        def functionValueMap = new FunctionCtx(3, 3, 3)
 
         when:
         aggregations.times {
@@ -69,7 +69,7 @@ class FunctionValueMapTest extends Specification {
     }
 
     @Shared
-    def functionValueMap = new FunctionValueMap(0, 0, 0)
+    def functionValueMap = new FunctionCtx(0, 0, 0)
 
     @Unroll
     def "test exception case for #function"() {

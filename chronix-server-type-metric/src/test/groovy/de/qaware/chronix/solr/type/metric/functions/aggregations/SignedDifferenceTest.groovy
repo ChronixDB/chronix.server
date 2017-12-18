@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, -1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
         new SignedDifference().execute(ts, analysisResult)
@@ -44,7 +44,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, 1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
         new SignedDifference().execute(ts, analysisResult)
@@ -58,7 +58,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, -1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
         new SignedDifference().execute(ts, analysisResult)
@@ -72,7 +72,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, 1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
         when:
         new SignedDifference().execute(ts, analysisResult)
         then:
@@ -82,7 +82,7 @@ class SignedDifferenceTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
         when:
         new SignedDifference().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
         then:

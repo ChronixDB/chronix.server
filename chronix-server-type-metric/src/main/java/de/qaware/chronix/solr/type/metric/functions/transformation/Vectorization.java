@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -54,7 +54,7 @@ public final class Vectorization implements ChronixTransformation<MetricTimeSeri
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
 
         //we need a sorted time series
         timeSeries.sort();
@@ -81,7 +81,7 @@ public final class Vectorization implements ChronixTransformation<MetricTimeSeri
                 timeSeries.add(rawTimeStamps[i], rawValues[i]);
             }
         }
-        functionValueMap.add(this);
+        functionCtx.add(this);
     }
 
     /**
@@ -131,7 +131,7 @@ public final class Vectorization implements ChronixTransformation<MetricTimeSeri
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

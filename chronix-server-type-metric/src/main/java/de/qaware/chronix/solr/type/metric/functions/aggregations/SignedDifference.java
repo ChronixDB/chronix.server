@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The signed difference (sdiff) aggregation returns the difference between the first and the last value.
@@ -36,10 +39,10 @@ public final class SignedDifference implements ChronixAggregation<MetricTimeSeri
      * @return the average or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
+            functionCtx.add(this, Double.NaN);
             return;
         }
 
@@ -51,24 +54,24 @@ public final class SignedDifference implements ChronixAggregation<MetricTimeSeri
 
         //both values are negative
         if (first < 0 && last < 0) {
-            functionValueMap.add(this, last - first);
+            functionCtx.add(this, last - first);
             return;
         }
 
         //both value are positive
         if (first > 0 && last > 0) {
-            functionValueMap.add(this, last - first);
+            functionCtx.add(this, last - first);
             return;
         }
 
         //start is negative and end is positive
         if (first < 0 && last > 0) {
-            functionValueMap.add(this, last - first);
+            functionCtx.add(this, last - first);
             return;
         }
 
         //start is positive and end is negative
-        functionValueMap.add(this, last - first);
+        functionCtx.add(this, last - first);
     }
 
     @Override
@@ -77,7 +80,7 @@ public final class SignedDifference implements ChronixAggregation<MetricTimeSeri
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

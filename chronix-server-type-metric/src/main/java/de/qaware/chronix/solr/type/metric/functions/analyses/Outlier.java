@@ -17,7 +17,7 @@ package de.qaware.chronix.solr.type.metric.functions.analyses;
 
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.solr.type.metric.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -35,13 +35,13 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
      * Detects outliers using the default box plot implementation.
      * An outlier every value that is above (q3-q1)*1.5*q3 where qN is the nth percentile
      *
-     * @param functionValueMap
+     * @param functionCtx
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
 
         if (timeSeries.isEmpty()) {
-            functionValueMap.add(this, false, null);
+            functionCtx.add(this, false, null);
             return;
         }
 
@@ -55,11 +55,11 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
         for (int i = 0; i < points.size(); i++) {
             double point = points.get(i);
             if (point > threshold) {
-                functionValueMap.add(this, true, null);
+                functionCtx.add(this, true, null);
                 return;
             }
         }
-        functionValueMap.add(this, false, null);
+        functionCtx.add(this, false, null);
     }
 
 
@@ -70,7 +70,7 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
 
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

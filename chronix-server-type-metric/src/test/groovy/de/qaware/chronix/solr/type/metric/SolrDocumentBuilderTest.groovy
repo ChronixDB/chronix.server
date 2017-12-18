@@ -20,7 +20,7 @@ import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.TimeSeriesConverter
 import de.qaware.chronix.converter.common.DoubleList
 import de.qaware.chronix.converter.common.LongList
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Percentile
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
@@ -72,36 +72,36 @@ class SolrDocumentBuilderTest extends Specification {
     }
 
     def emtpyFunctionValueMap() {
-        return new FunctionValueMap(0, 0, 0)
+        return new FunctionCtx(0, 0, 0)
     }
 
     def functionValueMapWithAg() {
-        def functionValueMap = new FunctionValueMap(1, 0, 0)
+        def functionValueMap = new FunctionCtx(1, 0, 0)
         functionValueMap.add(new Percentile("[0.2d]"), 1000)
         functionValueMap
     }
 
     def functionValueMapWithAn() {
-        def functionValueMap = new FunctionValueMap(0, 1, 0)
+        def functionValueMap = new FunctionCtx(0, 1, 0)
         functionValueMap.add(new Trend(), true, "")
         functionValueMap
     }
 
     def functionValueMapWithAn2() {
-        def functionValueMap = new FunctionValueMap(0, 1, 0)
+        def functionValueMap = new FunctionCtx(0, 1, 0)
         functionValueMap.add(new Frequency(["20, 20"]), true, "identifier")
         functionValueMap
     }
 
 
     def functionValueMapWithTr() {
-        def functionValueMap = new FunctionValueMap(0, 0, 1)
+        def functionValueMap = new FunctionCtx(0, 0, 1)
         functionValueMap.add(new Derivative())
         functionValueMap
     }
 
     def functionValueMapWithTr2() {
-        def functionValueMap = new FunctionValueMap(0, 0, 1)
+        def functionValueMap = new FunctionCtx(0, 0, 1)
         functionValueMap.add(new Top(["2"]))
         functionValueMap
     }

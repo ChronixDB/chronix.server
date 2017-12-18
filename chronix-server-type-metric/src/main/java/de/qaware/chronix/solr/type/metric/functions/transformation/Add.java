@@ -16,11 +16,14 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * The add transformation
@@ -48,27 +51,32 @@ public final class Add implements ChronixTransformation<MetricTimeSeries> {
      * }
      * </pre>
      *
-     * @param functionValueMap to add the this transformation to.
+     * @param functionCtx to add the this transformation to.
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        if (timeSeries.isEmpty()) {
-            return;
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            if (timeSeries.isEmpty()) {
+                continue;
+            }
+
+            long[] timestamps = timeSeries.getTimestampsAsArray();
+            double[] values = timeSeries.getValuesAsArray();
+
+            timeSeries.clear();
+
+            for (int i = 0; i < values.length; i++) {
+                values[i] += value;
+            }
+
+            timeSeries.addAll(timestamps, values);
+
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-
-        long[] timestamps = timeSeries.getTimestampsAsArray();
-        double[] values = timeSeries.getValuesAsArray();
-
-        timeSeries.clear();
-
-        for (int i = 0; i < values.length; i++) {
-            values[i] += value;
-        }
-
-        timeSeries.addAll(timestamps, values);
-
-        functionValueMap.add(this);
     }
 
     @Override
@@ -77,7 +85,7 @@ public final class Add implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

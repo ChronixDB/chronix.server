@@ -89,7 +89,7 @@ public final class QueryEvaluator {
                         queryFunction = queryFunction.substring(0, queryFunction.indexOf(AGGREGATION_ARGUMENT_DELIMITER));
                     }
 
-                    ChronixFunction chronixFunction = chronixType.getFunction(queryFunction, arguments);
+                    ChronixFunction chronixFunction = chronixType.getFunction(queryFunction);
 
                     //No function found.
                     if (chronixFunction == null) {
@@ -102,8 +102,10 @@ public final class QueryEvaluator {
                             continue;
                         }
                     }
+                    //Set the arguments to the function
+                    chronixFunction.setArguments(arguments);
 
-                    switch (chronixFunction.getType()) {
+                    switch (chronixFunction.getFunctionType()) {
                         case AGGREGATION:
                             resultingTypeFunctions.addAggregation((ChronixAggregation) chronixFunction);
                             break;

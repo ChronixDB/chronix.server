@@ -39,10 +39,10 @@ public final class ChronixFunctions {
     @Inject
     ChronixFunctions(Set<ChronixFunction> chronixPlugins) {
         for (ChronixFunction pluginFunction : chronixPlugins) {
-            if (!typePluginFunctions.containsKey(pluginFunction.getTimeSeriesType())) {
-                typePluginFunctions.put(pluginFunction.getTimeSeriesType(), new HashSet<>());
+            if (!typePluginFunctions.containsKey(pluginFunction.getType())) {
+                typePluginFunctions.put(pluginFunction.getType(), new HashSet<>());
             }
-            typePluginFunctions.get(pluginFunction.getTimeSeriesType()).add(pluginFunction);
+            typePluginFunctions.get(pluginFunction.getType()).add(pluginFunction);
         }
     }
 

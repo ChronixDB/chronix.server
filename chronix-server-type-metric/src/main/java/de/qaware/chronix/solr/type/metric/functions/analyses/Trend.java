@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.analyses;
 
 import de.qaware.chronix.server.functions.ChronixAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.solr.type.metric.functions.math.LinearRegression;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -32,11 +32,11 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
     /**
      * Detects trends in time series using a linear regression.
      *
-     * @param functionValueMap
+     * @param functionCtx
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
 
         //We need to sort the time series for this analysis
         timeSeries.sort();
@@ -44,7 +44,7 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
         LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
         double slope = linearRegression.slope();
         //If we have a positive slope, we return 1 otherwise -1
-        functionValueMap.add(this, slope > 0, null);
+        functionCtx.add(this, slope > 0, null);
 
     }
 
@@ -55,7 +55,7 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
 
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

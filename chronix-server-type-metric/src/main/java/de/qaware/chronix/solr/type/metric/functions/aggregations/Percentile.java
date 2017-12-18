@@ -16,11 +16,14 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * Percentile aggregation analysis
@@ -48,15 +51,15 @@ public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
      * @return the percentile or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
         //If it is empty, we return NaN
         if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
+            functionCtx.add(this, Double.NaN);
             return;
         }
 
         //Else calculate the analysis value
-        functionValueMap.add(this, de.qaware.chronix.solr.type.metric.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile));
+        functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile));
     }
 
     @Override
@@ -70,7 +73,7 @@ public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

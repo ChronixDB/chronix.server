@@ -19,7 +19,6 @@ import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
-import de.qaware.chronix.solr.type.metric.functions.analyses.FastDtw;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Outlier;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend;
@@ -38,7 +37,7 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public class MetricType implements ChronixType {
+public class MetricType implements ChronixType<MetricTimeSeries> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricType.class);
 
@@ -48,13 +47,13 @@ public class MetricType implements ChronixType {
     }
 
     @Override
-    public ChronixTimeSeries convert(List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested) {
+    public ChronixTimeSeries<MetricTimeSeries> convert(String joinKey, List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested) {
         MetricTimeSeries metricTimeSeries = SolrDocumentBuilder.reduceDocumentToTimeSeries(queryStart, queryEnd, records, rawDataIsRequested);
-        return new ChronixMetricTimeSeries(metricTimeSeries);
+        return new ChronixMetricTimeSeries(joinKey, metricTimeSeries);
     }
 
     @Override
-    public ChronixFunction getFunction(String function, String[] args) {
+    public ChronixFunction<MetricTimeSeries> getFunction(String function) {
 
         switch (function) {
             //Aggregations
@@ -81,45 +80,45 @@ public class MetricType implements ChronixType {
             case "sdiff":
                 return new SignedDifference();
             case "p":
-                return new Percentile(args);
+                return new Percentile();
             case "integral":
                 return new Integral();
             case "trend":
                 return new Trend();
             //Transformations
             case "add":
-                return new Add(args);
+                return new Add();
             case "sub":
-                return new Subtract(args);
+                return new Subtract();
             case "vector":
-                return new Vectorization(args);
+                return new Vectorization();
             case "bottom":
-                return new Bottom(args);
+                return new Bottom();
             case "top":
-                return new Top(args);
+                return new Top();
             case "movavg":
-                return new MovingAverage(args);
+                return new MovingAverage();
             case "smovavg":
-                return new SampleMovingAverage(args);
+                return new SampleMovingAverage();
             case "scale":
-                return new Scale(args);
+                return new Scale();
             case "divide":
-                return new Divide(args);
+                return new Divide();
             case "derivative":
                 return new Derivative();
             case "nnderivative":
                 return new NonNegativeDerivative();
             case "timeshift":
-                return new Timeshift(args);
+                return new Timeshift();
             case "distinct":
                 return new Distinct();
             //Analyses
             case "outlier":
                 return new Outlier();
             case "frequency":
-                return new Frequency(args);
+                return new Frequency();
             case "fastdtw":
-                return new FastDtw(args);
+                //return new FastDtw(args);
             default:
                 LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", function, function);
                 return null;

@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -40,7 +40,7 @@ public final class Divide implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
 
         //Get a copy of the values
         double[] values = timeSeries.getValuesAsArray();
@@ -54,7 +54,7 @@ public final class Divide implements ChronixTransformation<MetricTimeSeries> {
         timeSeries.clear();
         timeSeries.addAll(times, values);
 
-        functionValueMap.add(this);
+        functionCtx.add(this);
     }
 
     @Override
@@ -63,7 +63,7 @@ public final class Divide implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

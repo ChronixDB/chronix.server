@@ -25,7 +25,7 @@ public interface ChronixTransformation<T> extends ChronixFunction<T> {
 
 
     @Override
-    default FunctionType getType() {
+    default FunctionType getFunctionType() {
         return FunctionType.TRANSFORMATION;
     }
 }

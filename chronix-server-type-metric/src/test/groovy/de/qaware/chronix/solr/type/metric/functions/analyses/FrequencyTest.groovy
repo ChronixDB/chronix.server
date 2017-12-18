@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.analyses
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -52,7 +52,7 @@ class FrequencyTest extends Specification {
         timeSeries.point(startOfHighFrequency.plus(60, ChronoUnit.SECONDS).toEpochMilli(), 12)
 
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         new Frequency([windowSize, windowThreshold] as String[]).execute(ts, analysisResult)

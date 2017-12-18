@@ -16,8 +16,11 @@
 package de.qaware.chronix.solr.type.metric.functions.ext;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
+
+import java.util.List;
 
 /**
  * The NoOp transformation to show how plugins work
@@ -26,15 +29,24 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
  */
 public class NoOp implements ChronixTransformation<MetricTimeSeries> {
 
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        functionValueMap.add(this);
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> ctsList, FunctionCtx functionCtx) {
+
+        for (ChronixTimeSeries cts : ctsList) {
+            functionCtx.add(this, cts.getJoinKey());
+        }
+
+    }
+
+    @Override
+    public void setArguments(String[] args) {
+
     }
 
     public String getQueryName() {
         return "noop";
     }
 
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

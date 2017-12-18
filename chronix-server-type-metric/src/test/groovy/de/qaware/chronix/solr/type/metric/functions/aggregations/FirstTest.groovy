@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -29,7 +29,7 @@ class FirstTest extends Specification {
 
         given:
         def timeSeries = new MetricTimeSeries.Builder("Last-Time-Series","metric")
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         10.times {
             timeSeries.point(10 - it, it)
@@ -44,7 +44,7 @@ class FirstTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         new First().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)

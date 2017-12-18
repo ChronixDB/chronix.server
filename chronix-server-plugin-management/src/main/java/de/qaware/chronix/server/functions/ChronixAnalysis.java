@@ -37,7 +37,7 @@ public interface ChronixAnalysis<T> extends ChronixFunction<T> {
 
 
     @Override
-    default FunctionType getType() {
+    default FunctionType getFunctionType() {
         return FunctionType.ANALYSIS;
     }
 }
