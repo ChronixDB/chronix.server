@@ -33,27 +33,32 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the sum of the values of the given time series
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList a list with time series
      * @return the sum of the values
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
-        }
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        //Else calculate the analysis value
-        int size = timeSeries.size();
-        double sum = 0;
-        //Sum up the single values
-        for (int i = 1; i < size; i++) {
-            sum += timeSeries.getValue(i);
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                return;
+            }
+
+            //Else calculate the analysis value
+            int size = timeSeries.size();
+            double sum = 0;
+            //Sum up the single valuesx
+            for (int i = 0; i < size; i++) {
+                sum += timeSeries.getValue(i);
+
+            }
+            //return it
+            functionCtx.add(this, sum, chronixTimeSeries.getJoinKey();
         }
-        //return it
-        functionCtx.add(this, sum);
     }
 
     @Override
