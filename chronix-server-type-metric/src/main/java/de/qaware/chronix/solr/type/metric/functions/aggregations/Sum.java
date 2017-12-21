@@ -56,7 +56,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
                 sum += timeSeries.getValue(i);
 
             }
-            //return it
+            //add it to the function context
             functionCtx.add(this, sum, chronixTimeSeries.getJoinKey();
         }
     }
