@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public final class Difference implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculate the difference between the first and the last value of a given time series
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the average or 0 if the list is empty
      */
     @Override

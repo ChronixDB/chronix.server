@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
 import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * Scale transformation
@@ -29,33 +32,28 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public final class Scale implements ChronixTransformation<MetricTimeSeries> {
 
-    private final double value;
-
-    /**
-     * Scales the time series by the given factor
-     *
-     * @param args the first value is the factor
-     */
-    public Scale(String[] args) {
-        this.value = Double.parseDouble(args[0]);
-    }
+    private double value;
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //get a copy of the values
-        double[] values = timeSeries.getValuesAsArray();
-        //get a copy of timestamps
-        long[] times = timeSeries.getTimestampsAsArray();
-        for (int i = 0; i < timeSeries.size(); i++) {
-            //scale the original value
-            values[i] = values[i] * value;
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //get a copy of the values
+            double[] values = timeSeries.getValuesAsArray();
+            //get a copy of timestamps
+            long[] times = timeSeries.getTimestampsAsArray();
+            for (int i = 0; i < timeSeries.size(); i++) {
+                //scale the original value
+                values[i] = values[i] * value;
+            }
+            //clear and delete the time series
+            timeSeries.clear();
+            timeSeries.addAll(times, values);
+
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-        //clear and delete the time series
-        timeSeries.clear();
-        timeSeries.addAll(times, values);
-
-        functionCtx.add(this);
 
     }
 
@@ -67,6 +65,14 @@ public final class Scale implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is the factor
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.value = Double.parseDouble(args[0]);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package de.qaware.chronix.solr.type.metric.functions.analyses;
 
 import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.solr.type.metric.functions.math.LinearRegression;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The trend analysis
@@ -36,15 +39,20 @@ public final class Trend implements ChronixAnalysis<MetricTimeSeries> {
      * @return 1 if there is a positive trend, otherwise -1
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //We need to sort the time series for this analysis
-        timeSeries.sort();
-        //Calculate the linear regression
-        LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
-        double slope = linearRegression.slope();
-        //If we have a positive slope, we return 1 otherwise -1
-        functionCtx.add(this, slope > 0, null);
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //We need to sort the time series for this analysis
+            timeSeries.sort();
+            //Calculate the linear regression
+            LinearRegression linearRegression = new LinearRegression(timeSeries.getTimestamps(), timeSeries.getValues());
+            double slope = linearRegression.slope();
+            //If we have a positive slope, we return 1 otherwise -1
+            functionCtx.add(this, slope > 0, chronixTimeSeries.getJoinKey());
+        }
 
     }
 

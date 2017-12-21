@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.server.functions.ChronixPairAnalysis;
 import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
@@ -31,9 +30,11 @@ import org.apache.solr.common.util.Pair;
 /**
  * The analysis implementation of the Fast DTW analysis
  *
+ * TODO: Fix this.
+ *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> {
+public final class FastDtw {
 
     private final DistanceFunction distanceFunction;
     private final int searchRadius;
@@ -59,7 +60,6 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         return subQuery;
     }
 
-    @Override
     public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionCtx functionCtx) {
         //We have to build a multivariate time series
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
@@ -67,7 +67,7 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
+        // functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
 
     }
 
@@ -114,34 +114,11 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         return multivariateTimeSeries;
     }
 
-    @Override
     public String[] getArguments() {
         return new String[]{"search radius=" + searchRadius,
                 "max warping cost=" + maxNormalizedWarpingCost,
                 "distance function=" + DistanceFunctionEnum.EUCLIDEAN.name()};
     }
-
-    @Override
-    public String getQueryName() {
-        return "fastdtw";
-    }
-
-
-    @Override
-    public String getType() {
-        return "metric";
-    }
-
-    @Override
-    public boolean needSubquery() {
-        return true;
-    }
-
-    @Override
-    public String getSubquery() {
-        return subquery;
-    }
-
 
     @Override
     public boolean equals(Object obj) {

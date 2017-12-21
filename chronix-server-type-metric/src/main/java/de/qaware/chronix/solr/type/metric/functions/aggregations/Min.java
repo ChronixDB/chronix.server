@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -34,28 +34,33 @@ public class Min implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the minimum value of the first time series.
      *
-     * @param timeSeries the time series for this analysis
+     * @param timeSeriesList list with time series
      * @return the minimum or 0 if the list is empty
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
-        }
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        //Else calculate the analysis value
-        int size = timeSeries.size();
-        double min = timeSeries.getValue(0);
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        for (int i = 1; i < size; i++) {
-            double next = timeSeries.getValue(i);
-            if (next < min) {
-                min = next;
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
             }
+
+            //Else calculate the analysis value
+            int size = timeSeries.size();
+            double min = timeSeries.getValue(0);
+
+            for (int i = 1; i < size; i++) {
+                double next = timeSeries.getValue(i);
+                if (next < min) {
+                    min = next;
+                }
+            }
+            functionCtx.add(this, min, chronixTimeSeries.getJoinKey());
         }
-        functionCtx.add(this, min);
     }
 
     @Override

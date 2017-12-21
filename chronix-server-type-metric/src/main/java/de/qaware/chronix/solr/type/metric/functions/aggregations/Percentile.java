@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,34 +32,37 @@ import java.util.List;
  */
 public final class Percentile implements ChronixAggregation<MetricTimeSeries> {
 
-    private final double percentile;
-
-    /**
-     * Constructs a percentile aggregation
-     *
-     * @param args the function arguments, e.g. the percentile [0.0 ... 1.0]
-     */
-    public Percentile(String[] args) {
-        this.percentile = Double.parseDouble(args[0]);
-    }
-
+    private double percentile;
 
     /**
      * Calculates the percentile of the first time series.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the percentile or 0 if the list is empty
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
-        }
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        //Else calculate the analysis value
-        functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile));
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+
+            //Else calculate the analysis value
+            functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.Percentile.evaluate(timeSeries.getValues(), percentile), chronixTimeSeries.getJoinKey());
+        }
+    }
+
+    /**
+     * @param args * @param args the function arguments, e.g. the percentile [0.0 ... 1.0]
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.percentile = Double.parseDouble(args[0]);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
 import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * The sample moving average transformation.
@@ -29,52 +32,54 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public final class SampleMovingAverage implements ChronixTransformation<MetricTimeSeries> {
 
-    private final int samples;
+    private int samples;
 
     /**
      * Constructs a moving average transformation based on a fixed samples amount per window
-     *
-     * @param args the first value is the amount of samples within a sliding window
-     */
-    public SampleMovingAverage(String[] args) {
-        this.samples = Integer.parseInt(args[0]);
-    }
-
-    /**
+     * <p>
+     * <p>
+     * public SampleMovingAverage(String[] args) {
+     * }
+     * <p>
+     * /**
      * Transforms a time series using a moving average that is based on a window with a fixed amount of samples.
      * The last window contains equals or a lower amount samples.
      *
-     * @param timeSeries the time series that is transformed
+     * @param timeSeriesList the list with time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //we need a sorted time series
-        timeSeries.sort();
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        //get the raw values as arrays
-        double[] values = timeSeries.getValuesAsArray();
-        long[] times = timeSeries.getTimestampsAsArray();
+            //we need a sorted time series
+            timeSeries.sort();
 
-        int timeSeriesSize = timeSeries.size();
-        //remove the old values
-        timeSeries.clear();
+            //get the raw values as arrays
+            double[] values = timeSeries.getValuesAsArray();
+            long[] times = timeSeries.getTimestampsAsArray();
 
-        //the start is already set
-        for (int start = 0; start < timeSeriesSize; start++) {
+            int timeSeriesSize = timeSeries.size();
+            //remove the old values
+            timeSeries.clear();
 
-            int end = start + samples;
-            //calculate the average of the values and the time
-            evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, start, end);
+            //the start is already set
+            for (int start = 0; start < timeSeriesSize; start++) {
 
-            //check if window end is larger than time series
-            if (end + 1 >= timeSeriesSize) {
-                evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, start + 1, timeSeriesSize);
-                break;
+                int end = start + samples;
+                //calculate the average of the values and the time
+                evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, start, end);
+
+                //check if window end is larger than time series
+                if (end + 1 >= timeSeriesSize) {
+                    evaluteAveragesAndAddToTimeSeries(timeSeries, values, times, start + 1, timeSeriesSize);
+                    break;
+                }
             }
-        }
 
-        functionCtx.add(this);
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
+        }
     }
 
     /**
@@ -115,6 +120,15 @@ public final class SampleMovingAverage implements ChronixTransformation<MetricTi
     @Override
     public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is the amount of samples within a sliding window
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.samples = Integer.parseInt(args[0]);
+
     }
 
     @Override

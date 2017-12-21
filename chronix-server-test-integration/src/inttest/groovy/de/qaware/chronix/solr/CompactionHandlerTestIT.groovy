@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import org.apache.solr.common.util.NamedList
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static de.qaware.chronix.Schema.*
+import static de.qaware.chronix.Schema.DATA
+import static de.qaware.chronix.Schema.END
 import static de.qaware.chronix.solr.TestUtils.*
-import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.JOIN_KEY
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.POINTS_PER_CHUNK
 import static java.lang.Math.cos
 import static java.lang.Math.sin
 import static org.apache.solr.common.params.CommonParams.*

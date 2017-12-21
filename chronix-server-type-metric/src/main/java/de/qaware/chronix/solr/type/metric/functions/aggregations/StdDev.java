@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,18 +33,23 @@ public final class StdDev implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the standard deviation of the first time series.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the percentile or 0 if the list is empty
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+            //Else calculate the analysis value
+            functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.StdDev.dev(timeSeries.getValues()), chronixTimeSeries.getJoinKey());
         }
-        //Else calculate the analysis value
-        functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.StdDev.dev(timeSeries.getValues()));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
      * Gets difference between the maximum and the minimum value.
      * It is always a positive value.
      *
-     * @param timeSeriesList the time series
+     * @param timeSeriesList list with time series
      * @return the average or 0 if the list is empty
      */
     @Override
@@ -48,7 +48,7 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
             //If it is empty, we return NaN
             if (timeSeries.size() <= 0) {
                 functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
-                break;
+                continue;
             }
 
             //the values to iterate

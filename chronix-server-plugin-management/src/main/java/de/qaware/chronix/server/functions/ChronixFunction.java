@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ public interface ChronixFunction<T> {
      *
      * @param args the args as strings
      */
-    void setArguments(String[] args);
+    default void setArguments(String[] args) {
+        //do nothing
+    }
 
     /**
      * Gets the arguments of the function. Default is an empty string array.

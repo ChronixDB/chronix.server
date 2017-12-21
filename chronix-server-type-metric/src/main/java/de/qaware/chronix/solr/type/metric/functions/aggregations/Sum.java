@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the sum of the values of the given time series
      *
-     * @param timeSeriesList a list with time series
+     * @param timeSeriesList list with time series
      * @return the sum of the values
      */
     @Override
@@ -45,7 +45,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
             //If it is empty, we return NaN
             if (timeSeries.size() <= 0) {
                 functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
-                return;
+                continue;
             }
 
             //Else calculate the analysis value
@@ -57,7 +57,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
 
             }
             //add it to the function context
-            functionCtx.add(this, sum, chronixTimeSeries.getJoinKey();
+            functionCtx.add(this, sum, chronixTimeSeries.getJoinKey());
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,10 +18,13 @@ package de.qaware.chronix.solr.type.metric.functions.analyses;
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
 import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.solr.type.metric.functions.math.Percentile;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The outlier analysis
@@ -38,28 +41,32 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
      * @param functionCtx
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        if (timeSeries.isEmpty()) {
-            functionCtx.add(this, false, null);
-            return;
-        }
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        DoubleList points = timeSeries.getValues();
-        //Calculate the percentiles
-        double q1 = Percentile.evaluate(points, .25);
-        double q3 = Percentile.evaluate(points, .75);
-        //Calculate the threshold
-        double threshold = (q3 - q1) * 1.5 + q3;
-        //filter the values, if one outlier is found, we can return
-        for (int i = 0; i < points.size(); i++) {
-            double point = points.get(i);
-            if (point > threshold) {
-                functionCtx.add(this, true, null);
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            if (timeSeries.isEmpty()) {
+                functionCtx.add(this, false, chronixTimeSeries.getJoinKey());
                 return;
             }
+
+            DoubleList points = timeSeries.getValues();
+            //Calculate the percentiles
+            double q1 = Percentile.evaluate(points, .25);
+            double q3 = Percentile.evaluate(points, .75);
+            //Calculate the threshold
+            double threshold = (q3 - q1) * 1.5 + q3;
+            //filter the values, if one outlier is found, we can return
+            for (int i = 0; i < points.size(); i++) {
+                double point = points.get(i);
+                if (point > threshold) {
+                    functionCtx.add(this, true, chronixTimeSeries.getJoinKey());
+                }
+            }
+            functionCtx.add(this, false, chronixTimeSeries.getJoinKey());
         }
-        functionCtx.add(this, false, null);
     }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,20 +33,26 @@ public final class Last implements ChronixAggregation<MetricTimeSeries> {
      * Gets the last value in the time series.
      * It first orders the time series.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the average or 0 if the list is empty
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
-        }
 
-        //We need to sort the time series
-        timeSeries.sort();
-        functionCtx.add(this, timeSeries.getValue(timeSeries.size() - 1));
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+
+            //We need to sort the time series
+            timeSeries.sort();
+            functionCtx.add(this, timeSeries.getValue(timeSeries.size() - 1), chronixTimeSeries.getJoinKey());
+        }
     }
 
     @Override

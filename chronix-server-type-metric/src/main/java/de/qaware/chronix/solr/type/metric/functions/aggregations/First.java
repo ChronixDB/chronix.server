@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class First implements ChronixAggregation<MetricTimeSeries> {
      * Gets the first value in the time series.
      * It first orders the time series.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the average or 0 if the list is empty
      */
     @Override

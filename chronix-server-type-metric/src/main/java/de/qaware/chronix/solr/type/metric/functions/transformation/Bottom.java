@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@ package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
 import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.solr.type.metric.functions.math.NElements;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * Bottom transformation get the value bottom values
@@ -30,25 +33,21 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public final class Bottom implements ChronixTransformation<MetricTimeSeries> {
 
-    private final int value;
-
-    /**
-     * Constructs the bottom value values transformation
-     *
-     * @param args the first parameter is the threshold for the lowest values
-     */
-    public Bottom(String[] args) {
-        this.value = Integer.parseInt(args[0]);
-    }
+    private int value;
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionCtx functionCtx) {
-        NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //remove old time series
-        timeSeries.clear();
-        timeSeries.addAll(result.getNTimes(), result.getNValues());
-        functionCtx.add(this);
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            NElements.NElementsResult result = NElements.calc(NElements.NElementsCalculation.BOTTOM, value, timeSeries.getTimestampsAsArray(), timeSeries.getValuesAsArray());
+
+            //remove old time series
+            timeSeries.clear();
+            timeSeries.addAll(result.getNTimes(), result.getNValues());
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
+        }
     }
 
 
@@ -60,6 +59,14 @@ public final class Bottom implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first parameter is the threshold for the lowest values
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.value = Integer.parseInt(args[0]);
     }
 
     @Override

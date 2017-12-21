@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -35,9 +35,7 @@ public final class Count implements ChronixAggregation<MetricTimeSeries> {
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
         for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
-
             MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
-
             functionCtx.add(this, timeSeries.size(), chronixTimeSeries.getJoinKey());
         }
     }

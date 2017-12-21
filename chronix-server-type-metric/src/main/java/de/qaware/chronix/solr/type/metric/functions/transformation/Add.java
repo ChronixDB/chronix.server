@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,16 +32,8 @@ import java.util.List;
  */
 public final class Add implements ChronixTransformation<MetricTimeSeries> {
 
-    private final double value;
+    private double value;
 
-    /**
-     * Constructs the add transformation
-     *
-     * @param args the first parameter is double that is added to evey value.
-     */
-    public Add(String[] args) {
-        this.value = Double.parseDouble(args[0]);
-    }
 
     /**
      * Adds the increment to each value of the time series.
@@ -87,6 +79,14 @@ public final class Add implements ChronixTransformation<MetricTimeSeries> {
     @Override
     public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args [0] value as double to add
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.value = Double.parseDouble(args[0]);
     }
 
     @Override

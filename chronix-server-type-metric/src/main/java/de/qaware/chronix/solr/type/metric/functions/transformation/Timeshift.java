@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,23 +33,14 @@ import java.util.List;
  */
 public final class Timeshift implements ChronixTransformation<MetricTimeSeries> {
 
-    private final ChronoUnit unit;
-    private final long amount;
-    private final long shift;
+    private ChronoUnit unit;
+    private long amount;
+    private long shift;
 
-    /**
-     * Constructs a timeshift transformation
-     *
-     * @param args the first value is the amount, e.g 10, the second one is the unit, e.g HOURS
-     */
-    public Timeshift(String[] args) {
-        this.amount = Long.parseLong(args[0]);
-        this.unit = ChronoUnit.valueOf(args[1].toUpperCase());
-        this.shift = unit.getDuration().toMillis() * amount;
-    }
 
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+
         for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
             MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
@@ -63,7 +54,7 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
                 times[i] += shift;
             }
 
-            timeSeries.setTimes(times);
+            timeSeries.addAll(times, timeSeries.getValuesAsArray());
             functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
     }
@@ -76,6 +67,16 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
     @Override
     public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is the amount, e.g 10, the second one is the unit, e.g HOURS
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.amount = Long.parseLong(args[0]);
+        this.unit = ChronoUnit.valueOf(args[1].toUpperCase());
+        this.shift = unit.getDuration().toMillis() * amount;
     }
 
     @Override

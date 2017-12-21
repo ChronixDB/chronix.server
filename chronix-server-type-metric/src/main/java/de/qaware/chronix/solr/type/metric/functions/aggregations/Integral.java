@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -35,21 +35,27 @@ public final class Integral implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the integral of the given time series using the simpson integrator of commons math lib
      *
-     * @param timeSeries       the time series as argument for the chronix function
-     * @param functionCtx the analysis and values result map
+     * @param timeSeriesList list with time series
+     * @param functionCtx    the analysis and values result map
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        if (timeSeries.isEmpty()) {
-            functionCtx.add(this, Double.NaN);
-            return;
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            if (timeSeries.isEmpty()) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+
+            SimpsonIntegrator simpsonIntegrator = new SimpsonIntegrator();
+            double integral = simpsonIntegrator.integrate(Integer.MAX_VALUE, x -> timeSeries.getValue((int) x), 0, timeSeries.size() - 1);
+
+            functionCtx.add(this, integral, chronixTimeSeries.getJoinKey());
+
         }
-
-        SimpsonIntegrator simpsonIntegrator = new SimpsonIntegrator();
-        double integral = simpsonIntegrator.integrate(Integer.MAX_VALUE, x -> timeSeries.getValue((int) x), 0, timeSeries.size() - 1);
-
-        functionCtx.add(this, integral);
     }
 
     @Override
