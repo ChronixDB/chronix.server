@@ -35,37 +35,43 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
      * Gets difference between the maximum and the minimum value.
      * It is always a positive value.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList the time series
      * @return the average or 0 if the list is empty
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionCtx.add(this, Double.NaN);
-            return;
-        }
 
-        //the values to iterate
-        double[] values = timeSeries.getValuesAsArray();
-        //Initialize the values with the first element
-        double min = values[0];
-        double max = values[0];
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        for (int i = 1; i < values.length; i++) {
-            double current = values[i];
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-            //check for min
-            if (current < min) {
-                min = current;
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                break;
             }
-            //check of max
-            if (current > max) {
-                max = current;
+
+            //the values to iterate
+            double[] values = timeSeries.getValuesAsArray();
+            //Initialize the values with the first element
+            double min = values[0];
+            double max = values[0];
+
+            for (int i = 1; i < values.length; i++) {
+                double current = values[i];
+
+                //check for min
+                if (current < min) {
+                    min = current;
+                }
+                //check of max
+                if (current > max) {
+                    max = current;
+                }
             }
+            //return the absolute difference
+            functionCtx.add(this, Math.abs(max - min), chronixTimeSeries.getJoinKey());
         }
-        //return the absolute difference
-        functionCtx.add(this, Math.abs(max - min));
     }
 
     @Override
