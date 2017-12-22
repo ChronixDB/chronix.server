@@ -29,7 +29,7 @@ class QueryFunctionsTest extends Specification {
     def "test query functions"() {
         given:
         def queryFunctions = new QueryFunctions()
-        def vectorization = new Vectorization(["0.01f"] as String[])
+        def vectorization = new Vectorization().setArguments(["0.01f"] as String[])
 
         when:
         queryFunctions.addAggregation(new Max())
@@ -66,7 +66,7 @@ class QueryFunctionsTest extends Specification {
         queryFunctions.sizeOfTransformations() == 0
 
         !queryFunctions.getAggregations().contains(new Max())
-        !queryFunctions.getTransformations().contains(new Vectorization(["0.01f"] as String[]))
+        !queryFunctions.getTransformations().contains(new Vectorization().setArguments(["0.01f"] as String[]))
         !queryFunctions.getAnalyses().contains(new Trend())
 
         !queryFunctions.containsAggregations()

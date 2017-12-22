@@ -249,7 +249,8 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    private List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, JoinFunction key, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
+    // todo: is this ok? priv -> pub
+    public List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, JoinFunction key, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -307,7 +308,7 @@ public class AnalysisHandler extends SearchHandler {
                 });
             }
 
-            if (typeFunctions.containsAggregations()) {
+            if (typeFunctions.containsAnalyses()) {
                 functionExecutor.execute(() -> {
                     for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
                         analysis.execute(timeSeriesList, functionCtx);
@@ -425,7 +426,8 @@ public class AnalysisHandler extends SearchHandler {
      * @param schema the solr schema
      * @return a set containing the single fields split on ','
      */
-    private Set<String> getFields(String fl, Map<String, SchemaField> schema) {
+    // todo: is this ok? priv -> pub
+    public Set<String> getFields(String fl, Map<String, SchemaField> schema) {
         if (fl == null) {
             return new HashSet<>(schema.keySet());
         }

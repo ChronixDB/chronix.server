@@ -116,20 +116,20 @@ class QueryEvaluatorTest extends Specification {
         where:
         fqs << [["metric{trend}"] as String[],
                 ["metric{outlier}"] as String[],
-                ["metric{frequency:10,6}"] as String[],
-                ["metric{fastdtw:(metric:load* AND group:(A OR B)),5,0.4}"] as String[],
-                ["metric{fastdtw:metric:load* AND group:(A OR B),5,0.4}"] as String[]
+                ["metric{frequency:10,6}"] as String[]
+                /*["metric{fastdtw:(metric:load* AND group:(A OR B)),5,0.4}"] as String[],
+                ["metric{fastdtw:metric:load* AND group:(A OR B),5,0.4}"] as String[]*/
         ]
 
-        expectedQueryName << ["trend", "outlier", "frequency",
-                              "fastdtw", "fastdtw"]
+        expectedQueryName << ["trend", "outlier", "frequency"/*,
+                              "fastdtw", "fastdtw"*/]
         expectedValue << [new String[0], new String[0],
-                          ["window size=10", "window threshold=6"] as String[],
+                          ["window size=10", "window threshold=6"] as String[]/*,
                           ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[],
-                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]]
+                          ["search radius=5", "max warping cost=0.4", "distance function=EUCLIDEAN"] as String[]*/]
 
-        subQuery << [null, null, null, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
-        needSubQuery << [false, false, false, true, true]
+        subQuery << [null, null, null]//, "metric:load* AND group:(A OR B)", "metric:load* AND group:(A OR B)"]
+        needSubQuery << [false, false, false]//, true, true]
     }
 
 
