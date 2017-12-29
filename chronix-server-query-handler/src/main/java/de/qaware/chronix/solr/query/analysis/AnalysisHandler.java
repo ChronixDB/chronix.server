@@ -249,7 +249,6 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    // todo: is this ok? priv -> pub
     public List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, JoinFunction key, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
@@ -426,7 +425,6 @@ public class AnalysisHandler extends SearchHandler {
      * @param schema the solr schema
      * @return a set containing the single fields split on ','
      */
-    // todo: is this ok? priv -> pub
     public Set<String> getFields(String fl, Map<String, SchemaField> schema) {
         if (fl == null) {
             return new HashSet<>(schema.keySet());
