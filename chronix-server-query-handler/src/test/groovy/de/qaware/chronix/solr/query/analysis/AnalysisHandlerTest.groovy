@@ -23,6 +23,7 @@ import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
 import de.qaware.chronix.solr.type.metric.MetricType
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Min
 import de.qaware.chronix.solr.type.metric.functions.analyses.FastDtw
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
 import de.qaware.chronix.solr.type.metric.functions.transformation.Add
@@ -75,13 +76,15 @@ class AnalysisHandlerTest extends Specification {
                            .add("rows", "0"),
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                            .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{max}").add(ChronixQueryParams.QUERY_START_LONG, "0")
-                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
+                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
+                           .add("rows", "0"),
                    /*new ModifiableSolrParams().add("q", "host:laptop AND start:NOW").add("fl", "myfield,start,end,data,metric")
                            .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{fastdtw:(metric:* AND start:NOW),10,0.5}").add(ChronixQueryParams.QUERY_START_LONG, "0")
                            .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),*/
                    new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                            .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{trend}").add(ChronixQueryParams.QUERY_START_LONG, "0")
-                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE)),
+                           .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
+                           .add("rows", "0"),
         ]
 
     }
@@ -111,12 +114,10 @@ class AnalysisHandlerTest extends Specification {
         def docListMock = Stub(DocListProvider)
         def analysisHandler = new AnalysisHandler(docListMock)
         def start = Instant.now()
-        // HashMap<ChronixType, Map<String, List<SolrDocument>>>
         HashMap<ChronixType, Map<String, List<SolrDocument>>> timeSeriesRecords = new HashMap<>()
         Map<String, List<SolrDocument>> help_value = new HashMap<>()
         help_value.put("something", solrDocument(start))
         timeSeriesRecords.put(new MetricType(),help_value)
-        // the original code : timeSeriesRecords.put("something", solrDocument(start))
 
         def request = Mock(SolrQueryRequest)
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
@@ -137,21 +138,25 @@ class AnalysisHandlerTest extends Specification {
         result.get(0).get(resultKey) == expectedResult
 
         where:
-        queryFunction << ["function=max",
+        queryFunction << ["function=min",
+                          "function=max",
                           "function=trend",
                           "function=add:5"]
-        function << [{ -> functions.addAggregation(new Max()) },
+
+        function << [{ -> functions.addAggregation(new Min()) },
+                     { -> functions.addAggregation(new Max()) },
                      { -> functions.addAnalysis(new Trend()) },
                      { ->
                          ChronixTransformation<MetricTimeSeries> add = new Add()
                          add.setArguments(["5"] as String[])
                          functions.addTransformation(add) }]
 
-        resultKey << ["0_function_max",
+        resultKey << ["0_function_min",
+                      "1_function_max",
                       "0_function_trend",
                       "0_function_add"]
 
-        expectedResult << [4713, null, ["value=5.0"]]
+        expectedResult << [4711, 4713, null, ["value=5.0"]]
     }
 
     def "test function with multiple time series"() {
@@ -159,7 +164,6 @@ class AnalysisHandlerTest extends Specification {
         def docListMock = Stub(DocListProvider)
         def analysisHandler = new AnalysisHandler(docListMock)
         def start = Instant.now()
-        // HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs
         HashMap<ChronixType, Map<String, List<SolrDocument>>> timeSeriesRecords = new HashMap<>()
         Map<String, List<SolrDocument>> help_value = new HashMap<>()
         help_value.put("something", solrDocument(start))
