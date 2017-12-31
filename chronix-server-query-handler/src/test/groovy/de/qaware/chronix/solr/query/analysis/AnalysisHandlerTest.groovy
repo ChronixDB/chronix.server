@@ -121,7 +121,8 @@ class AnalysisHandlerTest extends Specification {
 
         def request = Mock(SolrQueryRequest)
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add(ChronixQueryParams.CHRONIX_FUNCTION, "function=max").add(ChronixQueryParams.QUERY_START_LONG, "0")
+                .add(ChronixQueryParams.CHRONIX_FUNCTION, queryFunction)
+                .add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
         function()
 
