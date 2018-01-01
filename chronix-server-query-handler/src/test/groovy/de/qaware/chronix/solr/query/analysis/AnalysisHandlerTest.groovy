@@ -24,7 +24,6 @@ import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider
 import de.qaware.chronix.solr.type.metric.MetricType
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Min
-import de.qaware.chronix.solr.type.metric.functions.analyses.FastDtw
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
 import de.qaware.chronix.solr.type.metric.functions.transformation.Add
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -42,7 +41,6 @@ import spock.lang.Unroll
 
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.util.function.Function
 
 /**
  * Unit test for the analysis handler.
@@ -115,34 +113,28 @@ class AnalysisHandlerTest extends Specification {
         def analysisHandler = new AnalysisHandler(docListMock)
         def start = Instant.now()
         HashMap<ChronixType, Map<String, List<SolrDocument>>> timeSeriesRecords = new HashMap<>()
-        Map<String, List<SolrDocument>> help_value = new HashMap<>()
-        help_value.put("something", solrDocument(start))
-        timeSeriesRecords.put(new MetricType(),help_value)
+
+        Map<String, List<SolrDocument>> metricTimeSeriesRecords = new HashMap<>()
+        metricTimeSeriesRecords.put("something", solrDocument(start))
+        timeSeriesRecords.put(new MetricType(), metricTimeSeriesRecords)
 
         def request = Mock(SolrQueryRequest)
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add(ChronixQueryParams.CHRONIX_FUNCTION, queryFunction)
                 .add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
+        //execute function
         function()
-
-        Function<SolrDocument, String> key = new JoinFunction(null)
-
 
         when:
         def typeFunctions = new TypeFunctions()
         typeFunctions.setTypeFunctions(new MetricType(), functions)
-        def result = analysisHandler.analyze(request, typeFunctions, key, timeSeriesRecords, false)
+        def result = analysisHandler.analyze(request, typeFunctions, timeSeriesRecords, false)
 
         then:
         result.size() == 1
         result.get(0).get(resultKey) == expectedResult
 
         where:
-        queryFunction << ["function=min",
-                          "function=max",
-                          "function=trend",
-                          "function=add:5"]
 
         function << [{ -> functions.addAggregation(new Min()) },
                      { -> functions.addAggregation(new Max()) },
@@ -150,7 +142,8 @@ class AnalysisHandlerTest extends Specification {
                      { ->
                          ChronixTransformation<MetricTimeSeries> add = new Add()
                          add.setArguments(["5"] as String[])
-                         functions.addTransformation(add) }]
+                         functions.addTransformation(add)
+                     }]
 
         resultKey << ["0_function_min",
                       "1_function_max",
@@ -158,43 +151,6 @@ class AnalysisHandlerTest extends Specification {
                       "0_function_add"]
 
         expectedResult << [4711, 4713, null, ["value=5.0"]]
-    }
-
-    def "test function with multiple time series"() {
-        given:
-        def docListMock = Stub(DocListProvider)
-        def analysisHandler = new AnalysisHandler(docListMock)
-        def start = Instant.now()
-        HashMap<ChronixType, Map<String, List<SolrDocument>>> timeSeriesRecords = new HashMap<>()
-        Map<String, List<SolrDocument>> help_value = new HashMap<>()
-        help_value.put("something", solrDocument(start))
-        timeSeriesRecords.put(new MetricType(), help_value)
-
-        Map<String, List<SolrDocument>> timeSeriesRecordsFromSubQuery = new HashMap<>()
-        timeSeriesRecordsFromSubQuery.put("something", solrDocument(start))
-        timeSeriesRecordsFromSubQuery.put("something-other", solrDocument(start))
-
-        def request = Mock(SolrQueryRequest)
-        def indexSchema = Mock(IndexSchema)
-
-        indexSchema.getFields() >> new HashMap<String, SchemaField>()
-        request.getSchema() >> indexSchema
-
-        request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
-                .add(ChronixQueryParams.CHRONIX_FUNCTION, "metric{max}").add(ChronixQueryParams.QUERY_START_LONG, "0")
-                .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
-        def analyses = new QueryFunctions<>()
-        analyses.addAnalysis(new FastDtw().setArguments(["ignored", "1", "0.8"] as String[]))
-        def typeFunctions = new TypeFunctions()
-        typeFunctions.setTypeFunctions(new MetricType(), analyses)
-        Function<SolrDocument, String> key = new JoinFunction(null)
-
-        when:
-        analysisHandler.metaClass.collectDocuments = { -> return timeSeriesRecordsFromSubQuery }
-        def result = analysisHandler.analyze(request, typeFunctions, key, timeSeriesRecords, false)
-
-        then:
-        result.size() == 0
     }
 
     def "test get description"() {
@@ -223,7 +179,7 @@ class AnalysisHandlerTest extends Specification {
 
     List<SolrDocument> solrDocument(Instant start) {
         def result = new ArrayList<SolrDocument>()
-        def ts = new MetricTimeSeries.Builder("test","metric")
+        def ts = new MetricTimeSeries.Builder("test", "metric")
                 .point(start.toEpochMilli(), 4711)
                 .point(start.plusSeconds(1).toEpochMilli(), 4712)
                 .point(start.plusSeconds(2).toEpochMilli(), 4713)

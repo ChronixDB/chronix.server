@@ -43,8 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.function.Function;
 
 /**
@@ -65,8 +63,6 @@ public class AnalysisHandler extends SearchHandler {
     private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
     private static final ChronixFunctions FUNCTIONS = INJECTOR.getInstance(ChronixFunctions.class);
 
-    //Only two - for aggregations and analyses
-    private static final Executor functionExecutor = new ScheduledThreadPoolExecutor(2);
 
     /**
      * Constructs an isAggregation handler
@@ -226,7 +222,7 @@ public class AnalysisHandler extends SearchHandler {
         } else {
             //Otherwise return the analyzed time series
             final TypeFunctions typeFunctions = QueryEvaluator.extractFunctions(chronixFunctions, TYPES, FUNCTIONS);
-            final List<SolrDocument> resultDocuments = analyze(req, typeFunctions, key, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
+            final List<SolrDocument> resultDocuments = analyze(req, typeFunctions, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -241,7 +237,6 @@ public class AnalysisHandler extends SearchHandler {
      *
      * @param req           the solr request with all information
      * @param functions     the chronix analysis that is applied
-     * @param key           the key for joining documents
      * @param collectedDocs the prior collected documents of the query
      * @param isJoined      true if the documents are joined on a user defined attribute combination
      * @return a list containing the analyzed time series as solr documents
@@ -249,7 +244,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    public List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, JoinFunction key, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
+    public List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -299,20 +294,17 @@ public class AnalysisHandler extends SearchHandler {
                 }
             }
 
+
             if (typeFunctions.containsAggregations()) {
-                functionExecutor.execute(() -> {
-                    for (ChronixAggregation aggregation : typeFunctions.getAggregations()) {
-                        aggregation.execute(timeSeriesList, functionCtx);
-                    }
-                });
+                for (ChronixAggregation aggregation : typeFunctions.getAggregations()) {
+                    aggregation.execute(timeSeriesList, functionCtx);
+                }
             }
 
             if (typeFunctions.containsAnalyses()) {
-                functionExecutor.execute(() -> {
-                    for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
-                        analysis.execute(timeSeriesList, functionCtx);
-                    }
-                });
+                for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
+                    analysis.execute(timeSeriesList, functionCtx);
+                }
             }
 
             //build the result
