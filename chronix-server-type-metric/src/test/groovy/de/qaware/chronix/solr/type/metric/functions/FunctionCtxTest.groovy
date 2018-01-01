@@ -31,36 +31,38 @@ class FunctionCtxTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def functionValueMap = new FunctionCtx(3, 3, 3)
+        def functionContext = new FunctionCtx(3, 3, 3)
 
         when:
         aggregations.times {
-            functionValueMap.add(new Max(), it)
+            functionContext.add(new Max(), it as double, "my_join_key")
         }
         analyses.times {
-            functionValueMap.add(new Trend(), true, "")
+            functionContext.add(new Trend(), true, "my_join_key")
         }
 
         transformations.times {
-            functionValueMap.add(new Vectorization(["0.1f"] as String[]))
+            functionContext.add(new Vectorization(), "my_join_key")
         }
 
 
         then:
-        functionValueMap.size() == aggregations + analyses + transformations
 
-        functionValueMap.sizeOfAggregations() == aggregations
-        functionValueMap.sizeOfAnalyses() == analyses
-        functionValueMap.sizeOfTransformations() == transformations
+        def timeSeriesContext = functionContext.getContextFor("my_join_key")
 
-        functionValueMap.getAggregation(0) == new Max()
-        functionValueMap.getAggregationValue(0) == 0
+        timeSeriesContext.size() == aggregations + analyses + transformations
 
-        functionValueMap.getAnalysis(0) == new Trend()
-        functionValueMap.getAnalysisValue(0) == true
-        functionValueMap.getAnalysisIdentifier(0) == ""
+        timeSeriesContext.sizeOfAggregations() == aggregations
+        timeSeriesContext.sizeOfAnalyses() == analyses
+        timeSeriesContext.sizeOfTransformations() == transformations
 
-        functionValueMap.getTransformation(0) == new Vectorization(["0.1"] as String[])
+        timeSeriesContext.getAggregation(0) == new Max()
+        timeSeriesContext.getAggregationValue(0) == 0
+
+        timeSeriesContext.getAnalysis(0) == new Trend()
+        timeSeriesContext.getAnalysisValue(0) == true
+
+        timeSeriesContext.getTransformation(0) == new Vectorization()
 
         where:
         aggregations << [3]
@@ -81,9 +83,9 @@ class FunctionCtxTest extends Specification {
 
 
         where:
-        function << [{ -> functionValueMap.add(new Max(), 0.0) },
+        function << [{ -> functionValueMap.add(new Max(), 0.0d, "") },
                      { -> functionValueMap.add(new Trend(), true, "") },
-                     { -> functionValueMap.add(new Vectorization(["0.1"] as String[])) }]
+                     { -> functionValueMap.add(new Vectorization(), "") }]
 
     }
 }
