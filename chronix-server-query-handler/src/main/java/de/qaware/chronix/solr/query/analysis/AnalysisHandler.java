@@ -63,7 +63,6 @@ public class AnalysisHandler extends SearchHandler {
     private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
     private static final ChronixFunctions FUNCTIONS = INJECTOR.getInstance(ChronixFunctions.class);
 
-
     /**
      * Constructs an isAggregation handler
      *
@@ -288,24 +287,28 @@ public class AnalysisHandler extends SearchHandler {
                     typeFunctions.sizeOfAnalyses(),
                     typeFunctions.sizeOfTransformations());
 
+
+            //do them sequentially
             if (typeFunctions.containsTransformations()) {
                 for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
                     transformation.execute(timeSeriesList, functionCtx);
                 }
             }
 
-
+            List<ChronixFunction> aggregationsAndAnalyses = new ArrayList<>(typeFunctions.sizeOfAggregations() + typeFunctions.sizeOfAnalyses());
             if (typeFunctions.containsAggregations()) {
-                for (ChronixAggregation aggregation : typeFunctions.getAggregations()) {
-                    aggregation.execute(timeSeriesList, functionCtx);
-                }
+                aggregationsAndAnalyses.addAll(typeFunctions.getAggregations());
             }
 
             if (typeFunctions.containsAnalyses()) {
-                for (ChronixAnalysis analysis : typeFunctions.getAnalyses()) {
-                    analysis.execute(timeSeriesList, functionCtx);
-                }
+                aggregationsAndAnalyses.addAll(typeFunctions.getAnalyses());
             }
+
+            //do aggregations and analyses parallel
+            if (!aggregationsAndAnalyses.isEmpty()) {
+                aggregationsAndAnalyses.parallelStream().forEach(function -> function.execute(timeSeriesList, functionCtx));
+            }
+
 
             //build the result
             for (ChronixTimeSeries timeSeries : timeSeriesList) {

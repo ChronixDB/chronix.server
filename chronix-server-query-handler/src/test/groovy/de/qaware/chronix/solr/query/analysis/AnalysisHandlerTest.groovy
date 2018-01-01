@@ -122,10 +122,11 @@ class AnalysisHandlerTest extends Specification {
         request.params >> new ModifiableSolrParams().add("q", "host:laptop AND start:NOW")
                 .add(ChronixQueryParams.QUERY_START_LONG, "0")
                 .add(ChronixQueryParams.QUERY_END_LONG, String.valueOf(Long.MAX_VALUE))
+
+        when:
         //execute function
         function()
 
-        when:
         def typeFunctions = new TypeFunctions()
         typeFunctions.setTypeFunctions(new MetricType(), functions)
         def result = analysisHandler.analyze(request, typeFunctions, timeSeriesRecords, false)
@@ -135,6 +136,10 @@ class AnalysisHandlerTest extends Specification {
         result.get(0).get(resultKey) == expectedResult
 
         where:
+        queryFunction << ["min",
+                          "max",
+                          "trend",
+                          "add:5"]
 
         function << [{ -> functions.addAggregation(new Min()) },
                      { -> functions.addAggregation(new Max()) },
@@ -146,7 +151,7 @@ class AnalysisHandlerTest extends Specification {
                      }]
 
         resultKey << ["0_function_min",
-                      "1_function_max",
+                      "0_function_max",
                       "0_function_trend",
                       "0_function_add"]
 
