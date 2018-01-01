@@ -37,7 +37,7 @@ public class ChronixMetricTimeSeries implements ChronixTimeSeries<MetricTimeSeri
     /**
      * @param metricTimeSeries the wrapped time series
      */
-    ChronixMetricTimeSeries(String joinKey, MetricTimeSeries metricTimeSeries) {
+    public ChronixMetricTimeSeries(String joinKey, MetricTimeSeries metricTimeSeries) {
         timeSeries = metricTimeSeries;
         this.joinKey = joinKey;
     }
