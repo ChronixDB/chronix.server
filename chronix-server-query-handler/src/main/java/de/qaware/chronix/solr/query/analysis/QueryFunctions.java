@@ -156,4 +156,10 @@ class QueryFunctions {
         transformations.addAll(functions.transformations);
         analyses.addAll(functions.analyses);
     }
+
+    void clear() {
+        aggregations.clear();
+        transformations.clear();
+        analyses.clear();
+    }
 }

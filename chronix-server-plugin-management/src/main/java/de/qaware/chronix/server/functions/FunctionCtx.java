@@ -15,7 +15,9 @@
  */
 package de.qaware.chronix.server.functions;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simple fixed size map of chronix analysis and value
@@ -24,10 +26,11 @@ import java.util.HashMap;
  */
 public class FunctionCtx {
 
-    private final HashMap<String, FunctionCtxEntry> functionCtxEntries = new HashMap<>();
+    //TODO: Check if we need this.
+    private final Map<String, FunctionCtxEntry> functionCtxEntries = Collections.synchronizedMap(new HashMap<>());
 
     private final int maxAmountOfAggregations;
-    private final int maxAmountOfAnalyes;
+    private final int maxAmountOfAnalyses;
     private final int maxAmountOfTransformations;
 
 
@@ -40,7 +43,7 @@ public class FunctionCtx {
      */
     public FunctionCtx(int amountOfAggregations, int amountOfAnalyses, int amountOfTransformations) {
         this.maxAmountOfAggregations = amountOfAggregations;
-        this.maxAmountOfAnalyes = amountOfAnalyses;
+        this.maxAmountOfAnalyses = amountOfAnalyses;
         this.maxAmountOfTransformations = amountOfTransformations;
     }
 
@@ -78,7 +81,7 @@ public class FunctionCtx {
 
     private void addEntryIfNotExist(String joinKey) {
         if (!functionCtxEntries.containsKey(joinKey)) {
-            functionCtxEntries.put(joinKey, new FunctionCtxEntry(maxAmountOfTransformations, maxAmountOfAggregations, maxAmountOfAnalyes));
+            functionCtxEntries.put(joinKey, new FunctionCtxEntry(maxAmountOfTransformations, maxAmountOfAggregations, maxAmountOfAnalyses));
         }
     }
 

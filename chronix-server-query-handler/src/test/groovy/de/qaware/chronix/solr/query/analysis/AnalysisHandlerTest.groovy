@@ -135,6 +135,8 @@ class AnalysisHandlerTest extends Specification {
         result.size() == 1
         result.get(0).get(resultKey) == expectedResult
 
+        functions.clear()
+
         where:
         queryFunction << ["min",
                           "max",
@@ -155,7 +157,7 @@ class AnalysisHandlerTest extends Specification {
                       "0_function_trend",
                       "0_function_add"]
 
-        expectedResult << [4711, 4713, null, ["value=5.0"]]
+        expectedResult << [4711, 4713, true, ["value=5.0"]]
     }
 
     def "test get description"() {
