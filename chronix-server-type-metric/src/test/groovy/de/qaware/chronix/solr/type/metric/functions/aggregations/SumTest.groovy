@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -36,9 +38,9 @@ class SumTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        new Sum().execute(ts, analysisResult)
+        new Sum().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 10449.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == 10449.0d
     }
 
 
@@ -46,9 +48,9 @@ class SumTest extends Specification {
         given:
         def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Sum().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        new Sum().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN
+        analysisResult.getContextFor("").getAggregationValue(0) == Double.NaN
     }
 
     def "test arguments"() {

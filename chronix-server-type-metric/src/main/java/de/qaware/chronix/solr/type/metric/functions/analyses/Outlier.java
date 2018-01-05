@@ -63,6 +63,7 @@ public class Outlier implements ChronixAnalysis<MetricTimeSeries> {
                 double point = points.get(i);
                 if (point > threshold) {
                     functionCtx.add(this, true, chronixTimeSeries.getJoinKey());
+                    return;
                 }
             }
             functionCtx.add(this, false, chronixTimeSeries.getJoinKey());

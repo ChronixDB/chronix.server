@@ -37,7 +37,7 @@ class FastDtwTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new FastDtw(["", "5", "20"] as String[]).execute(new Pair(ts1, ts2), analysisResult)
+        FastDtw fastDtw = new FastDtw(["", "5", "20"] as String[]).execute(new Pair(ts1, ts2), analysisResult)
         then:
         analysisResult.getAnalysisValue(0)
     }

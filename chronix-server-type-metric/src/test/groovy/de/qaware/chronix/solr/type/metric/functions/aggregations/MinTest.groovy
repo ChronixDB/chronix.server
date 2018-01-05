@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -34,9 +36,9 @@ class MinTest extends Specification {
         MetricTimeSeries ts = timeSeries.build()
         def analysisResult = new FunctionCtx(1, 1, 1);
         when:
-        new Min().execute(ts, analysisResult)
+        new Min().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == -90.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == -90.0d
     }
 
     def "test execute with positive number"() {
@@ -50,18 +52,18 @@ class MinTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        new Min().execute(ts, analysisResult)
+        new Min().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 0.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == 0.0d
     }
 
     def "test for empty time series"() {
         given:
         def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Min().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        new Min().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN
+        analysisResult.getContextFor("").getAggregationValue(0) == Double.NaN
     }
 
 

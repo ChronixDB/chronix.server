@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -37,18 +39,18 @@ class AvgTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        new Avg().execute(ts, analysisResult)
+        new Avg().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 949.9090909090909d
+        analysisResult.getContextFor("").getAggregationValue(0) == 949.9090909090909d
     }
 
     def "test for empty time series"() {
         given:
         def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Avg().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        new Avg().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN
+        analysisResult.getContextFor("").getAggregationValue(0) == Double.NaN
     }
 
 

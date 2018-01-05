@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -37,9 +39,9 @@ class CountTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        new Count().execute(ts, analysisResult)
+        new Count().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 11d
+        analysisResult.getContextFor("").getAggregationValue(0) == 11d
     }
 
 
@@ -47,9 +49,9 @@ class CountTest extends Specification {
         given:
         def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Count().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        new Count().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 0.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == 0.0d
     }
 
 

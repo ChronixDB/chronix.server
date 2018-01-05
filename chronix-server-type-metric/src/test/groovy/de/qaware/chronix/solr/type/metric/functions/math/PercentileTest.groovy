@@ -34,7 +34,7 @@ class PercentileTest extends Specification {
 
     def "test evaluate 0.5 percentile"() {
         given:
-        def percentile = 0.5
+        def percentile = 0.5d
 
         when:
         def value = Percentile.evaluate(points, percentile)

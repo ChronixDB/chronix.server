@@ -92,7 +92,7 @@ public final class NElements {
     /**
      * Helper class to represent values with belonging index
      */
-    private static final class Pair implements Comparable<Pair> {
+    public static final class Pair implements Comparable<Pair> {
         private int index;
         private double value;
 

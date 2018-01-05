@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.analyses
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -36,9 +38,9 @@ class OutlierTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new Outlier().execute(ts, analysisResult)
+        new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAnalysisValue(0)
+        analysisResult.getContextFor("").getAnalysisValue(0)
     }
 
     def "test execute with a time series that has no outlier"() {
@@ -51,9 +53,9 @@ class OutlierTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new Outlier().execute(ts, analysisResult)
+        new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        !analysisResult.getAggregationValue(0)
+        !analysisResult.getContextFor("").getAggregationValue(0)
     }
 
     def "test execute with empty time series"() {
@@ -61,9 +63,9 @@ class OutlierTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new Outlier().execute(new MetricTimeSeries.Builder("Out","metric").build(), analysisResult)
+        new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Out","metric").build()))), analysisResult)
         then:
-        !analysisResult.getAggregationValue(0)
+        !analysisResult.getContextFor("").getAggregationValue(0)
     }
 
     def "test need subquery"() {

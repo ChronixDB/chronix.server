@@ -34,10 +34,10 @@ class StdDevTest extends Specification {
         given:
 
         def doubles = new DoubleList()
-        doubles.add(0.5)
-        doubles.add(1.4)
-        doubles.add(10.2)
-        doubles.add(40.2)
+        doubles.add(0.5d)
+        doubles.add(1.4d)
+        doubles.add(10.2d)
+        doubles.add(40.2d)
 
         when:
         def result = StdDev.dev(doubles)

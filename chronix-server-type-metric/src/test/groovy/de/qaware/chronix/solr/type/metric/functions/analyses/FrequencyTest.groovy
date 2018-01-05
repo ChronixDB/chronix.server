@@ -16,8 +16,12 @@
 package de.qaware.chronix.solr.type.metric.functions.analyses
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -55,9 +59,14 @@ class FrequencyTest extends Specification {
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new Frequency([windowSize, windowThreshold] as String[]).execute(ts, analysisResult)
+        Frequency frequency = new Frequency()
+        frequency.setArguments([windowSize, windowThreshold] as String[])
+        frequency.execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
+
         then:
-        analysisResult.getAnalysisValue(0) == detected
+        // TODO: one needs to change the test or the way of handling a too small windowSize
+        // analysisResult contains none if the threshold is bigger than the size
+        analysisResult.getContextFor("").getAnalysisValue(0) == detected
 
         where:
         windowSize << [20, 5]
@@ -67,22 +76,37 @@ class FrequencyTest extends Specification {
 
     def "test subquery"() {
         expect:
-        !new Frequency(["10", "6"] as String[]).needSubquery()
-        new Frequency(["10", "6"] as String[]).getSubquery() == null
+        Frequency frequency = new Frequency()
+        frequency.setArguments(["10", "6"] as String[])
+        !frequency.needSubquery()
+        frequency.getSubquery() == null
     }
 
     def "test arguments"() {
         expect:
-        new Frequency(["10", "6"] as String[]).getArguments().length == 2
+        Frequency frequency = new Frequency()
+        frequency.setArguments(["10", "6"] as String[])
+        frequency.getArguments().length == 2
     }
 
     def "test type"() {
         expect:
-        new Frequency(["5", "20"] as String[]).getQueryName() == "frequency"
+        Frequency frequency = new Frequency()
+        frequency.setArguments(["5", "20"] as String[])
+        frequency.getQueryName() == "frequency"
     }
 
+    @Shared
+    def freq1 = new Frequency()
+
+    @Shared
+    def freq2 = new Frequency()
+
+    @Unroll
     def "test equals and hash code"() {
         when:
+        setArgs()
+
         def equals = freq1.equals(freq2)
         def dtw1Hash = freq1.hashCode()
         def dtw2Hash = freq2.hashCode()
@@ -95,15 +119,27 @@ class FrequencyTest extends Specification {
         dtw1Hash == dtw2Hash == result
 
         where:
-        freq1 << [new Frequency(["5", "20"] as String[]), new Frequency(["5", "20"] as String[]), new Frequency(["5", "20"] as String[])]
-        freq2 << [new Frequency(["5", "20"] as String[]), new Frequency(["6", "20"] as String[]), new Frequency(["5", "21"] as String[])]
+        setArgs << [{ ->
+                        freq1.setArguments(["5", "20"] as String[])
+                        freq2.setArguments(["5", "20"] as String[])
+                    },
+                    { ->
+                        freq1.setArguments(["5", "20"] as String[])
+                        freq2.setArguments(["6", "20"] as String[])
+                    },
+                    { ->
+                        freq1.setArguments(["5", "20"] as String[])
+                        freq2.setArguments(["5", "21"] as String[])
+                    }]
 
         result << [true, false, false]
     }
 
     def "test to string"() {
         when:
-        def stringRepresentation = new Frequency(["5", "20"] as String[]).toString()
+        Frequency frequency = new Frequency()
+        frequency.setArguments(["5", "20"] as String[])
+        def stringRepresentation = frequency.toString()
         then:
         stringRepresentation.contains("5")
         stringRepresentation.contains("20")
