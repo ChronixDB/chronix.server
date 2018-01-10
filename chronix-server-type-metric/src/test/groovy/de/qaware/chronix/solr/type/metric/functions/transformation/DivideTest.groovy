@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -37,41 +38,49 @@ class DivideTest extends Specification {
             timeSeriesBuilder.point(now.plus(it, ChronoUnit.SECONDS).toEpochMilli(), it + 1)
         }
 
-        def divide = new Divide(["2"] as String[])
-        def timeSeries = timeSeriesBuilder.build()
+        def divide = new Divide()
+        divide.setArguments(["2"] as String[])
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        divide.execute(timeSeries, analysisResult)
+        divide.execute(timeSeries as List, analysisResult)
 
         then:
         100.times {
-            timeSeries.getValue(it) == (it + 1) / 2d
+            timeSeries.getRawTimeSeries().getValue(it) == (it + 1) / 2d
         }
     }
 
     def "test getType"() {
         when:
-        def divide = new Divide(["2"] as String[])
+        def divide = new Divide()
+        divide.setArguments(["2"] as String[])
         then:
         divide.getQueryName() == "divide"
     }
 
     def "test getArguments"() {
         when:
-        def divide = new Divide(["2"] as String[])
+        def divide = new Divide()
+        divide.setArguments(["2"] as String[])
         then:
         divide.getArguments()[0] == "value=2.0"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Divide(["4"] as String[])
+        def function = new Divide()
+        def divide4 = new Divide()
+        def divide2 = new Divide()
+        function.setArguments(["4"] as String[])
+        divide4.setArguments(["4"] as String[])
+        divide2.setArguments(["2"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new Divide(["4"] as String[]))
-        new Divide(["4"] as String[]).hashCode() == new Divide(["4"] as String[]).hashCode()
-        new Divide(["4"] as String[]).hashCode() != new Divide(["2"] as String[]).hashCode()
+        function.equals(divide4)
+        function.hashCode() == divide4.hashCode()
+        function.hashCode() != divide2.hashCode()
     }
 }

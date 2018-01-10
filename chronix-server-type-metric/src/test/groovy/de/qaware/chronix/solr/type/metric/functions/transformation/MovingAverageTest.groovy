@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -29,7 +30,8 @@ class MovingAverageTest extends Specification {
     def "test transform with last window contains only one point"() {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
-        def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)//1
@@ -48,49 +50,50 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//15
 
-        def timeSeries = timeSeriesBuilder.build()
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        movAvg.execute(timeSeries, analysisResult)
+        movAvg.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 15
-        timeSeries.getValue(0) == 5.0d
-        timeSeries.getTime(0) == dateOf("2016-05-23T10:51:02.500Z")
-        timeSeries.getValue(1) == 5.833333333333333d
-        timeSeries.getTime(1) == dateOf("2016-05-23T10:51:03.500Z")
-        timeSeries.getValue(2) == 10.333333333333334d
-        timeSeries.getTime(2) == dateOf("2016-05-23T10:51:04.500Z")
-        timeSeries.getValue(3) == 11.333333333333334d
-        timeSeries.getTime(3) == dateOf("2016-05-23T10:51:05.500Z")
-        timeSeries.getValue(4) == 10.333333333333334d
-        timeSeries.getTime(4) == dateOf("2016-05-23T10:51:06.500Z")
-        timeSeries.getValue(5) == 11.6d
-        timeSeries.getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
-        timeSeries.getValue(6) == 13.0d
-        timeSeries.getTime(6) == dateOf("2016-05-23T10:51:07.500Z")
-        timeSeries.getValue(7) == 14d
-        timeSeries.getTime(7) == dateOf("2016-05-23T10:51:08.000Z")
-        timeSeries.getValue(8) == 5.5d
-        timeSeries.getTime(8) == dateOf("2016-05-23T10:51:08.500Z")
-        timeSeries.getValue(9) == 2.0d
-        timeSeries.getTime(9) == dateOf("2016-05-23T10:51:09.000Z")
-        timeSeries.getValue(10) == 4.666666666666667d
-        timeSeries.getTime(10) == dateOf("2016-05-23T10:51:15.500Z")
-        timeSeries.getValue(11) == 6.5d
-        timeSeries.getTime(11) == dateOf("2016-05-23T10:51:15.750Z")
-        timeSeries.getValue(12) == 5.0d
-        timeSeries.getTime(12) == dateOf("2016-05-23T10:51:16.000Z")
-        timeSeries.getValue(13) == 88.0d
-        timeSeries.getTime(13) == dateOf("2016-05-23T10:51:30.250Z")
-        timeSeries.getValue(14) == 0.0d
-        timeSeries.getTime(14) == dateOf("2016-05-23T10:52:00.500Z")
+        timeSeries.getRawTimeSeries().size() == 15
+        timeSeries.getRawTimeSeries().getValue(0) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(0) == dateOf("2016-05-23T10:51:02.500Z")
+        timeSeries.getRawTimeSeries().getValue(1) == 5.833333333333333d
+        timeSeries.getRawTimeSeries().getTime(1) == dateOf("2016-05-23T10:51:03.500Z")
+        timeSeries.getRawTimeSeries().getValue(2) == 10.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(2) == dateOf("2016-05-23T10:51:04.500Z")
+        timeSeries.getRawTimeSeries().getValue(3) == 11.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(3) == dateOf("2016-05-23T10:51:05.500Z")
+        timeSeries.getRawTimeSeries().getValue(4) == 10.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(4) == dateOf("2016-05-23T10:51:06.500Z")
+        timeSeries.getRawTimeSeries().getValue(5) == 11.6d
+        timeSeries.getRawTimeSeries().getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
+        timeSeries.getRawTimeSeries().getValue(6) == 13.0d
+        timeSeries.getRawTimeSeries().getTime(6) == dateOf("2016-05-23T10:51:07.500Z")
+        timeSeries.getRawTimeSeries().getValue(7) == 14d
+        timeSeries.getRawTimeSeries().getTime(7) == dateOf("2016-05-23T10:51:08.000Z")
+        timeSeries.getRawTimeSeries().getValue(8) == 5.5d
+        timeSeries.getRawTimeSeries().getTime(8) == dateOf("2016-05-23T10:51:08.500Z")
+        timeSeries.getRawTimeSeries().getValue(9) == 2.0d
+        timeSeries.getRawTimeSeries().getTime(9) == dateOf("2016-05-23T10:51:09.000Z")
+        timeSeries.getRawTimeSeries().getValue(10) == 4.666666666666667d
+        timeSeries.getRawTimeSeries().getTime(10) == dateOf("2016-05-23T10:51:15.500Z")
+        timeSeries.getRawTimeSeries().getValue(11) == 6.5d
+        timeSeries.getRawTimeSeries().getTime(11) == dateOf("2016-05-23T10:51:15.750Z")
+        timeSeries.getRawTimeSeries().getValue(12) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(12) == dateOf("2016-05-23T10:51:16.000Z")
+        timeSeries.getRawTimeSeries().getValue(13) == 88.0d
+        timeSeries.getRawTimeSeries().getTime(13) == dateOf("2016-05-23T10:51:30.250Z")
+        timeSeries.getRawTimeSeries().getValue(14) == 0.0d
+        timeSeries.getRawTimeSeries().getTime(14) == dateOf("2016-05-23T10:52:00.500Z")
     }
 
     def "test transform with last window contains several points"() {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
-        def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)//1
@@ -108,47 +111,48 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.000Z"), 99)//13
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
 
-        def timeSeries = timeSeriesBuilder.build()
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        movAvg.execute(timeSeries, analysisResult)
+        movAvg.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 14
-        timeSeries.getValue(0) == 5.0d
-        timeSeries.getTime(0) == dateOf("2016-05-23T10:51:02.500Z")
-        timeSeries.getValue(1) == 5.833333333333333d
-        timeSeries.getTime(1) == dateOf("2016-05-23T10:51:03.500Z")
-        timeSeries.getValue(2) == 10.333333333333334d
-        timeSeries.getTime(2) == dateOf("2016-05-23T10:51:04.500Z")
-        timeSeries.getValue(3) == 11.333333333333334d
-        timeSeries.getTime(3) == dateOf("2016-05-23T10:51:05.500Z")
-        timeSeries.getValue(4) == 10.333333333333334d
-        timeSeries.getTime(4) == dateOf("2016-05-23T10:51:06.500Z")
-        timeSeries.getValue(5) == 11.6d
-        timeSeries.getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
-        timeSeries.getValue(6) == 13.0d
-        timeSeries.getTime(6) == dateOf("2016-05-23T10:51:07.500Z")
-        timeSeries.getValue(7) == 14d
-        timeSeries.getTime(7) == dateOf("2016-05-23T10:51:08.000Z")
-        timeSeries.getValue(8) == 5.5d
-        timeSeries.getTime(8) == dateOf("2016-05-23T10:51:08.500Z")
-        timeSeries.getValue(9) == 2.0d
-        timeSeries.getTime(9) == dateOf("2016-05-23T10:51:09.000Z")
-        timeSeries.getValue(10) == 4.666666666666667d
-        timeSeries.getTime(10) == dateOf("2016-05-23T10:51:15.500Z")
-        timeSeries.getValue(11) == 6.5d
-        timeSeries.getTime(11) == dateOf("2016-05-23T10:51:15.750Z")
-        timeSeries.getValue(12) == 5.0d
-        timeSeries.getTime(12) == dateOf("2016-05-23T10:51:16.000Z")
-        timeSeries.getValue(13) == 88.0d
-        timeSeries.getTime(13) == dateOf("2016-05-23T10:51:30.250Z")
+        timeSeries.getRawTimeSeries().size() == 14
+        timeSeries.getRawTimeSeries().getValue(0) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(0) == dateOf("2016-05-23T10:51:02.500Z")
+        timeSeries.getRawTimeSeries().getValue(1) == 5.833333333333333d
+        timeSeries.getRawTimeSeries().getTime(1) == dateOf("2016-05-23T10:51:03.500Z")
+        timeSeries.getRawTimeSeries().getValue(2) == 10.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(2) == dateOf("2016-05-23T10:51:04.500Z")
+        timeSeries.getRawTimeSeries().getValue(3) == 11.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(3) == dateOf("2016-05-23T10:51:05.500Z")
+        timeSeries.getRawTimeSeries().getValue(4) == 10.333333333333334d
+        timeSeries.getRawTimeSeries().getTime(4) == dateOf("2016-05-23T10:51:06.500Z")
+        timeSeries.getRawTimeSeries().getValue(5) == 11.6d
+        timeSeries.getRawTimeSeries().getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
+        timeSeries.getRawTimeSeries().getValue(6) == 13.0d
+        timeSeries.getRawTimeSeries().getTime(6) == dateOf("2016-05-23T10:51:07.500Z")
+        timeSeries.getRawTimeSeries().getValue(7) == 14d
+        timeSeries.getRawTimeSeries().getTime(7) == dateOf("2016-05-23T10:51:08.000Z")
+        timeSeries.getRawTimeSeries().getValue(8) == 5.5d
+        timeSeries.getRawTimeSeries().getTime(8) == dateOf("2016-05-23T10:51:08.500Z")
+        timeSeries.getRawTimeSeries().getValue(9) == 2.0d
+        timeSeries.getRawTimeSeries().getTime(9) == dateOf("2016-05-23T10:51:09.000Z")
+        timeSeries.getRawTimeSeries().getValue(10) == 4.666666666666667d
+        timeSeries.getRawTimeSeries().getTime(10) == dateOf("2016-05-23T10:51:15.500Z")
+        timeSeries.getRawTimeSeries().getValue(11) == 6.5d
+        timeSeries.getRawTimeSeries().getTime(11) == dateOf("2016-05-23T10:51:15.750Z")
+        timeSeries.getRawTimeSeries().getValue(12) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(12) == dateOf("2016-05-23T10:51:16.000Z")
+        timeSeries.getRawTimeSeries().getValue(13) == 88.0d
+        timeSeries.getRawTimeSeries().getTime(13) == dateOf("2016-05-23T10:51:30.250Z")
     }
 
     def "test transform with gaps"() {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Moving average","metric")
-        def movAvg = new MovingAverage(["5", "SECONDS"] as String[])
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["5", "SECONDS"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)//0
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:10.000Z"), 4)//1
@@ -156,21 +160,21 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.000Z"), 8)//3
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:04.000Z"), 4)//4
 
-        def timeSeries = timeSeriesBuilder.build()
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        movAvg.execute(timeSeries, analysisResult)
+        movAvg.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 4
-        timeSeries.getValue(0) == 5.0d
-        timeSeries.getTime(0) == dateOf("2016-05-23T10:51:00.000Z")
-        timeSeries.getValue(1) == 4.0d
-        timeSeries.getTime(1) == dateOf("2016-05-23T10:51:10.000Z")
-        timeSeries.getValue(2) == 3.0d
-        timeSeries.getTime(2) == dateOf("2016-05-23T10:51:50.000Z")
-        timeSeries.getValue(3) == 6.0d
-        timeSeries.getTime(3) == dateOf("2016-05-23T10:52:02.000Z")
+        timeSeries.getRawTimeSeries().size() == 4
+        timeSeries.getRawTimeSeries().getValue(0) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(0) == dateOf("2016-05-23T10:51:00.000Z")
+        timeSeries.getRawTimeSeries().getValue(1) == 4.0d
+        timeSeries.getRawTimeSeries().getTime(1) == dateOf("2016-05-23T10:51:10.000Z")
+        timeSeries.getRawTimeSeries().getValue(2) == 3.0d
+        timeSeries.getRawTimeSeries().getTime(2) == dateOf("2016-05-23T10:51:50.000Z")
+        timeSeries.getRawTimeSeries().getValue(3) == 6.0d
+        timeSeries.getRawTimeSeries().getTime(3) == dateOf("2016-05-23T10:52:02.000Z")
     }
 
 
@@ -180,7 +184,8 @@ class MovingAverageTest extends Specification {
 
     def "test getType"() {
         when:
-        def movAvg = new MovingAverage(["4", "SECONDS"] as String[])
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["4", "SECONDS"] as String[])
 
         then:
         movAvg.getQueryName() == "movavg"
@@ -188,7 +193,8 @@ class MovingAverageTest extends Specification {
 
     def "test getArguments"() {
         when:
-        def movAvg = new MovingAverage(["4", "DAYS"] as String[])
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["4", "DAYS"] as String[])
 
         then:
         movAvg.getArguments()[0] == "timeSpan=4"
@@ -197,20 +203,29 @@ class MovingAverageTest extends Specification {
 
     def "test toString"() {
         expect:
-        def stringRepresentation = new MovingAverage(["4", "DAYS"] as String[]).toString()
+        def movAvg = new MovingAverage()
+        movAvg.setArguments(["4", "DAYS"] as String[])
+        def stringRepresentation = movAvg.toString()
         stringRepresentation.contains("timeSpan")
         stringRepresentation.contains("unit")
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new MovingAverage(["4", "DAYS"] as String[])
+        def function = new MovingAverage()
+        def movAvg4 = new MovingAverage()
+        def movAvg2 = new MovingAverage()
+        def movAvg4sec = new MovingAverage()
+        function.setArguments(["4", "DAYS"] as String[])
+        movAvg4.setArguments(["4", "DAYS"] as String[])
+        movAvg2.setArguments(["2", "DAYS"] as String[])
+        movAvg4sec.setArguments(["4", "SECONDS"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new MovingAverage(["4", "DAYS"] as String[]))
-        new MovingAverage(["4", "DAYS"] as String[]).hashCode() == new MovingAverage(["4", "DAYS"] as String[]).hashCode()
-        new MovingAverage(["4", "DAYS"] as String[]).hashCode() != new MovingAverage(["2", "DAYS"] as String[]).hashCode()
-        new MovingAverage(["4", "DAYS"] as String[]).hashCode() != new MovingAverage(["4", "SECONDS"] as String[]).hashCode()
+        function.equals(movAvg4)
+        function.hashCode() == movAvg4.hashCode()
+        function.hashCode() != movAvg2.hashCode()
+        function.hashCode() != movAvg4sec.hashCode()
     }
 }

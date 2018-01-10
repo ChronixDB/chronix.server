@@ -16,8 +16,12 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
+
+import java.sql.Time
 
 /**
  * Unit test for the timeshift transformation
@@ -31,21 +35,22 @@ class TimeshiftTest extends Specification {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
         timeSeriesBuilder.point(10 * 100, -10)
-        def timeSeries = timeSeriesBuilder.build()
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         def analysisResult = new FunctionCtx(1, 1, 1)
 
 
-        def timeshift = new Timeshift(["4", "MILLIS"] as String[])
+        def timeshift = new Timeshift()
+        timeshift.setArguments(["4", "MILLIS"] as String[])
 
         when:
-        timeshift.execute(timeSeries, analysisResult)
+        timeshift.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 11
-        timeSeries.getTime(0) == 4
-        timeSeries.getValue(0) == 10
+        timeSeries.getRawTimeSeries().size() == 11
+        timeSeries.getRawTimeSeries().getTime(0) == 4
+        timeSeries.getRawTimeSeries().getValue(0) == 10
 
-        timeSeries.getTime(10) == 1004
-        timeSeries.getValue(10) == -10
+        timeSeries.getRawTimeSeries().getTime(10) == 1004
+        timeSeries.getRawTimeSeries().getValue(10) == -10
     }
 
     def "test transform for negative amount"() {
@@ -55,48 +60,62 @@ class TimeshiftTest extends Specification {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
         timeSeriesBuilder.point(10 * 100, -10)
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
-        def timeshift = new Timeshift(["-4", "MILLIS"] as String[])
+        def timeshift = new Timeshift()
+        timeshift.setArguments(["-4", "MILLIS"] as String[])
 
         when:
-        timeshift.execute(timeSeries, analysisResult)
+        timeshift.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 11
-        timeSeries.getTime(0) == -4
-        timeSeries.getValue(0) == 10
+        timeSeries.getRawTimeSeries().size() == 11
+        timeSeries.getRawTimeSeries().getTime(0) == -4
+        timeSeries.getRawTimeSeries().getValue(0) == 10
 
-        timeSeries.getTime(10) == 996
-        timeSeries.getValue(10) == -10
+        timeSeries.getRawTimeSeries().getTime(10) == 996
+        timeSeries.getRawTimeSeries().getValue(10) == -10
     }
 
     def "test getType"() {
         expect:
-        new Timeshift(["4", "DAYS"] as String[]).getQueryName() == "timeshift"
+        def timeshift = new Timeshift()
+        timeshift.setArguments(["4", "DAYS"] as String[])
+        timeshift.getQueryName() == "timeshift"
     }
 
     def "test getArguments"() {
         expect:
-        new Timeshift(["4", "DAYS"] as String[]).getArguments()[0] == "amount=4"
-        new Timeshift(["4", "DAYS"] as String[]).getArguments()[1] == "unit=DAYS"
+        def timeshift = new Timeshift()
+        timeshift.setArguments(["4", "DAYS"] as String[])
+        timeshift.getArguments()[0] == "amount=4"
+        timeshift.getArguments()[1] == "unit=DAYS"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Timeshift(["4", "DAYS"] as String[])
+        def function = new Timeshift()
+        def timeshift4 = new Timeshift()
+        def timeshift2 = new Timeshift()
+        def timeshift4sec = new Timeshift()
+        function.setArguments(["4", "DAYS"] as String[])
+        timeshift4.setArguments(["4", "DAYS"] as String[])
+        timeshift2.setArguments(["4", "DAYS"] as String[])
+        timeshift4sec.setArguments(["4", "DAYS"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new Timeshift(["4", "DAYS"] as String[]))
-        new Timeshift(["4", "DAYS"] as String[]).hashCode() == new Timeshift(["4", "DAYS"] as String[]).hashCode()
-        new Timeshift(["4", "DAYS"] as String[]).hashCode() != new Timeshift(["2", "DAYS"] as String[]).hashCode()
-        new Timeshift(["4", "DAYS"] as String[]).hashCode() != new Timeshift(["4", "SECONDS"] as String[]).hashCode()
+        function.equals(timeshift4)
+        function.hashCode() == timeshift4.hashCode()
+        function.hashCode() != timeshift2.hashCode()
+        function.hashCode() != timeshift4sec.hashCode()
     }
 
     def "test string representation"() {
         expect:
-        def string = new Timeshift(["4", "DAYS"] as String[]).toString()
+        def timeshift = new Timeshift()
+        timeshift.setArguments(["4", "DAYS"] as String[])
+        def string = timeshift.toString()
         string.contains("unit")
         string.contains("amount")
     }
