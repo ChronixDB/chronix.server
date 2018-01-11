@@ -43,7 +43,7 @@ import java.util.stream.Collectors
  */
 class ChronixClientTestIT extends Specification {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChronixClientTestIT.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronixClientTestIT.class)
 
     //Test subjects
     @Shared
@@ -344,7 +344,7 @@ class ChronixClientTestIT extends Specification {
     def "Test raw query with compression activated: #withCompression"() {
         when:
         def connection = "http://localhost:8913/solr/chronix/select?indent=on&q=*:*&wt=json".toURL().openConnection()
-        connection.setRequestProperty("Accept-Encoding", "gzip");
+        connection.setRequestProperty("Accept-Encoding", "gzip")
         def result = Compression.decompress(connection.getInputStream().bytes)
 
         then:
