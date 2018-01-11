@@ -43,6 +43,8 @@ class TimeshiftTest extends Specification {
         timeshift.setArguments(["4", "MILLIS"] as String[])
 
         when:
+        //TODO: fix the size problem
+        // the values get not overwritten, instead they get copied, shifted and added, which leads to a wrong behavior
         timeshift.execute(timeSeries as List, analysisResult)
         then:
         timeSeries.getRawTimeSeries().size() == 11
@@ -100,8 +102,8 @@ class TimeshiftTest extends Specification {
         def timeshift4sec = new Timeshift()
         function.setArguments(["4", "DAYS"] as String[])
         timeshift4.setArguments(["4", "DAYS"] as String[])
-        timeshift2.setArguments(["4", "DAYS"] as String[])
-        timeshift4sec.setArguments(["4", "DAYS"] as String[])
+        timeshift2.setArguments(["2", "DAYS"] as String[])
+        timeshift4sec.setArguments(["4", "SECONDS"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)

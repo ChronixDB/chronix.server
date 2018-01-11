@@ -16,6 +16,7 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -26,7 +27,8 @@ import spock.lang.Specification
 class BottomTest extends Specification {
     def "test transform"() {
         given:
-        def bottom = new Bottom(["4"] as String[])
+        def bottom = new Bottom()
+        bottom.setArguments(["4"] as String[])
         def analysisResult = new FunctionCtx(1, 1, 1)
 
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Bottom","metric")
@@ -37,48 +39,57 @@ class BottomTest extends Specification {
         timeSeriesBuilder.point(5, 65d)
         timeSeriesBuilder.point(6, 23d)
 
-        def timeSeries = timeSeriesBuilder.build()
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
         when:
-        bottom.execute(timeSeries, analysisResult)
+        bottom.execute(timeSeries as List, analysisResult)
 
 
         then:
-        timeSeries.size() == 4
-        timeSeries.getValue(0) == 3d
-        timeSeries.getValue(1) == 5d
-        timeSeries.getValue(2) == 5d
-        timeSeries.getValue(3) == 23d
+        timeSeries.getRawTimeSeries().size() == 4
+        timeSeries.getRawTimeSeries().getValue(0) == 3d
+        timeSeries.getRawTimeSeries().getValue(1) == 5d
+        timeSeries.getRawTimeSeries().getValue(2) == 5d
+        timeSeries.getRawTimeSeries().getValue(3) == 23d
 
     }
 
     def "test getType"() {
         when:
-        def bottom = new Bottom(["2"] as String[])
+        def bottom = new Bottom()
+        bottom.setArguments(["2"] as String[])
         then:
         bottom.getQueryName() == "bottom"
     }
 
     def "test getArguments"() {
         when:
-        def bottom = new Bottom(["2"] as String[])
+        def bottom = new Bottom()
+        bottom.setArguments(["2"] as String[])
         then:
         bottom.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Bottom(["4"] as String[])
+        def function = new Bottom()
+        def bottom4 = new Bottom()
+        def bottom2 = new Bottom()
+        function.setArguments(["4"] as String[])
+        bottom4.setArguments(["4"] as String[])
+        bottom2.setArguments(["2"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new Bottom(["4"] as String[]))
-        new Bottom(["4"] as String[]).hashCode() == new Bottom(["4"] as String[]).hashCode()
-        new Bottom(["4"] as String[]).hashCode() != new Bottom(["2"] as String[]).hashCode()
+        function.equals(bottom4)
+        function.hashCode() == bottom4.hashCode()
+        function.hashCode() != bottom2.hashCode()
     }
 
     def "test string representation"() {
         expect:
-        def string = new Bottom(["4"] as String[]).toString()
+        def bottom = new Bottom()
+        bottom.setArguments(["4"] as String[])
+        def string = bottom.toString()
         string.contains("value")
     }
 }
