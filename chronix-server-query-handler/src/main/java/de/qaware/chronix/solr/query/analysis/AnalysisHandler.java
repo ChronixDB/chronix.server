@@ -348,10 +348,11 @@ public class AnalysisHandler extends SearchHandler {
             doc.addField(entry.getKey(), entry.getValue());
         }
 
-
         //add the metric field as it is not stored in the getAttributes
         doc.addField(Schema.NAME, timeSeries.getName());
         doc.addField(Schema.TYPE, timeSeries.getType());
+
+        //TODO: Fix this. It is expensive to calculate this based on the points. This is already stored.
         doc.addField(Schema.START, timeSeries.getStart());
         doc.addField(Schema.END, timeSeries.getEnd());
 

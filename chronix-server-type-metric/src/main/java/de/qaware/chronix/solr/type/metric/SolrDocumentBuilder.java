@@ -92,7 +92,7 @@ public final class SolrDocumentBuilder {
             if (type == null) {
                 type = ts.getType();
             }
-
+            //Todo: Fix field selection (attributes) Avoid this if necessary
             merge(attributes, ts.getAttributesReference());
         }
 

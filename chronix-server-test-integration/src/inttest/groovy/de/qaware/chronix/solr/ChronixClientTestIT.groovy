@@ -54,7 +54,7 @@ class ChronixClientTestIT extends Specification {
     def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
-        solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
+        solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/").build()
         chronix = new ChronixClient(
                 new MetricTimeSeriesConverter<>(),
                 new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
