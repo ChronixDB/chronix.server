@@ -18,12 +18,14 @@ package de.qaware.chronix.solr.type.metric.functions.analyses
 import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.common.util.Pair
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
  * Unit test for the fast dtw analysis
  * @author f.lautenschlager
  */
+@Ignore
 class FastDtwTest extends Specification {
     def "test execute"() {
         given:

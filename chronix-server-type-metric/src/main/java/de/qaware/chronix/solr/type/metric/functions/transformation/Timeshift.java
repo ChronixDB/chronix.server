@@ -49,13 +49,15 @@ public final class Timeshift implements ChronixTransformation<MetricTimeSeries> 
                 continue;
             }
             long[] times = timeSeries.getTimestampsAsArray();
+            double[] values = timeSeries.getValuesAsArray();
+
+            timeSeries.clear();
 
             for (int i = 0; i < times.length; i++) {
                 times[i] += shift;
             }
-            //TODO: fix rewrite of the points
-            // maybe one should use setAll instead of addAll
-            timeSeries.addAll(times, timeSeries.getValuesAsArray());
+
+            timeSeries.addAll(times, values);
             functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
     }
