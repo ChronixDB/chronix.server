@@ -33,7 +33,7 @@ import java.time.temporal.ChronoUnit
 class FrequencyTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Freq","metric")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("Freq", "metric")
         def start = Instant.now()
 
         //First add a window with normal values
@@ -56,22 +56,22 @@ class FrequencyTest extends Specification {
         timeSeries.point(startOfHighFrequency.plus(60, ChronoUnit.SECONDS).toEpochMilli(), 12)
 
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def tsList = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("key", ts)))
 
         when:
-        Frequency frequency = new Frequency()
+        def frequency = new Frequency()
         frequency.setArguments([windowSize, windowThreshold] as String[])
-        frequency.execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
+        frequency.execute(tsList, analysisResult)
 
         then:
-        // TODO: one needs to change the test or the way of handling a too small windowSize
         // analysisResult contains none if the threshold is bigger than the size
-        analysisResult.getContextFor("").getAnalysisValue(0) == detected
+        analysisResult.getContextFor("key").getAnalysisValue(0) == detected
 
         where:
         windowSize << [20, 5]
         windowThreshold << [6, 6]
         detected << [false, true]
+        analysisResult << [new FunctionCtx(1, 1, 1), new FunctionCtx(1, 1, 1)]
     }
 
     def "test subquery"() {

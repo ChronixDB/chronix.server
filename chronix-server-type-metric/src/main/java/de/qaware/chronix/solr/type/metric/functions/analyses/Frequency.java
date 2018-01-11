@@ -82,6 +82,7 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
             //we are done, add the last window
             windowCount.add(currentWindow.size());
 
+            boolean analysisResult = false;
             //check deltas
             for (int i = 1; i < windowCount.size(); i++) {
 
@@ -92,10 +93,11 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
                 int result = current - former;
                 if (result >= windowThreshold) {
                     //add the time series as there are more points per window than the threshold
-                    functionCtx.add(this, true, chronixTimeSeries.getJoinKey());
+                    analysisResult = true;
                     break;
                 }
             }
+            functionCtx.add(this, analysisResult, chronixTimeSeries.getJoinKey());
         }
 
     }
