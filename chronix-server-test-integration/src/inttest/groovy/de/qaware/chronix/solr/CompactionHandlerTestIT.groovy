@@ -40,8 +40,7 @@ class CompactionHandlerTestIT extends Specification {
 
     QueryRequest ALL_DOCS_QUERY = new QueryRequest(params((QT): '/select', (Q): '*:*'))
     @Shared
-    HttpSolrClient solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-
+    HttpSolrClient solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/").build()
 
     def setup() {
         solr.deleteByQuery("*:*")
@@ -62,6 +61,7 @@ class CompactionHandlerTestIT extends Specification {
 
         when:
         NamedList rsp = solr.request(compactionQuery).get('responseHeader')
+
 
         then:
         rsp.get('status') == 0
