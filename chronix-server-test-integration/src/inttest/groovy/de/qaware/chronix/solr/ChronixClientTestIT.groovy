@@ -23,12 +23,12 @@ import de.qaware.chronix.solr.query.ChronixQueryParams
 import de.qaware.chronix.solr.util.CSVImporter
 import de.qaware.chronix.solr.util.ChronixTestFunctions
 import de.qaware.chronix.timeseries.MetricTimeSeries
-import jdk.nashorn.internal.ir.annotations.Ignore
 import org.apache.solr.client.solrj.SolrClient
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -330,9 +330,10 @@ class ChronixClientTestIT extends Specification {
         when:
         def query = new SolrQuery("*:*")
         //Enable serverside compression
-        solr.setAllowCompression(true)
+        HttpSolrClient test_solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/")
+                .allowCompression(true).build()
         //query all documents
-        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        List<MetricTimeSeries> timeSeries = chronix.stream(test_solr, query).collect(Collectors.toList())
 
         then:
         timeSeries.size() == 26i

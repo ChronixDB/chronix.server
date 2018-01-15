@@ -259,6 +259,7 @@ public class AnalysisHandler extends SearchHandler {
 
         final List<SolrDocument> resultDocuments = Collections.synchronizedList(new ArrayList<>(collectedDocs.size()));
 
+
         //loop over the types
         for (ChronixType type : functions.getTypes()) {
             QueryFunctions typeFunctions = functions.getTypeFunctions(type);
@@ -309,7 +310,7 @@ public class AnalysisHandler extends SearchHandler {
                 aggregationsAndAnalyses.parallelStream().forEach(function -> function.execute(timeSeriesList, functionCtx));
             }
 
-
+            //TODO: Fix the 'no function no data' bug
             //build the result
             for (ChronixTimeSeries timeSeries : timeSeriesList) {
                 FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
