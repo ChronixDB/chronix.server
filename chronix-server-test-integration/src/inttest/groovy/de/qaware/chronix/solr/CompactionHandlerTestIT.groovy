@@ -177,7 +177,7 @@ class CompactionHandlerTestIT extends Specification {
         decompress(h2Docs[0].get(DATA), 5, 6) == [5L: 50d, 6L: 60d]
     }
 
-    def "test fq with joinKey"() {
+    def "test fq with cj"() {
         given:
         solr.add([doc((START): 10, (END): 11, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(10L: 10d, 11L: 11d)),
                   doc((START): 12, (END): 13, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(12L: 12d, 13L: 13d)),

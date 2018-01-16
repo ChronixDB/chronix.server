@@ -4,7 +4,12 @@ sonarqube {
     }
 }
 
-apply from: "$rootDir/gradle/intTest.gradle"
+sourceSets {
+    test {
+        groovy.srcDir 'src/inttest/groovy'
+        resources.srcDir 'src/inttest/resources'
+    }
+}
 
 dependencies {
     compile 'org.apache.commons:commons-lang3:3.1'
@@ -124,29 +129,39 @@ bintray {
     }
 }
 
-def solrVersion = "6.4.2"
+apply from: "$rootDir/chronix-server-bin/build.gradle"
 
-task deleteUnusedDirs(type: Delete) {
 
-    //delete the following dirs
-    def solrDir = "$buildDir/solr-${solrVersion}/"
+task intTest(type: Test) {
+    //group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
 
-    delete "$solrDir/docs"
-    delete "$solrDir/example"
-    delete "$solrDir/dist/solrj-lib"
-    delete "$solrDir/dist/test-framework"
-    delete "$solrDir/dist/solr-solrj-${solrVersion}.jar"
-    delete "$solrDir/dist/solr-test-framework-${solrVersion}.jar"
+    maxHeapSize = '512m'
 
-    delete fileTree("$solrDir/server/logs").include("**/*")
-    delete "$solrDir/server/solr/configsets"
-    delete fileTree("$solrDir/server/solr").include("hsperfdata*")
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    binResultsDir = file("$buildDir/integration-test-results/binary/inttest")
+
+    reports {
+        html.setDestination("$buildDir/reports/integration-test" as File)
+        junitXml.setDestination("$buildDir/integration-test-results" as File)
+    }
 }
 
-task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
-    def solrDir = "$buildDir/solr-${solrVersion}/"
-    from("$solrDir")
-    into "chronix-solr-${solrVersion}" // note that this specifies path *in* the archive
-    destinationDir file("chronix-${project.version}") // directory that you want your archive to be placed in
-    baseName = "chronix"
+gradle.projectsEvaluated {
+    def quickTasks = []
+
+    gradle.rootProject.allprojects.each { project ->
+        quickTasks.addAll(project.tasks.findAll { it.name == 'test' })
+        quickTasks.addAll(project.tasks.withType(FindBugs))
+        quickTasks.addAll(project.tasks.withType(Pmd))
+    }
+
+    quickTasks.each { task ->
+        project.tasks.intTest.mustRunAfter task
+    }
 }
+intTest.dependsOn startSolr
+
+intTest.finalizedBy stopSolr

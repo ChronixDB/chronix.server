@@ -42,6 +42,7 @@ import java.util.stream.Collectors
  *
  * @author f.lautenschlager
  */
+
 class ChronixClientTestIT extends Specification {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChronixClientTestIT.class)
@@ -285,7 +286,8 @@ class ChronixClientTestIT extends Specification {
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{frequency:10,9}")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
-        timeSeries.size() == 0
+        timeSeries.size() == 1
+        timeSeries.get(0).attribute("0_function_frequency") == false
     }
 
 
@@ -329,7 +331,7 @@ class ChronixClientTestIT extends Specification {
     def "Test query with compression result"() {
         when:
         def query = new SolrQuery("*:*")
-        //Enable serverside compression
+        //Enable server side compression
         HttpSolrClient test_solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/")
                 .allowCompression(true).build()
         //query all documents

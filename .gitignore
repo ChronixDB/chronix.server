@@ -78,3 +78,8 @@ gradle-app.setting
 bintrayUpload.bat
 bintrayUpload.sh
 classes/
+
+#ignore solr zip
+solr-*.zip
+#ignore solr extraced content
+chronix-server-bin/chronix-server/solr-*/

@@ -12,3 +12,4 @@ include 'chronix-server-test-integration'
 include 'chronix-server-type-metric'
 include 'chronix-server-function-metric'
 
+include 'chronix-server-bin'

@@ -73,19 +73,7 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     private static boolean hasMatchingAnalyses(FunctionCtxEntry functionCtx) {
-        if (functionCtx.sizeOfAnalyses() == 0) {
-            return false;
-        } else {
-            //Analyses
-            //-> return the document if the value is true
-            for (int i = 0; i < functionCtx.sizeOfAnalyses(); i++) {
-                //we have found a positive analysis, lets return the document
-                if (functionCtx.getAnalysisValue(i)) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        return functionCtx != null && functionCtx.sizeOfAnalyses() > 0;
     }
 
     /**
@@ -93,7 +81,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return false if the the function value map is null or if there are no transformations and aggregations
      */
     private static boolean hasTransformationsOrAggregations(FunctionCtxEntry functionCtx) {
-        return functionCtx.sizeOfTransformations() + functionCtx.sizeOfAggregations() > 0;
+        return functionCtx != null && functionCtx.sizeOfTransformations() + functionCtx.sizeOfAggregations() > 0;
     }
 
     /**
@@ -261,12 +249,7 @@ public class AnalysisHandler extends SearchHandler {
 
 
         //loop over the types
-        for (ChronixType type : functions.getTypes()) {
-            QueryFunctions typeFunctions = functions.getTypeFunctions(type);
-
-            if (typeFunctions.isEmpty()) {
-                continue;
-            }
+        for (ChronixType type : collectedDocs.keySet()) {
 
             List<ChronixTimeSeries> timeSeriesList = new ArrayList<>(collectedDocs.get(type).size());
 
@@ -283,64 +266,62 @@ public class AnalysisHandler extends SearchHandler {
             //clear the records the free them.
             collectedDocs.get(type).clear();
 
-            FunctionCtx functionCtx = new FunctionCtx(
+            //validate the functions
+            QueryFunctions typeFunctions = functions.getTypeFunctions(type);
+            final FunctionCtx functionCtx = typeFunctions == null ? null : new FunctionCtx(
                     typeFunctions.sizeOfAggregations(),
                     typeFunctions.sizeOfAnalyses(),
                     typeFunctions.sizeOfTransformations());
 
+            if (functionCtx != null) {
+                //do them sequentially
+                if (typeFunctions.containsTransformations()) {
+                    for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
+                        transformation.execute(timeSeriesList, functionCtx);
+                    }
+                }
 
-            //do them sequentially
-            if (typeFunctions.containsTransformations()) {
-                for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
-                    transformation.execute(timeSeriesList, functionCtx);
+                List<ChronixFunction> aggregationsAndAnalyses = new ArrayList<>(typeFunctions.sizeOfAggregations() + typeFunctions.sizeOfAnalyses());
+                if (typeFunctions.containsAggregations()) {
+                    aggregationsAndAnalyses.addAll(typeFunctions.getAggregations());
+                }
+
+                if (typeFunctions.containsAnalyses()) {
+                    aggregationsAndAnalyses.addAll(typeFunctions.getAnalyses());
+                }
+
+                //do aggregations and analyses parallel
+                if (!aggregationsAndAnalyses.isEmpty()) {
+                    aggregationsAndAnalyses.parallelStream().forEach(function -> function.execute(timeSeriesList, functionCtx));
                 }
             }
 
-            List<ChronixFunction> aggregationsAndAnalyses = new ArrayList<>(typeFunctions.sizeOfAggregations() + typeFunctions.sizeOfAnalyses());
-            if (typeFunctions.containsAggregations()) {
-                aggregationsAndAnalyses.addAll(typeFunctions.getAggregations());
-            }
-
-            if (typeFunctions.containsAnalyses()) {
-                aggregationsAndAnalyses.addAll(typeFunctions.getAnalyses());
-            }
-
-            //do aggregations and analyses parallel
-            if (!aggregationsAndAnalyses.isEmpty()) {
-                aggregationsAndAnalyses.parallelStream().forEach(function -> function.execute(timeSeriesList, functionCtx));
-            }
-
-            //TODO: Fix the 'no function no data' bug
             //build the result
             for (ChronixTimeSeries timeSeries : timeSeriesList) {
-                FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
-
-                //only return time series that have a function context
-                if (timeSeriesFunctionCtx == null) {
-                    continue;
-                }
 
                 //We return the time series if
                 // 1) the data is explicit requested as json
                 // 2) there are aggregations / transformations
                 // 3) there are matching analyses
-                if (dataAsJson || hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx) || isJoined) {
-                    //Here we have to build the document with the results of the analyses
-                    resultDocuments.add(asSolrDocument(dataShouldReturned, dataAsJson, timeSeriesFunctionCtx, timeSeries));
+                //Here we have to build the document with the results of the analyses
+                SolrDocument doc = solrDocumentWithOutTimeSeriesFunctionResults(dataShouldReturned, dataAsJson, timeSeries);
+
+                if (functionCtx != null) {
+                    FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
+                    if (hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx)) {
+                        //Add the function results
+                        addAnalysesAndResults(timeSeriesFunctionCtx, doc);
+                    }
                 }
+                resultDocuments.add(doc);
             }
 
         }
         return resultDocuments;
     }
 
-    private SolrDocument asSolrDocument(boolean dataShouldReturned, boolean dataAsJson, FunctionCtxEntry functionValues, ChronixTimeSeries timeSeries) {
+    private SolrDocument solrDocumentWithOutTimeSeriesFunctionResults(boolean dataShouldReturned, boolean dataAsJson, ChronixTimeSeries timeSeries) {
         SolrDocument doc = new SolrDocument();
-
-        if (functionValues != null) {
-            //Add the function results
-            addAnalysesAndResults(functionValues, doc);
-        }
 
         //add the join key
         doc.put(ChronixQueryParams.JOIN_KEY, timeSeries.getJoinKey());
