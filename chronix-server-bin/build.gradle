@@ -37,7 +37,6 @@ task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     into chronixBuildDir
 }
 task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
-    println "$confDir"
     into "$chronixBuildDir/solr-${solrVersion}/server/solr"
     from "$confDir/solr"
 }
@@ -135,7 +134,7 @@ task recopyApplicationLibs(type: Copy) {
 }
 
 task downloadAndBuildChronix(dependsOn: copyIntegrationRuntimeLibs) {
-    println "Downloading Solr and copy chronix stuff."
+//nothing in here
 }
 
 /**
@@ -200,7 +199,7 @@ task stopSolr(type: ExecWait) {
 task deleteUnusedDirs(type: Delete) {
 
     //delete the following dirs
-    def solrDir = "$buildDir/solr-${solrVersion}/"
+    def solrDir = "$chronixBuildDir/solr-${solrVersion}/"
 
     delete "$solrDir/docs"
     delete "$solrDir/example"
@@ -215,7 +214,7 @@ task deleteUnusedDirs(type: Delete) {
 }
 
 task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
-    def solrDir = "$buildDir/solr-${solrVersion}/"
+    def solrDir = "$chronixBuildDir/solr-${solrVersion}/"
     from("$solrDir")
     into "chronix-solr-${solrVersion}" // note that this specifies path *in* the archive
     destinationDir file("chronix-${project.version}") // directory that you want your archive to be placed in
