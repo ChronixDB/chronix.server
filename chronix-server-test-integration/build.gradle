@@ -4,12 +4,7 @@ sonarqube {
     }
 }
 
-sourceSets {
-    test {
-        groovy.srcDir 'src/inttest/groovy'
-        resources.srcDir 'src/inttest/resources'
-    }
-}
+apply from: "$rootDir/chronix-server-bin/build.gradle"
 
 dependencies {
     compile 'org.apache.commons:commons-lang3:3.1'
@@ -128,40 +123,3 @@ bintray {
         }
     }
 }
-
-apply from: "$rootDir/chronix-server-bin/build.gradle"
-
-
-task intTest(type: Test) {
-    //group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = 'Runs the integration tests.'
-
-    maxHeapSize = '512m'
-
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-
-    binResultsDir = file("$buildDir/integration-test-results/binary/inttest")
-
-    reports {
-        html.setDestination("$buildDir/reports/integration-test" as File)
-        junitXml.setDestination("$buildDir/integration-test-results" as File)
-    }
-}
-
-gradle.projectsEvaluated {
-    def quickTasks = []
-
-    gradle.rootProject.allprojects.each { project ->
-        quickTasks.addAll(project.tasks.findAll { it.name == 'test' })
-        quickTasks.addAll(project.tasks.withType(FindBugs))
-        quickTasks.addAll(project.tasks.withType(Pmd))
-    }
-
-    quickTasks.each { task ->
-        project.tasks.intTest.mustRunAfter task
-    }
-}
-intTest.dependsOn startSolr
-
-intTest.finalizedBy stopSolr

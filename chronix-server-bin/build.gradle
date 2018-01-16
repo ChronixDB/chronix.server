@@ -8,6 +8,18 @@ buildscript {
 }
 
 apply plugin: 'de.undercouch.download'
+
+sourceSets {
+    intTest {
+        groovy.srcDir 'src/inttest/groovy'
+        resources.srcDir 'src/inttest/resources'
+    }
+}
+configurations {
+    intTestCompile.extendsFrom(testCompile)
+    intTestRuntime.extendsFrom(testRuntime)
+}
+
 dependencies {
     testCompile project(':chronix-server-query-handler')
     testCompile project(':chronix-server-ingestion-handler')
@@ -222,3 +234,36 @@ task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
 }
 
 
+task intTest(type: Test) {
+    //group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = 'Runs the integration tests.'
+
+    maxHeapSize = '512m'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    binResultsDir = file("$buildDir/integration-test-results/binary/inttest")
+
+    reports {
+        html.setDestination("$buildDir/reports/integration-test" as File)
+        junitXml.setDestination("$buildDir/integration-test-results" as File)
+    }
+}
+
+gradle.projectsEvaluated {
+    def quickTasks = []
+
+    gradle.rootProject.allprojects.each { project ->
+        quickTasks.addAll(project.tasks.findAll { it.name == 'test' })
+        quickTasks.addAll(project.tasks.withType(FindBugs))
+        quickTasks.addAll(project.tasks.withType(Pmd))
+    }
+
+    quickTasks.each { task ->
+        project.tasks.intTest.mustRunAfter task
+    }
+}
+intTest.dependsOn startSolr
+
+intTest.finalizedBy stopSolr
