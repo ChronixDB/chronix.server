@@ -35,7 +35,7 @@ class SumTest extends Specification {
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Sum().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -46,7 +46,7 @@ class SumTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         new Sum().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:

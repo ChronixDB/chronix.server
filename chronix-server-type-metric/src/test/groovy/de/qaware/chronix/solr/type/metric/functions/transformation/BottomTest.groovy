@@ -29,7 +29,7 @@ class BottomTest extends Specification {
         given:
         def bottom = new Bottom()
         bottom.setArguments(["4"] as String[])
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Bottom","metric")
         timeSeriesBuilder.point(1, 5d)

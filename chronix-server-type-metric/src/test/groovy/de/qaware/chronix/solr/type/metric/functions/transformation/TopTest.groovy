@@ -40,7 +40,7 @@ class TopTest extends Specification {
         timeSeriesBuilder.point(6, 23d)
 
         def timeSeries = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeriesBuilder.build())))
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         top.execute(timeSeries, analysisResult)

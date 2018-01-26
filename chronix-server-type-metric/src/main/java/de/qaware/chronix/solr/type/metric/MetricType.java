@@ -22,6 +22,7 @@ import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Outlier;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend;
+import de.qaware.chronix.solr.type.metric.functions.filter.TopMetrics;
 import de.qaware.chronix.solr.type.metric.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -119,6 +120,9 @@ public class MetricType implements ChronixType<MetricTimeSeries> {
                 return new Frequency();
             case "fastdtw":
                 //return new FastDtw(args);
+            //Filter
+            case "topmetrics":
+                return new TopMetrics();
             default:
                 LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", function, function);
                 return null;

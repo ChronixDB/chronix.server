@@ -18,6 +18,7 @@ package de.qaware.chronix.solr.type.metric.functions
 import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
+import de.qaware.chronix.solr.type.metric.functions.filter.TopMetrics
 import de.qaware.chronix.solr.type.metric.functions.transformation.Vectorization
 import spock.lang.Shared
 import spock.lang.Specification
@@ -31,7 +32,7 @@ class FunctionCtxTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def functionContext = new FunctionCtx(3, 3, 3)
+        def functionContext = new FunctionCtx(3, 3, 3, 3)
 
         when:
         aggregations.times {
@@ -45,16 +46,21 @@ class FunctionCtxTest extends Specification {
             functionContext.add(new Vectorization(), "my_join_key")
         }
 
+        filters.times {
+            functionContext.add(new TopMetrics(), "my_join_key")
+        }
+
 
         then:
 
         def timeSeriesContext = functionContext.getContextFor("my_join_key")
 
-        timeSeriesContext.size() == aggregations + analyses + transformations
+        timeSeriesContext.size() == aggregations + analyses + transformations + filters
 
         timeSeriesContext.sizeOfAggregations() == aggregations
         timeSeriesContext.sizeOfAnalyses() == analyses
         timeSeriesContext.sizeOfTransformations() == transformations
+        timeSeriesContext.sizeOfFilters() == filters
 
         timeSeriesContext.getAggregation(0) == new Max()
         timeSeriesContext.getAggregationValue(0) == 0
@@ -64,14 +70,17 @@ class FunctionCtxTest extends Specification {
 
         timeSeriesContext.getTransformation(0) == new Vectorization()
 
+        timeSeriesContext.getFilter(0) == new TopMetrics()
+
         where:
         aggregations << [3]
         analyses << [3]
         transformations << [3]
+        filters << [3]
     }
 
     @Shared
-    def functionValueMap = new FunctionCtx(0, 0, 0)
+    def functionValueMap = new FunctionCtx(0, 0, 0, 0)
 
     @Unroll
     def "test exception case for #function"() {
@@ -85,7 +94,8 @@ class FunctionCtxTest extends Specification {
         where:
         function << [{ -> functionValueMap.add(new Max(), 0.0d, "") },
                      { -> functionValueMap.add(new Trend(), true, "") },
-                     { -> functionValueMap.add(new Vectorization(), "") }]
+                     { -> functionValueMap.add(new Vectorization(), "") },
+                     { -> functionValueMap.add(new TopMetrics(), "")}]
 
     }
 }

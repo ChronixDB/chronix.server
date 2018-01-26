@@ -35,7 +35,7 @@ class RangeTest extends Specification {
         timeSeries.point(11, -5)
 
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         new Range().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
@@ -45,7 +45,7 @@ class RangeTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         new Range().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:

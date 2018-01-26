@@ -45,7 +45,7 @@ class NonNegativeDerivativeTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         derivative.execute(timeSeries as List, analysisResult)

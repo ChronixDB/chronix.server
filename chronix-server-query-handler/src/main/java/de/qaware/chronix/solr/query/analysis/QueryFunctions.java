@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query.analysis;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
+import de.qaware.chronix.server.functions.ChronixFilter;
 import de.qaware.chronix.server.functions.ChronixTransformation;
 
 import java.util.ArrayList;
@@ -37,11 +38,13 @@ class QueryFunctions {
     private Set<ChronixAnalysis> analyses;
     private Set<ChronixAggregation> aggregations;
     private List<ChronixTransformation> transformations;
+    private List<ChronixFilter> filters;
 
     QueryFunctions() {
         analyses = new HashSet<>();
         aggregations = new HashSet<>();
         transformations = new ArrayList<>();
+        filters = new ArrayList<>();
     }
 
     /**
@@ -65,6 +68,12 @@ class QueryFunctions {
         return transformations;
     }
 
+    /**
+     * @return the filters in the query
+     */
+    public List<ChronixFilter> getFilters() {
+        return filters;
+    }
     /**
      * Add the given analysis to the query functions
      *
@@ -93,10 +102,19 @@ class QueryFunctions {
     }
 
     /**
+     * Add the given filter to the query functions
+     *
+     * @param filter the filter
+     */
+    public void addFilter(ChronixFilter filter) {
+        this.filters.add(filter);
+    }
+
+    /**
      * @return true if all (aggregations, analyses, transformations) are emtpy, otherwise false
      */
     public boolean isEmpty() {
-        return transformations.isEmpty() && aggregations.isEmpty() && analyses.isEmpty();
+        return transformations.isEmpty() && aggregations.isEmpty() && analyses.isEmpty() && filters.isEmpty();
     }
 
     /**
@@ -121,10 +139,17 @@ class QueryFunctions {
     }
 
     /**
+     * @return true if the functions contains filters
+     */
+    public boolean containsFilter() {
+        return !filters.isEmpty();
+    }
+
+    /**
      * @return the size of all (aggregations, analyses, transformations)
      */
     public int size() {
-        return sizeOfAggregations() + sizeOfAnalyses() + sizeOfTransformations();
+        return sizeOfAggregations() + sizeOfAnalyses() + sizeOfTransformations() + sizeOfFilters();
     }
 
     /**
@@ -149,17 +174,26 @@ class QueryFunctions {
     }
 
     /**
+     * @return the size of filters
+     */
+    public int sizeOfFilters() {
+        return filters.size();
+    }
+
+    /**
      * @param functions the other query functions
      */
     public void merge(QueryFunctions functions) {
         aggregations.addAll(functions.aggregations);
         transformations.addAll(functions.transformations);
         analyses.addAll(functions.analyses);
+        filters.addAll(functions.filters);
     }
 
     void clear() {
         aggregations.clear();
         transformations.clear();
         analyses.clear();
+        filters.clear();
     }
 }

@@ -35,7 +35,7 @@ class MaxTest extends Specification {
         timeSeries.point(11, 9999)
         timeSeries.point(12, -10)
         List<ChronixTimeSeries<MetricTimeSeries>> tsList = new ArrayList<>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeries.build())))
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Max().execute(tsList, analysisResult)
@@ -46,7 +46,7 @@ class MaxTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Max().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)

@@ -41,7 +41,7 @@ class DivideTest extends Specification {
         def divide = new Divide()
         divide.setArguments(["2"] as String[])
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         divide.execute(timeSeries as List, analysisResult)

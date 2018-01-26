@@ -15,10 +15,7 @@
  */
 package de.qaware.chronix.solr.query.analysis;
 
-import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.ChronixAnalysis;
-import de.qaware.chronix.server.functions.ChronixFunction;
-import de.qaware.chronix.server.functions.ChronixTransformation;
+import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctions;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypes;
@@ -114,6 +111,9 @@ public final class QueryEvaluator {
                             break;
                         case ANALYSIS:
                             resultingTypeFunctions.addAnalysis((ChronixAnalysis) chronixFunction);
+                            break;
+                        case FILTER:
+                            resultingTypeFunctions.addFilter((ChronixFilter) chronixFunction);
                             break;
                         default:
                             //ignore

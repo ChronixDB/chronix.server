@@ -36,7 +36,7 @@ class TimeshiftTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
 
         def timeshift = new Timeshift()
@@ -63,7 +63,7 @@ class TimeshiftTest extends Specification {
         }
         timeSeriesBuilder.point(10 * 100, -10)
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         def timeshift = new Timeshift()
         timeshift.setArguments(["-4", "MILLIS"] as String[])

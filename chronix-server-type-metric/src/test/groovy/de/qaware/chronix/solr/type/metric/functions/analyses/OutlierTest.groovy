@@ -35,7 +35,7 @@ class OutlierTest extends Specification {
         timeSeries.point(11, 9999)
         MetricTimeSeries ts = timeSeries.build()
 
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -50,7 +50,7 @@ class OutlierTest extends Specification {
             timeSeries.point(it, 4711)
         }
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -60,7 +60,7 @@ class OutlierTest extends Specification {
 
     def "test execute with empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Outlier().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Out","metric").build()))), analysisResult)

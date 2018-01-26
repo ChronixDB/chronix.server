@@ -32,7 +32,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, -1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new SignedDifference().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -46,7 +46,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, 1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new SignedDifference().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -60,7 +60,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, -1)
         timeSeries.point(1, 10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new SignedDifference().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
@@ -74,7 +74,7 @@ class SignedDifferenceTest extends Specification {
         timeSeries.point(0, 1)
         timeSeries.point(1, -10)
         MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         new SignedDifference().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
@@ -84,7 +84,7 @@ class SignedDifferenceTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         new SignedDifference().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:

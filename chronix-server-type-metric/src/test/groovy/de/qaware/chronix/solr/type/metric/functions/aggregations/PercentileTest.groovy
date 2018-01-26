@@ -36,7 +36,7 @@ class PercentileTest extends Specification {
         }
         timeSeries.point(11, 9999)
         MetricTimeSeries ts =timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         Percentile percentile =  new Percentile()
         percentile.setArguments(["0.5"] as String[])
@@ -47,7 +47,7 @@ class PercentileTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
         when:
         Percentile percentile = new Percentile()
         percentile.setArguments(["0.5"] as String[])

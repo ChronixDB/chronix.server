@@ -34,7 +34,7 @@ class IntegralTest extends Specification {
         10.times {
             timeSeries.point(it + 1, it)
         }
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Integral().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeries.build()))), analysisResult)
@@ -45,7 +45,7 @@ class IntegralTest extends Specification {
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         new Integral().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)

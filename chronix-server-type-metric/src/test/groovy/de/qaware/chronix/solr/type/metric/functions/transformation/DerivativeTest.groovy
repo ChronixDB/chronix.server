@@ -32,7 +32,7 @@ class DerivativeTest extends Specification {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Derivative time series","metric")
         def derivative = new Derivative()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)

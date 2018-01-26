@@ -42,7 +42,7 @@ class DistinctTest extends Specification {
         }
 
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1);
 
         def distinct = new Distinct();
         when:

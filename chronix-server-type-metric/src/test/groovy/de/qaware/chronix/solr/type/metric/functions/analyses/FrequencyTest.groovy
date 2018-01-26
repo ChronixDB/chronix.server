@@ -71,7 +71,7 @@ class FrequencyTest extends Specification {
         windowSize << [20, 5]
         windowThreshold << [6, 6]
         detected << [false, true]
-        analysisResult << [new FunctionCtx(1, 1, 1), new FunctionCtx(1, 1, 1)]
+        analysisResult << [new FunctionCtx(1, 1, 1, 1), new FunctionCtx(1, 1, 1, 1)]
     }
 
     def "test subquery"() {

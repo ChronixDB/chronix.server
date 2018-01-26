@@ -20,17 +20,20 @@ public class FunctionCtxEntry {
     private final ChronixTransformation[] transformations;
     private final ChronixAggregation[] aggregations;
     private final ChronixAnalysis[] analyses;
+    private final ChronixFilter[] filters;
     private final double[] aggregationValues;
     private final boolean[] analysisValues;
     private int transformationSize;
     private int aggregationSize;
     private int analysisSize;
+    private int filterSize;
 
 
-    FunctionCtxEntry(int maxAmountOfTransformations, int maxAmountOfAggregations, int maxAmountOfAnalyes) {
+    FunctionCtxEntry(int maxAmountOfTransformations, int maxAmountOfAggregations, int maxAmountOfAnalyes, int maxAmaountOfFilters) {
         this.transformations = new ChronixTransformation[maxAmountOfTransformations];
         this.aggregations = new ChronixAggregation[maxAmountOfAggregations];
         this.analyses = new ChronixAnalysis[maxAmountOfAnalyes];
+        this.filters = new ChronixFilter[maxAmaountOfFilters];
 
         this.analysisValues = new boolean[maxAmountOfAnalyes];
         this.aggregationValues = new double[maxAmountOfAggregations];
@@ -69,7 +72,7 @@ public class FunctionCtxEntry {
      * @return the total amount of functions
      */
     public int size() {
-        return analysisSize + transformationSize + aggregationSize;
+        return analysisSize + transformationSize + aggregationSize + filterSize;
     }
 
     public void add(ChronixAggregation aggregation, double value) {
@@ -98,6 +101,34 @@ public class FunctionCtxEntry {
         } else {
             throw new IndexOutOfBoundsException("Try to put analysis to map with max size " + analyses.length + " but index " + analysisSize + " is out of range.");
         }
+    }
+
+    public void add(ChronixFilter filter) {
+        if(filterSize < filters.length) {
+            filters[filterSize] = filter;
+            filterSize++;
+        } else {
+            throw new IndexOutOfBoundsException("Try to put filter to map with max size " + filters.length + " but index " + filterSize + " is out of range.");
+        }
+
+    }
+
+    /**
+     * @return the size of the filters
+     */
+    public int sizeOfFilters() {
+        return filterSize;
+    }
+
+    /**
+     * Gets the filter
+     *
+     * @param i the index
+     * @return the filter at index i
+     */
+    public ChronixFilter getFilter(int i)
+    {
+        return filters[i];
     }
 
     /**

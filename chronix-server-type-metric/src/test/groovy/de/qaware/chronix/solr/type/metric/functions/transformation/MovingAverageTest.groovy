@@ -51,7 +51,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:00.500Z"), 0)//15
 
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         movAvg.execute(timeSeries as List, analysisResult)
@@ -112,7 +112,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:30.500Z"), 77)//14
 
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         movAvg.execute(timeSeries as List, analysisResult)
@@ -161,7 +161,7 @@ class MovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:52:04.000Z"), 4)//4
 
         def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1);
 
         when:
         movAvg.execute(timeSeries as List, analysisResult)

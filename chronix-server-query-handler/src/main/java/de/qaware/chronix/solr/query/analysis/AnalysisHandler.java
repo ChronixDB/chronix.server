@@ -85,6 +85,14 @@ public class AnalysisHandler extends SearchHandler {
     }
 
     /**
+     * @param functionCtx the function value mayp
+     * @return false if the function calue map is null or if ther are no filters
+     */
+    private static boolean hasFilters(FunctionCtxEntry functionCtx) {
+        return functionCtx != null && functionCtx.sizeOfFilters() > 0;
+    }
+
+    /**
      * Add the functions and its results to the given solr document
      *
      * @param functionCtx the function value map with the functions and the results
@@ -131,6 +139,13 @@ public class AnalysisHandler extends SearchHandler {
             if (chronixAnalysis.getArguments().length != 0) {
                 doc.put(counter + "_" + ChronixQueryParams.FUNCTION_ARGUMENTS + nameWithLeadingUnderscore, chronixAnalysis.getArguments());
             }
+            counter++;
+        }
+
+        //add the filter information
+        for (int filter = 0; filter < functionCtx.sizeOfFilters(); filter++) {
+            ChronixFilter chronixFilter= functionCtx.getFilter(filter);
+            doc.put(counter + "_" + ChronixQueryParams.FUNCTION + "_" + chronixFilter.getQueryName(), chronixFilter.getArguments());
             counter++;
         }
     }
@@ -271,10 +286,16 @@ public class AnalysisHandler extends SearchHandler {
             final FunctionCtx functionCtx = typeFunctions == null ? null : new FunctionCtx(
                     typeFunctions.sizeOfAggregations(),
                     typeFunctions.sizeOfAnalyses(),
-                    typeFunctions.sizeOfTransformations());
+                    typeFunctions.sizeOfTransformations(),
+                    typeFunctions.sizeOfFilters());
 
             if (functionCtx != null) {
                 //do them sequentially
+                if (typeFunctions.containsFilter()) {
+                    for (ChronixFilter filter : typeFunctions.getFilters()) {
+                        filter.execute(timeSeriesList, functionCtx);
+                    }
+                }
                 if (typeFunctions.containsTransformations()) {
                     for (ChronixTransformation transformation : typeFunctions.getTransformations()) {
                         transformation.execute(timeSeriesList, functionCtx);
@@ -303,12 +324,13 @@ public class AnalysisHandler extends SearchHandler {
                 // 1) the data is explicit requested as json
                 // 2) there are aggregations / transformations
                 // 3) there are matching analyses
+                // 3) there are matching filters
                 //Here we have to build the document with the results of the analyses
                 SolrDocument doc = solrDocumentWithOutTimeSeriesFunctionResults(dataShouldReturned, dataAsJson, timeSeries);
 
                 if (functionCtx != null) {
                     FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
-                    if (hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx)) {
+                    if (hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx) || hasFilters(timeSeriesFunctionCtx)) {
                         //Add the function results
                         addAnalysesAndResults(timeSeriesFunctionCtx, doc);
                     }

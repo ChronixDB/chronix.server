@@ -32,7 +32,7 @@ class NoOpTest extends Specification {
         def noOp = new NoOp()
         def timeSeries = new MetricTimeSeries.Builder("noop", "metric").build()
         def ctsList = [new ChronixMetricTimeSeries("bla", timeSeries)]
-        def functionCtx = new FunctionCtx(1, 1, 1)
+        def functionCtx = new FunctionCtx(1, 1, 1, 1)
 
         when:
         noOp.execute(ctsList, functionCtx)

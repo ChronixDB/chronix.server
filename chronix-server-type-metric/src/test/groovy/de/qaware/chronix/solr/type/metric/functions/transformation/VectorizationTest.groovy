@@ -46,7 +46,7 @@ class VectorizationTest extends Specification {
         }
 
         def timeSeriesList = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeriesBuilder.build())))
-        def analysisResult = new FunctionCtx(1, 1, 1);
+        def analysisResult = new FunctionCtx(1, 1, 1, 1);
 
         when:
         vectorization.execute(timeSeriesList, analysisResult)
@@ -61,7 +61,7 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Vector","metric")
 
         def timeSeriesList = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeriesBuilder.build())))
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
         vectorization.execute(timeSeriesList, analysisResult)
@@ -78,7 +78,7 @@ class VectorizationTest extends Specification {
         def timeSeriesBuilder3 = new MetricTimeSeries.Builder("Vector","metric")
 
         def now = Instant.now()
-        def analysisResult = new FunctionCtx(1, 1, 3)
+        def analysisResult = new FunctionCtx(1, 1, 3, 1)
 
         when:
         1.times {

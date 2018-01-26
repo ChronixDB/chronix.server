@@ -32,6 +32,7 @@ public class FunctionCtx {
     private final int maxAmountOfAggregations;
     private final int maxAmountOfAnalyses;
     private final int maxAmountOfTransformations;
+    private final int maxAmountOfFilters;
 
 
     /**
@@ -40,11 +41,13 @@ public class FunctionCtx {
      * @param amountOfAggregations    the number of aggregations
      * @param amountOfAnalyses        the number of analyses
      * @param amountOfTransformations the number of transformations
+     * @param amountOfFilters         the number of filters
      */
-    public FunctionCtx(int amountOfAggregations, int amountOfAnalyses, int amountOfTransformations) {
+    public FunctionCtx(int amountOfAggregations, int amountOfAnalyses, int amountOfTransformations, int amountOfFilters) {
         this.maxAmountOfAggregations = amountOfAggregations;
         this.maxAmountOfAnalyses = amountOfAnalyses;
         this.maxAmountOfTransformations = amountOfTransformations;
+        this.maxAmountOfFilters = amountOfFilters;
     }
 
     /**
@@ -79,9 +82,19 @@ public class FunctionCtx {
         functionCtxEntries.get(joinKey).add(transformation);
     }
 
+    /**
+     * Appends the filter to the result
+     *
+     * @param filter add an filter
+     */
+    public void add(ChronixFilter filter, String joinKey) {
+        addEntryIfNotExist(joinKey);
+        functionCtxEntries.get(joinKey).add(filter);
+    }
+
     private void addEntryIfNotExist(String joinKey) {
         if (!functionCtxEntries.containsKey(joinKey)) {
-            functionCtxEntries.put(joinKey, new FunctionCtxEntry(maxAmountOfTransformations, maxAmountOfAggregations, maxAmountOfAnalyses));
+            functionCtxEntries.put(joinKey, new FunctionCtxEntry(maxAmountOfTransformations, maxAmountOfAggregations, maxAmountOfAnalyses, maxAmountOfFilters));
         }
     }
 
