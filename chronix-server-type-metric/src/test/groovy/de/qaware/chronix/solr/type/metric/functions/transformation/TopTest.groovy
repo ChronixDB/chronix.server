@@ -57,18 +57,18 @@ class TopTest extends Specification {
 
     def "test getType"() {
         when:
-        def bottom = new Bottom()
-        bottom.setArguments(["2"] as String[])
+        def top = new Top()
+        top.setArguments(["2"] as String[])
         then:
-        bottom.getQueryName() == "bottom"
+        top.getQueryName() == "top"
     }
 
     def "test getArguments"() {
         when:
-        def bottom = new Bottom()
-        bottom.setArguments(["2"] as String[])
+        def top = new Top()
+        top.setArguments(["2"] as String[])
         then:
-        bottom.getArguments()[0] == "value=2"
+        top.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
