@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author f.lautenschlager
  */
-public interface ChronixType {
+public interface ChronixType<T> {
 
     /**
      * @return the type name. Must be unique within an index.
@@ -35,17 +35,17 @@ public interface ChronixType {
     /**
      * Converts the given list of records to specific type of time series
      *
+     * @param joinKey    the join key that defines the group criteria
      * @param records    a list of records that belong to the query
      * @param queryStart the start of the query, use it to filter the records
      * @param queryEnd   the end of the query, use it fo filter the records
      * @return a time series of type <t>
      */
-    ChronixTimeSeries convert(List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested);
+    ChronixTimeSeries<T> convert(String joinKey, List<SolrDocument> records, long queryStart, long queryEnd, boolean rawDataIsRequested);
 
     /**
      * @param function the query name of the function
-     * @param args     the arguments that are passed to the function
      * @return the matching function
      */
-    ChronixFunction getFunction(String function, String[] args);
+    ChronixFunction<T> getFunction(String function);
 }

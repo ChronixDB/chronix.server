@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+
+import java.util.List;
 
 /**
  * Divide transformation
@@ -28,33 +31,28 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  */
 public final class Divide implements ChronixTransformation<MetricTimeSeries> {
 
-    private final double value;
-
-    /**
-     * Scales the time series by the given value
-     *
-     * @param args the first value is the divisor
-     */
-    public Divide(String[] args) {
-        this.value = Double.parseDouble(args[0]);
-    }
+    private double value;
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //Get a copy of the values
-        double[] values = timeSeries.getValuesAsArray();
-        //Get a copy of the timestamps
-        long[] times = timeSeries.getTimestampsAsArray();
-        for (int i = 0; i < timeSeries.size(); i++) {
-            //simply divide the original value
-            values[i] = values[i] / value;
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //Get a copy of the values
+            double[] values = timeSeries.getValuesAsArray();
+            //Get a copy of the timestamps
+            long[] times = timeSeries.getTimestampsAsArray();
+            for (int i = 0; i < timeSeries.size(); i++) {
+                //simply divide the original value
+                values[i] = values[i] / value;
+            }
+            //Clear the original time series and add the values
+            timeSeries.clear();
+            timeSeries.addAll(times, values);
+
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-        //Clear the original time series and add the values
-        timeSeries.clear();
-        timeSeries.addAll(times, values);
-
-        functionValueMap.add(this);
     }
 
     @Override
@@ -63,8 +61,16 @@ public final class Divide implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is the divisor
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.value = Double.parseDouble(args[0]);
     }
 
     @Override

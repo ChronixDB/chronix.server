@@ -13,5 +13,6 @@ dependencies {
     compile 'com.google.inject.extensions:guice-multibindings:4.1.0'
 
     compile project(':chronix-server-plugin-management')
+    testCompile project(':chronix-server-type-metric')
 
 }

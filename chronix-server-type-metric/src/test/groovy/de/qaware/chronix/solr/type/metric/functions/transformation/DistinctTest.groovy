@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -40,18 +41,18 @@ class DistinctTest extends Specification {
             timeSeriesBuilder.point(it * 100 + 2, it + 10)
         }
 
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         def distinct = new Distinct();
         when:
-        distinct.execute(timeSeries, analysisResult)
+        distinct.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 10
-        timeSeries.getTime(0) == 0
-        timeSeries.getValue(0) == 10
+        timeSeries.getRawTimeSeries().size() == 10
+        timeSeries.getRawTimeSeries().getTime(0) == 0
+        timeSeries.getRawTimeSeries().getValue(0) == 10
 
-        analysisResult.getTransformation(0) == distinct
+        analysisResult.getContextFor("").getTransformation(0) == distinct
     }
 
     def "test getType"() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -26,7 +28,8 @@ import spock.lang.Specification
 class TopTest extends Specification {
     def "test transform"() {
         given:
-        def top = new Top(["4"] as String[])
+        def top = new Top()
+        top.setArguments(["4"] as String[])
 
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Top","metric")
         timeSeriesBuilder.point(1, 5d)
@@ -36,50 +39,60 @@ class TopTest extends Specification {
         timeSeriesBuilder.point(5, 65d)
         timeSeriesBuilder.point(6, 23d)
 
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def timeSeries = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeriesBuilder.build())))
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
         top.execute(timeSeries, analysisResult)
 
 
         then:
-        timeSeries.size() == 4
-        timeSeries.getValue(0) == 99d
-        timeSeries.getValue(1) == 65d
-        timeSeries.getValue(2) == 23d
-        timeSeries.getValue(3) == 5d
+        timeSeries.get(0).getRawTimeSeries().size() == 4
+        timeSeries.get(0).getRawTimeSeries().getValue(0) == 99d
+        timeSeries.get(0).getRawTimeSeries().getValue(1) == 65d
+        timeSeries.get(0).getRawTimeSeries().getValue(2) == 23d
+        timeSeries.get(0).getRawTimeSeries().getValue(3) == 5d
 
     }
 
     def "test getType"() {
         when:
-        def bottom = new Bottom(["2"] as String[])
+        def top = new Top()
+        top.setArguments(["2"] as String[])
         then:
-        bottom.getQueryName() == "bottom"
+        top.getQueryName() == "top"
     }
 
     def "test getArguments"() {
         when:
-        def bottom = new Bottom(["2"] as String[])
+        def top = new Top()
+        top.setArguments(["2"] as String[])
         then:
-        bottom.getArguments()[0] == "value=2"
+        top.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Top(["4"] as String[])
+        def function = new Top()
+        def test_func4 = new Top()
+        def test_func2 = new Top()
+        function.setArguments(["4"] as String[])
+        test_func4.setArguments(["4"] as String[])
+        test_func2.setArguments(["2"] as String[])
+
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new Top(["4"] as String[]))
-        new Top(["4"] as String[]).hashCode() == new Top(["4"] as String[]).hashCode()
-        new Top(["4"] as String[]).hashCode() != new Top(["2"] as String[]).hashCode()
+        function.equals(test_func4)
+        function.hashCode() == test_func4.hashCode()
+        function.hashCode() != test_func2.hashCode()
     }
 
     def "test string representation"() {
         expect:
-        def string = new Top(["4"] as String[]).toString()
+        def top = new Top()
+        top.setArguments(["4"] as String[])
+        def string = top.toString()
         string.contains("value")
     }
 }

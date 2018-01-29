@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,7 +25,16 @@ public interface ChronixAggregation<T> extends ChronixFunction<T> {
 
 
     @Override
-    default FunctionType getType() {
+    default FunctionType getFunctionType() {
         return FunctionType.AGGREGATION;
+    }
+
+    default String[] getArguments() {
+        return new String[0];
+    }
+
+    @Override
+    default void setArguments(String[] args) {
+        //do nothing
     }
 }

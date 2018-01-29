@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  */
 package de.qaware.chronix.server.functions;
 
+import de.qaware.chronix.server.types.ChronixTimeSeries;
+
+import java.util.List;
+
 /**
  * The generic Chronix function interface
  *
@@ -24,9 +28,18 @@ public interface ChronixFunction<T> {
     /**
      * Executes a Chronix function on the given time series. The result should be added to the function value map.
      *
-     * @param timeSeries the time series as argument for the chronix function
+     * @param timeSeriesList the time series list with all time series
      */
-    void execute(T timeSeries, FunctionValueMap functionValueMap);
+    void execute(List<ChronixTimeSeries<T>> timeSeriesList, FunctionCtx functionValueMap);
+
+    /**
+     * The arguments
+     *
+     * @param args the args as strings
+     */
+    default void setArguments(String[] args) {
+        //do nothing
+    }
 
     /**
      * Gets the arguments of the function. Default is an empty string array.
@@ -45,16 +58,17 @@ public interface ChronixFunction<T> {
     /**
      * @return the type of the time series the function belongs to
      */
-    String getTimeSeriesType();
+    String getType();
 
     /**
      * @return the type of the function
      */
-    FunctionType getType();
+    FunctionType getFunctionType();
 
     enum FunctionType {
         AGGREGATION,
         TRANSFORMATION,
-        ANALYSIS
+        ANALYSIS,
+        FILTER
     }
 }

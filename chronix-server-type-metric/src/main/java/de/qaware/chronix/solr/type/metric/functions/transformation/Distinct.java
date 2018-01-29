@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package de.qaware.chronix.solr.type.metric.functions.transformation;
 import de.qaware.chronix.converter.common.DoubleList;
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,36 +39,40 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
      * The distinct operation uses the first occurrence of a point.
      *
      * @param timeSeries        the time series that is transformed
-     * @param functionValueMap the function value map
+     * @param functionCtx the function value map
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        if (timeSeries.isEmpty()) {
-            return;
-        }
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        timeSeries.sort();
-
-        LongList timeList = new LongList(timeSeries.size());
-        DoubleList valueList = new DoubleList(timeSeries.size());
-
-        //We should use a other data structure...
-        Set<Double> distinct = new HashSet<>();
-
-        for (int i = 0; i < timeSeries.size(); i++) {
-            double value = timeSeries.getValue(i);
-
-            if (!distinct.contains(value)) {
-                timeList.add(timeSeries.getTime(i));
-                valueList.add(value);
-                distinct.add(value);
+            if (timeSeries.isEmpty()) {
+                continue;
             }
-        }
-        timeSeries.clear();
-        timeSeries.addAll(timeList, valueList);
 
-        functionValueMap.add(this);
+            timeSeries.sort();
+
+            LongList timeList = new LongList(timeSeries.size());
+            DoubleList valueList = new DoubleList(timeSeries.size());
+
+            //We should use a other data structure...
+            Set<Double> distinct = new HashSet<>();
+
+            for (int i = 0; i < timeSeries.size(); i++) {
+                double value = timeSeries.getValue(i);
+
+                if (!distinct.contains(value)) {
+                    timeList.add(timeSeries.getTime(i));
+                    valueList.add(value);
+                    distinct.add(value);
+                }
+            }
+            timeSeries.clear();
+            timeSeries.addAll(timeList, valueList);
+
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
+        }
     }
 
     @Override
@@ -75,7 +81,7 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

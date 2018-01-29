@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.solr.type.metric.functions.math.NElements;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.List;
 
 /**
  * Top transformation to get value top values
@@ -30,32 +33,27 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public final class Top implements ChronixTransformation<MetricTimeSeries> {
 
-    private final int value;
-
-    /**
-     * Constructs the top value transformation
-     *
-     * @param args number of largest values that are returned
-     */
-    public Top(String[] args) {
-        this.value = Integer.parseInt(args[0]);
-    }
+    private int value;
 
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //Calculate the largest values
-        NElements.NElementsResult result = NElements.calc(
-                NElements.NElementsCalculation.TOP,
-                value,
-                timeSeries.getTimestampsAsArray(),
-                timeSeries.getValuesAsArray());
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        //remove the old time series values
-        timeSeries.clear();
-        //set the new top largest values
-        timeSeries.addAll(result.getNTimes(), result.getNValues());
-        functionValueMap.add(this);
+            //Calculate the largest values
+            NElements.NElementsResult result = NElements.calc(
+                    NElements.NElementsCalculation.TOP,
+                    value,
+                    timeSeries.getTimestampsAsArray(),
+                    timeSeries.getValuesAsArray());
+
+            //remove the old time series values
+            timeSeries.clear();
+            //set the new top largest values
+            timeSeries.addAll(result.getNTimes(), result.getNValues());
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
+        }
     }
 
     @Override
@@ -64,8 +62,17 @@ public final class Top implements ChronixTransformation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
+    }
+
+
+    /**
+     * @param args number of largest values that are returned
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.value = Integer.parseInt(args[0]);
     }
 
     @Override

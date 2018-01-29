@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -26,50 +27,66 @@ import spock.lang.Specification
 class SubtractTest extends Specification {
     def "test transform"() {
         given:
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Sub","metric")
+        def timeSeriesBuilder = new MetricTimeSeries.Builder("Sub", "metric")
         10.times {
             timeSeriesBuilder.point(it * 100, it + 10)
         }
         timeSeriesBuilder.point(10 * 100, -10)
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
 
-        def sub = new Subtract(["4"] as String[])
+        def sub = new Subtract()
+        sub.setArguments(["4"] as String[])
         when:
-        sub.execute(timeSeries, analysisResult)
+        sub.execute([timeSeries] as List, analysisResult)
 
         then:
-        timeSeries.size() == 11
-        timeSeries.getValue(1) == (1 + 10 - 4)
+        timeSeries.getRawTimeSeries().size() == 11
+        timeSeries.getRawTimeSeries().getValue(1) == (1 + 10 - 4)
 
-        timeSeries.getValue(10) == -14
+        timeSeries.getRawTimeSeries().getValue(10) == -14
     }
 
     def "test getType"() {
         expect:
-        new Subtract(["2"] as String[]).getQueryName() == "sub"
+        def sub = new Subtract()
+        sub.setArguments(["4"] as String[])
+        sub.getQueryName() == "sub"
     }
 
     def "test getArguments"() {
         expect:
-        new Subtract(["4"] as String[]).getArguments()[0] == "value=4.0"
+        def sub = new Subtract()
+        sub.setArguments(["4"] as String[])
+        sub.getArguments()[0] == "value=4.0"
     }
 
     def "test equals and hash code"() {
+        given:
+
+        def sub = new Subtract()
+        sub.setArguments(["4"] as String[])
+
+        def sameSub = new Subtract()
+        sameSub.setArguments(["4"] as String[])
+
+        def otherSub = new Subtract()
+        otherSub.setArguments(["2"] as String[])
+
         expect:
-        def function = new Subtract(["4"] as String[])
-        !function.equals(null)
-        !function.equals(new Object())
-        function.equals(function)
-        function.equals(new Subtract(["4"] as String[]))
-        new Subtract(["4"] as String[]).hashCode() == new Subtract(["4"] as String[]).hashCode()
-        new Subtract(["4"] as String[]).hashCode() != new Subtract(["2"] as String[]).hashCode()
+        sub != null
+        sub != new Object()
+        sub == sub
+        sub == sameSub
+        sub.hashCode() == sameSub.hashCode()
+        sub.hashCode() != otherSub.hashCode()
     }
 
     def "test string representation"() {
         expect:
-        def string = new Subtract(["4"] as String[]).toString()
-        string.contains("value")
+        def sub = new Subtract()
+        sub.setArguments(["4"] as String[])
+        sub.toString().contains("value")
     }
 }

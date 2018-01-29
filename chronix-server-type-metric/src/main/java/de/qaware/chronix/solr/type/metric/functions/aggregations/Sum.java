@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * Sum aggregation for a time series
@@ -30,27 +33,32 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the sum of the values of the given time series
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the sum of the values
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
-            return;
-        }
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        //Else calculate the analysis value
-        int size = timeSeries.size();
-        double sum = 0;
-        //Sum up the single values
-        for (int i = 1; i < size; i++) {
-            sum += timeSeries.getValue(i);
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+
+            //Else calculate the analysis value
+            int size = timeSeries.size();
+            double sum = 0;
+            //Sum up the single values
+            for (int i = 0; i < size; i++) {
+                sum += timeSeries.getValue(i);
+
+            }
+            //add it to the function context
+            functionCtx.add(this, sum, chronixTimeSeries.getJoinKey());
         }
-        //return it
-        functionValueMap.add(this, sum);
     }
 
     @Override
@@ -59,7 +67,7 @@ public final class Sum implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

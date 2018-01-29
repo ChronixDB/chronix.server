@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         final String chronixJoin = modifiableSolrParams.get(ChronixQueryParams.CHRONIX_JOIN);
 
 
-        //if we have an function query or someone wants the data as json
+        //if we have an function query or someone wants the data as json or a join query
         if (arrayIsNotEmpty(chronixFunctions) || contains(ChronixQueryParams.DATA_AS_JSON, fields) || !StringUtils.isEmpty(chronixJoin)) {
             LOGGER.debug("Request is an analysis request.");
             analysisHandler.handleRequestBody(req, rsp);

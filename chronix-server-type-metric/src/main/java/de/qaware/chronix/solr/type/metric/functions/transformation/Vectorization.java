@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * This transformation does a vectorization of the time series by removing some points.
@@ -31,18 +33,7 @@ import java.util.Arrays;
  */
 public final class Vectorization implements ChronixTransformation<MetricTimeSeries> {
 
-    private final float tolerance;
-
-    /**
-     * Constructs the vectorization transformation.
-     * <p>
-     * A typical tolerance value is 0.01f
-     *
-     * @param args the first value is used to decide if the distance of values is almost equals.
-     */
-    public Vectorization(String[] args) {
-        this.tolerance = Float.parseFloat(args[0]);
-    }
+    private float tolerance;
 
 
     /**
@@ -51,37 +42,41 @@ public final class Vectorization implements ChronixTransformation<MetricTimeSeri
      * Note: The transformation changes the values of the time series!
      * Further analyses such as aggregations uses the transformed values for the calculation.
      *
-     * @param timeSeries the time series that is transformed
+     * @param timeSeriesList the list with time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //we need a sorted time series
-        timeSeries.sort();
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        int size = timeSeries.size();
-        //do not simplify if there are insufficient data points
-        if (size <= 3) {
-            return;
-        }
+            //we need a sorted time series
+            timeSeries.sort();
 
-        byte[] usePoint = new byte[size];
-        Arrays.fill(usePoint, (byte) 1);
-
-        long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
-        double[] rawValues = timeSeries.getValuesAsArray();
-
-        //Clear the original time series
-        timeSeries.clear();
-
-        compute(rawTimeStamps, rawValues, usePoint, tolerance);
-
-        for (int i = 0; i < size; i++) {
-            if (usePoint[i] == 1) {
-                timeSeries.add(rawTimeStamps[i], rawValues[i]);
+            int size = timeSeries.size();
+            //do not simplify if there are insufficient data points
+            if (size <= 3) {
+                continue;
             }
+
+            byte[] usePoint = new byte[size];
+            Arrays.fill(usePoint, (byte) 1);
+
+            long[] rawTimeStamps = timeSeries.getTimestampsAsArray();
+            double[] rawValues = timeSeries.getValuesAsArray();
+
+            //Clear the original time series
+            timeSeries.clear();
+
+            compute(rawTimeStamps, rawValues, usePoint, tolerance);
+
+            for (int i = 0; i < size; i++) {
+                if (usePoint[i] == 1) {
+                    timeSeries.add(rawTimeStamps[i], rawValues[i]);
+                }
+            }
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-        functionValueMap.add(this);
     }
 
     /**
@@ -131,8 +126,16 @@ public final class Vectorization implements ChronixTransformation<MetricTimeSeri
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is used to decide if the distance of values is almost equals.
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.tolerance = Float.parseFloat(args[0]);
     }
 
     @Override

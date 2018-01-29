@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -43,14 +44,14 @@ class NonNegativeDerivativeTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:15.000Z"), 1)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:16.000Z"), 5)
 
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        derivative.execute(timeSeries, analysisResult)
+        derivative.execute(timeSeries as List, analysisResult)
 
         then:
-        timeSeries.size() == 4
+        timeSeries.getRawTimeSeries().size() == 4
     }
 
     long dateOf(format) {

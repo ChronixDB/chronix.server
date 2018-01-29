@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -155,5 +155,11 @@ class QueryFunctions {
         aggregations.addAll(functions.aggregations);
         transformations.addAll(functions.transformations);
         analyses.addAll(functions.analyses);
+    }
+
+    void clear() {
+        aggregations.clear();
+        transformations.clear();
+        analyses.clear();
     }
 }

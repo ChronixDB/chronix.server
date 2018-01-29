@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The standard deviation analysis
@@ -30,18 +33,23 @@ public final class StdDev implements ChronixAggregation<MetricTimeSeries> {
     /**
      * Calculates the standard deviation of the first time series.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the percentile or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
-            return;
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
+
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
+            }
+            //Else calculate the analysis value
+            functionCtx.add(this, de.qaware.chronix.solr.type.metric.functions.math.StdDev.dev(timeSeries.getValues()), chronixTimeSeries.getJoinKey());
         }
-        //Else calculate the analysis value
-        functionValueMap.add(this, de.qaware.chronix.solr.type.metric.functions.math.StdDev.dev(timeSeries.getValues()));
     }
 
     @Override
@@ -50,7 +58,7 @@ public final class StdDev implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

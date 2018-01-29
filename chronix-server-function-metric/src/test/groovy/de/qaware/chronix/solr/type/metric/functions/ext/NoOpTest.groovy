@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.ext
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -30,10 +31,11 @@ class NoOpTest extends Specification {
         given:
         def noOp = new NoOp()
         def timeSeries = new MetricTimeSeries.Builder("noop", "metric").build()
-        def functionValueMap = new FunctionValueMap(1, 1, 1)
+        def ctsList = [new ChronixMetricTimeSeries("bla", timeSeries)]
+        def functionCtx = new FunctionCtx(1, 1, 1)
 
         when:
-        noOp.execute(timeSeries, functionValueMap)
+        noOp.execute(ctsList, functionCtx)
 
         then:
         timeSeries == timeSeries
@@ -47,6 +49,6 @@ class NoOpTest extends Specification {
 
     def "getTimeSeriesType"() {
         expect:
-        new NoOp().timeSeriesType == "metric"
+        new NoOp().type == "metric"
     }
 }

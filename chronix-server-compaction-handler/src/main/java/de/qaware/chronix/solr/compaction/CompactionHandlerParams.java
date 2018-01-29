@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class CompactionHandlerParams {
      * Comma separated list of field names. Represents the primary key of a time series.
      * All documents with the key (i.e.: the same values for the given fields) will be compacted.
      */
-    public static final String JOIN_KEY = "joinKey";
+    public static final String JOIN_KEY = "cj";
 
     /**
      * Minimum number of data points to be merged into a single document.

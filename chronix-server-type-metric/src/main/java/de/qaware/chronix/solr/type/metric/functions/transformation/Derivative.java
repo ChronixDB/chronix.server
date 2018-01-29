@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.solr.type.metric.functions.math.DerivativeUtil;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The derivative transformation
@@ -35,32 +38,36 @@ public final class Derivative implements ChronixTransformation<MetricTimeSeries>
      * @param timeSeries the time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //we need a sorted time series
-        timeSeries.sort();
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        long[] times = timeSeries.getTimestampsAsArray();
-        double[] values = timeSeries.getValuesAsArray();
+            //we need a sorted time series
+            timeSeries.sort();
 
-        //Clear the time series
-        timeSeries.clear();
+            long[] times = timeSeries.getTimestampsAsArray();
+            double[] values = timeSeries.getValuesAsArray();
 
-        for (int i = 1; i < values.length - 1; i++) {
+            //Clear the time series
+            timeSeries.clear();
 
-            long yT1 = times[i + 1];
-            long yT0 = times[i - 1];
+            for (int i = 1; i < values.length - 1; i++) {
 
-            double xT1 = values[i + 1];
-            double xT0 = values[i - 1];
+                long yT1 = times[i + 1];
+                long yT0 = times[i - 1];
 
-            double derivativeValue = DerivativeUtil.derivative(xT1, xT0, yT1, yT0);
-            //We use the average time of
-            long derivativeTime = yT1 + (yT1 - yT0) / 2;
+                double xT1 = values[i + 1];
+                double xT0 = values[i - 1];
 
-            timeSeries.add(derivativeTime, derivativeValue);
+                double derivativeValue = DerivativeUtil.derivative(xT1, xT0, yT1, yT0);
+                //We use the average time of
+                long derivativeTime = yT1 + (yT1 - yT0) / 2;
+
+                timeSeries.add(derivativeTime, derivativeValue);
+            }
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-        functionValueMap.add(this);
     }
 
 
@@ -70,7 +77,7 @@ public final class Derivative implements ChronixTransformation<MetricTimeSeries>
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

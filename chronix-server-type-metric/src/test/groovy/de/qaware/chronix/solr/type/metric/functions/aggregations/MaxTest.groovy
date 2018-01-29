@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -32,24 +34,24 @@ class MaxTest extends Specification {
         }
         timeSeries.point(11, 9999)
         timeSeries.point(12, -10)
-        MetricTimeSeries ts = timeSeries.build()
-
-        def analysisResult = new FunctionValueMap(1, 1, 1);
+        List<ChronixTimeSeries<MetricTimeSeries>> tsList = new ArrayList<>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeries.build())))
+        def analysisResult = new FunctionCtx(1, 1, 1);
 
         when:
-        new Max().execute(ts, analysisResult)
+        new Max().execute(tsList, analysisResult)
+
         then:
-        analysisResult.getAggregationValue(0) == 9999.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == 9999.0d
     }
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        new Max().execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        new Max().execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN
+        analysisResult.getContextFor("").getAggregationValue(0) == Double.NaN
     }
 
 

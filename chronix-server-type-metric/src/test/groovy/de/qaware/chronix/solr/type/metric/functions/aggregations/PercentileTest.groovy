@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,9 +15,13 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.aggregations
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Unit test for the percentile aggregation
@@ -31,36 +35,54 @@ class PercentileTest extends Specification {
             timeSeries.point(it, it * 10)
         }
         timeSeries.point(11, 9999)
-        MetricTimeSeries ts = timeSeries.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        MetricTimeSeries ts =timeSeries.build()
+        def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Percentile(["0.5"] as String[]).execute(ts, analysisResult)
+        Percentile percentile =  new Percentile()
+        percentile.setArguments(["0.5"] as String[])
+        percentile.execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", ts))), analysisResult)
         then:
-        analysisResult.getAggregationValue(0) == 50.0d
+        analysisResult.getContextFor("").getAggregationValue(0) == 50.0d
     }
 
     def "test for empty time series"() {
         given:
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def analysisResult = new FunctionCtx(1, 1, 1)
         when:
-        new Percentile(["0.5"] as String[]).execute(new MetricTimeSeries.Builder("Empty","metric").build(), analysisResult)
+        Percentile percentile = new Percentile()
+        percentile.setArguments(["0.5"] as String[])
+        percentile.execute(new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", new MetricTimeSeries.Builder("Empty","metric").build()))), analysisResult)
+
         then:
-        analysisResult.getAggregationValue(0) == Double.NaN
+        analysisResult.getContextFor("").getAggregationValue(0) == Double.NaN
     }
 
 
     def "test arguments"() {
         expect:
-        new Percentile(["0.5"] as String[]).getArguments().size() == 1
+        Percentile percentile = new Percentile()
+        percentile.setArguments(["0.5"] as String[])
+        percentile.getArguments().size() == 1
     }
 
     def "test type"() {
         expect:
-        new Percentile(["0.5"] as String[]).getQueryName() == "p"
+        Percentile percentile = new Percentile()
+        percentile.setArguments(["0.5"] as String[])
+        percentile.getQueryName() == "p"
     }
 
+    @Shared
+    def p1 = new Percentile()
+
+    @Shared
+    def p2 = new Percentile()
+
+    @Unroll
     def "test equals and hash code"() {
         when:
+        setArgs()
+
         def equals = p1.equals(p2)
         def p1Hash = p1.hashCode()
         def p2Hash = p2.hashCode()
@@ -73,15 +95,23 @@ class PercentileTest extends Specification {
         p1Hash == p2Hash == result
 
         where:
-        p1 << [new Percentile(["0.1"] as String[]), new Percentile(["0.2"] as String[])]
-        p2 << [new Percentile(["0.1"] as String[]), new Percentile(["0.1"] as String[])]
+        setArgs << [{ ->
+                         p1.setArguments(["0.1"] as String[])
+                         p2.setArguments(["0.1"] as String[])
+                         },
+                     { ->
+                         p1.setArguments(["0.2"] as String[])
+                         p2.setArguments(["0.1"] as String[])
+                     }]
 
         result << [true, false]
     }
 
     def "test to string"() {
         when:
-        def stringRepresentation = new Percentile(["0.2"] as String[]).toString()
+        Percentile percentile = new Percentile()
+        percentile.setArguments(["0.2"] as String[])
+        def stringRepresentation = percentile.toString()
         then:
         stringRepresentation.contains("0.2")
     }

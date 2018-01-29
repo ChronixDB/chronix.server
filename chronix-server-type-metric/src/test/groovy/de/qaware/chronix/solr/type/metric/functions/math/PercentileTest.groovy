@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class PercentileTest extends Specification {
 
     def "test evaluate 0.5 percentile"() {
         given:
-        def percentile = 0.5
+        def percentile = 0.5d
 
         when:
         def value = Percentile.evaluate(points, percentile)

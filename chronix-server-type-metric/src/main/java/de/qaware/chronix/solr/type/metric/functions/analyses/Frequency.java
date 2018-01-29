@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ package de.qaware.chronix.solr.type.metric.functions.analyses;
 
 import de.qaware.chronix.converter.common.LongList;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -36,19 +37,9 @@ import java.util.List;
  */
 public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
 
-    private final long windowSize;
-    private final long windowThreshold;
+    private long windowSize;
+    private long windowThreshold;
 
-    /**
-     * Constructs a frequency detection
-     *
-     * @param args The first arguemnt is the windowSize, the second the window threshold
-     */
-    public Frequency(String[] args) {
-
-        this.windowSize = Long.parseLong(args[0]);
-        this.windowThreshold = Long.parseLong(args[1]);
-    }
 
     /**
      * The frequency detector splits a time series into windows, counts the data points, and checks if the delta
@@ -56,55 +47,65 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
      * <p>
      * The frequency detector splits a time series using the constructor argument.
      *
-     * @param functionValueMap
+     * @param functionCtx
      * @return true if the time series has a pair of windows 1 and 2 where 2 has th
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        LongList timestamps = timeSeries.getTimestamps();
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        final List<Long> currentWindow = new ArrayList<>();
-        final List<Integer> windowCount = new ArrayList<>();
+            LongList timestamps = timeSeries.getTimestamps();
 
-        //start and end of the window
-        long windowStart = timestamps.get(0);
-        //calculate the end
-        long windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
+            final List<Long> currentWindow = new ArrayList<>();
+            final List<Integer> windowCount = new ArrayList<>();
 
-        for (int i = 1; i < timeSeries.size(); i++) {
-            long current = timestamps.get(i);
-            //Add the occurrence of the current window.
-            if (current > windowStart - 1 && current < (windowEnd)) {
-                currentWindow.add(current);
-            } else {
-                //We reached the end. Lets add it to the window count
-                windowCount.add(currentWindow.size());
-                windowStart = current;
-                windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
-                currentWindow.clear();
+            //start and end of the window
+            long windowStart = timestamps.get(0);
+            //calculate the end
+            long windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
+
+            for (int i = 1; i < timeSeries.size(); i++) {
+                long current = timestamps.get(i);
+                //Add the occurrence of the current window.
+                if (current > windowStart - 1 && current < (windowEnd)) {
+                    currentWindow.add(current);
+                } else {
+                    //We reached the end. Lets add it to the window count
+                    windowCount.add(currentWindow.size());
+                    windowStart = current;
+                    windowEnd = Instant.ofEpochMilli(windowStart).plus(windowSize, ChronoUnit.MINUTES).toEpochMilli();
+                    currentWindow.clear();
+                }
             }
-        }
-        //we are done, add the last window
-        windowCount.add(currentWindow.size());
+            //we are done, add the last window
+            windowCount.add(currentWindow.size());
 
-        //check deltas
-        for (int i = 1; i < windowCount.size(); i++) {
+            boolean analysisResult = false;
+            //check deltas
+            for (int i = 1; i < windowCount.size(); i++) {
 
-            int former = windowCount.get(i - 1);
-            int current = windowCount.get(i);
+                int former = windowCount.get(i - 1);
+                int current = windowCount.get(i);
 
-            //The threshold
-            int result = current - former;
-            if (result >= windowThreshold) {
-                //add the time series as there are more points per window than the threshold
-                functionValueMap.add(this, true, null);
-                return;
+                //The threshold
+                int result = current - former;
+                if (result >= windowThreshold) {
+                    //add the time series as there are more points per window than the threshold
+                    analysisResult = true;
+                    break;
+                }
             }
+            functionCtx.add(this, analysisResult, chronixTimeSeries.getJoinKey());
         }
-        //Nothing bad found
-        functionValueMap.add(this, false, null);
 
+    }
+
+    @Override
+    public void setArguments(String[] args) {
+        this.windowSize = Long.parseLong(args[0]);
+        this.windowThreshold = Long.parseLong(args[1]);
     }
 
     @Override
@@ -118,7 +119,7 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

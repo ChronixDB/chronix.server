@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -41,9 +42,10 @@ import java.util.stream.Collectors
  *
  * @author f.lautenschlager
  */
+
 class ChronixClientTestIT extends Specification {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChronixClientTestIT.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChronixClientTestIT.class)
 
     //Test subjects
     @Shared
@@ -54,7 +56,7 @@ class ChronixClientTestIT extends Specification {
     def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
-        solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
+        solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/").build()
         chronix = new ChronixClient(
                 new MetricTimeSeriesConverter<>(),
                 new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
@@ -146,8 +148,8 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
 
         where:
-        analysis << ["metric{trend}", "metric{outlier}", "metric{frequency:10,1}", "metric{fastdtw:(name:*Load*max),5,0.8}"]
-        points << [7000, 7000, 7000, 7000]
+        analysis << ["metric{trend}", "metric{outlier}", "metric{frequency:10,1}"] //, "metric{fastdtw:(name:*Load*max),5,0.8}"]
+        points << [7000, 7000, 7000]// , 7000]
     }
 
     @Unroll
@@ -194,6 +196,7 @@ class ChronixClientTestIT extends Specification {
         points << [9691, 7302, 15]
     }
 
+    @Ignore
     def "Test analysis fastdtw"() {
         when:
         def query = new SolrQuery("name:*Load*min")
@@ -283,7 +286,8 @@ class ChronixClientTestIT extends Specification {
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{frequency:10,9}")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
-        timeSeries.size() == 0
+        timeSeries.size() == 1
+        timeSeries.get(0).attribute("0_function_frequency") == false
     }
 
 
@@ -327,10 +331,11 @@ class ChronixClientTestIT extends Specification {
     def "Test query with compression result"() {
         when:
         def query = new SolrQuery("*:*")
-        //Enable serverside compression
-        solr.setAllowCompression(true)
+        //Enable server side compression
+        HttpSolrClient test_solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/")
+                .allowCompression(true).build()
         //query all documents
-        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+        List<MetricTimeSeries> timeSeries = chronix.stream(test_solr, query).collect(Collectors.toList())
 
         then:
         timeSeries.size() == 26i
@@ -344,7 +349,7 @@ class ChronixClientTestIT extends Specification {
     def "Test raw query with compression activated: #withCompression"() {
         when:
         def connection = "http://localhost:8913/solr/chronix/select?indent=on&q=*:*&wt=json".toURL().openConnection()
-        connection.setRequestProperty("Accept-Encoding", "gzip");
+        connection.setRequestProperty("Accept-Encoding", "gzip")
         def result = Compression.decompress(connection.getInputStream().bytes)
 
         then:

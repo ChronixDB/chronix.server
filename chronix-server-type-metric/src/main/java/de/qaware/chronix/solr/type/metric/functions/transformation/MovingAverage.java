@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 package de.qaware.chronix.solr.type.metric.functions.transformation;
 
 import de.qaware.chronix.server.functions.ChronixTransformation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * The moving average transformation.
@@ -31,21 +33,10 @@ import java.time.temporal.ChronoUnit;
  */
 public final class MovingAverage implements ChronixTransformation<MetricTimeSeries> {
 
-    private final long timeSpan;
-    private final ChronoUnit unit;
-    private final long windowTime;
+    private long timeSpan;
+    private ChronoUnit unit;
+    private long windowTime;
 
-    /**
-     * Constructs a moving average transformation
-     *
-     * @param args the first value is the time span e.g. 5, 10, the second one is the unit of the time span
-     */
-    public MovingAverage(String[] args) {
-
-        this.timeSpan = Long.parseLong(args[0]);
-        this.unit = ChronoUnit.valueOf(args[1].toUpperCase());
-        this.windowTime = unit.getDuration().toMillis() * timeSpan;
-    }
 
     /**
      * Calculates the moving average by sliding a window (timeSpan * unit, set in the constructor) over the time series.
@@ -56,62 +47,66 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
      * dropped and so on until the end of the window is greater equals the time series end.
      * We do this as time series can have gaps that are larger than the defined window.
      *
-     * @param timeSeries the time series that is transformed
+     * @param timeSeriesList the list with time series that is transformed
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //we need a sorted time series
-        timeSeries.sort();
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-        //get the raw values as arrays
-        double[] values = timeSeries.getValuesAsArray();
-        long[] times = timeSeries.getTimestampsAsArray();
+            //we need a sorted time series
+            timeSeries.sort();
 
-        int timeSeriesSize = timeSeries.size();
-        //remove the old values
-        timeSeries.clear();
+            //get the raw values as arrays
+            double[] values = timeSeries.getValuesAsArray();
+            long[] times = timeSeries.getTimestampsAsArray();
 
-        int startIdx = 0;
-        long current = times[0];
-        long currentWindowEnd = current + windowTime;
-        long last = times[timeSeriesSize - 1];
+            int timeSeriesSize = timeSeries.size();
+            //remove the old values
+            timeSeries.clear();
 
-        boolean lastWindowOnlyOnePoint = true;
+            int startIdx = 0;
+            long current = times[0];
+            long currentWindowEnd = current + windowTime;
+            long last = times[timeSeriesSize - 1];
 
-        //the start is already set
-        for (int i = 0; i < timeSeriesSize; i++) {
+            boolean lastWindowOnlyOnePoint = true;
 
-            //fill window
-            while (i < timeSeriesSize && !outsideWindow(currentWindowEnd, current)) {
-                current = times[i++];
+            //the start is already set
+            for (int i = 0; i < timeSeriesSize; i++) {
+
+                //fill window
+                while (i < timeSeriesSize && !outsideWindow(currentWindowEnd, current)) {
+                    current = times[i++];
+                }
+                //decrement counter to mark the last index position that is within the window
+                i -= 1;
+
+                //calculate the average of the values and the time
+                evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, i);
+
+                //slide the window
+                startIdx++;
+                currentWindowEnd = times[startIdx] + windowTime;
+
+                //check if the current window end is larger equals the end timestamp
+                if (currentWindowEnd >= last) {
+                    //break and add the last window
+                    lastWindowOnlyOnePoint = false;
+                    break;
+                }
             }
-            //decrement counter to mark the last index position that is within the window
-            i -= 1;
 
-            //calculate the average of the values and the time
-            evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, i);
-
-            //slide the window
-            startIdx++;
-            currentWindowEnd = times[startIdx] + windowTime;
-
-            //check if the current window end is larger equals the end timestamp
-            if (currentWindowEnd >= last) {
-                //break and add the last window
-                lastWindowOnlyOnePoint = false;
-                break;
+            if (lastWindowOnlyOnePoint) {
+                timeSeries.add(times[timeSeriesSize - 1], values[timeSeriesSize - 1]);
+            } else {
+                //add the last window
+                evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
             }
-        }
 
-        if (lastWindowOnlyOnePoint) {
-            timeSeries.add(times[timeSeriesSize - 1], values[timeSeriesSize - 1]);
-        } else {
-            //add the last window
-            evaluateAveragesAndAddToTimeSeries(timeSeries, values, times, startIdx, timeSeriesSize);
+            functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }
-
-        functionValueMap.add(this);
     }
 
     /**
@@ -154,8 +149,18 @@ public final class MovingAverage implements ChronixTransformation<MetricTimeSeri
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
+    }
+
+    /**
+     * @param args the first value is the time span e.g. 5, 10, the second one is the unit of the time span
+     */
+    @Override
+    public void setArguments(String[] args) {
+        this.timeSpan = Long.parseLong(args[0]);
+        this.unit = ChronoUnit.valueOf(args[1].toUpperCase());
+        this.windowTime = unit.getDuration().toMillis() * timeSpan;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import de.qaware.chronix.server.types.ChronixType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Holds the functions per type
@@ -42,4 +43,12 @@ public class TypeFunctions {
     public boolean isEmpty() {
         return typeFunctions.isEmpty();
     }
+
+    /**
+     * @return the types
+     */
+    public Set<ChronixType> getTypes() {
+        return typeFunctions.keySet();
+    }
+
 }

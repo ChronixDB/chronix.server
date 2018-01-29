@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import org.apache.solr.common.util.NamedList
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static de.qaware.chronix.Schema.*
+import static de.qaware.chronix.Schema.DATA
+import static de.qaware.chronix.Schema.END
 import static de.qaware.chronix.solr.TestUtils.*
-import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.*
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.JOIN_KEY
+import static de.qaware.chronix.solr.compaction.CompactionHandlerParams.POINTS_PER_CHUNK
 import static java.lang.Math.cos
 import static java.lang.Math.sin
 import static org.apache.solr.common.params.CommonParams.*
@@ -38,8 +40,7 @@ class CompactionHandlerTestIT extends Specification {
 
     QueryRequest ALL_DOCS_QUERY = new QueryRequest(params((QT): '/select', (Q): '*:*'))
     @Shared
-    HttpSolrClient solr = new HttpSolrClient("http://localhost:8913/solr/chronix/")
-
+    HttpSolrClient solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/").build()
 
     def setup() {
         solr.deleteByQuery("*:*")
@@ -60,6 +61,7 @@ class CompactionHandlerTestIT extends Specification {
 
         when:
         NamedList rsp = solr.request(compactionQuery).get('responseHeader')
+
 
         then:
         rsp.get('status') == 0
@@ -175,7 +177,7 @@ class CompactionHandlerTestIT extends Specification {
         decompress(h2Docs[0].get(DATA), 5, 6) == [5L: 50d, 6L: 60d]
     }
 
-    def "test fq with joinKey"() {
+    def "test fq with cj"() {
         given:
         solr.add([doc((START): 10, (END): 11, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(10L: 10d, 11L: 11d)),
                   doc((START): 12, (END): 13, (NAME): 'cpu', host: '1', (TYPE): 'metric', (DATA): compress(12L: 12d, 13L: 13d)),

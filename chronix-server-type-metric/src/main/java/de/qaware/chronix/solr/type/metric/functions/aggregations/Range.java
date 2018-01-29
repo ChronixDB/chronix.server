@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 package de.qaware.chronix.solr.type.metric.functions.aggregations;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 /**
  * The range analysis returns the difference between the maximum and minimum of a time series
@@ -32,37 +35,43 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
      * Gets difference between the maximum and the minimum value.
      * It is always a positive value.
      *
-     * @param timeSeries the time series
+     * @param timeSeriesList list with time series
      * @return the average or 0 if the list is empty
      */
     @Override
-    public void execute(MetricTimeSeries timeSeries, FunctionValueMap functionValueMap) {
-        //If it is empty, we return NaN
-        if (timeSeries.size() <= 0) {
-            functionValueMap.add(this, Double.NaN);
-            return;
-        }
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
 
-        //the values to iterate
-        double[] values = timeSeries.getValuesAsArray();
-        //Initialize the values with the first element
-        double min = values[0];
-        double max = values[0];
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
 
-        for (int i = 1; i < values.length; i++) {
-            double current = values[i];
+            MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
 
-            //check for min
-            if (current < min) {
-                min = current;
+            //If it is empty, we return NaN
+            if (timeSeries.size() <= 0) {
+                functionCtx.add(this, Double.NaN, chronixTimeSeries.getJoinKey());
+                continue;
             }
-            //check of max
-            if (current > max) {
-                max = current;
+
+            //the values to iterate
+            double[] values = timeSeries.getValuesAsArray();
+            //Initialize the values with the first element
+            double min = values[0];
+            double max = values[0];
+
+            for (int i = 1; i < values.length; i++) {
+                double current = values[i];
+
+                //check for min
+                if (current < min) {
+                    min = current;
+                }
+                //check of max
+                if (current > max) {
+                    max = current;
+                }
             }
+            //return the absolute difference
+            functionCtx.add(this, Math.abs(max - min), chronixTimeSeries.getJoinKey());
         }
-        //return the absolute difference
-        functionValueMap.add(this, Math.abs(max - min));
     }
 
     @Override
@@ -71,7 +80,7 @@ public final class Range implements ChronixAggregation<MetricTimeSeries> {
     }
 
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 

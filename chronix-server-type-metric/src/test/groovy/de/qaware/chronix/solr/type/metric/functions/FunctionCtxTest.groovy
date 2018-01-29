@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.type.metric.functions
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.solr.type.metric.functions.aggregations.Max
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend
 import de.qaware.chronix.solr.type.metric.functions.transformation.Vectorization
@@ -27,40 +27,42 @@ import spock.lang.Unroll
  * Unit test for the analysis value map
  * @author f.lautenschlager
  */
-class FunctionValueMapTest extends Specification {
+class FunctionCtxTest extends Specification {
 
     def "test analysis value map"() {
         given:
-        def functionValueMap = new FunctionValueMap(3, 3, 3)
+        def functionContext = new FunctionCtx(3, 3, 3)
 
         when:
         aggregations.times {
-            functionValueMap.add(new Max(), it)
+            functionContext.add(new Max(), it as double, "my_join_key")
         }
         analyses.times {
-            functionValueMap.add(new Trend(), true, "")
+            functionContext.add(new Trend(), true, "my_join_key")
         }
 
         transformations.times {
-            functionValueMap.add(new Vectorization(["0.1f"] as String[]))
+            functionContext.add(new Vectorization(), "my_join_key")
         }
 
 
         then:
-        functionValueMap.size() == aggregations + analyses + transformations
 
-        functionValueMap.sizeOfAggregations() == aggregations
-        functionValueMap.sizeOfAnalyses() == analyses
-        functionValueMap.sizeOfTransformations() == transformations
+        def timeSeriesContext = functionContext.getContextFor("my_join_key")
 
-        functionValueMap.getAggregation(0) == new Max()
-        functionValueMap.getAggregationValue(0) == 0
+        timeSeriesContext.size() == aggregations + analyses + transformations
 
-        functionValueMap.getAnalysis(0) == new Trend()
-        functionValueMap.getAnalysisValue(0) == true
-        functionValueMap.getAnalysisIdentifier(0) == ""
+        timeSeriesContext.sizeOfAggregations() == aggregations
+        timeSeriesContext.sizeOfAnalyses() == analyses
+        timeSeriesContext.sizeOfTransformations() == transformations
 
-        functionValueMap.getTransformation(0) == new Vectorization(["0.1"] as String[])
+        timeSeriesContext.getAggregation(0) == new Max()
+        timeSeriesContext.getAggregationValue(0) == 0
+
+        timeSeriesContext.getAnalysis(0) == new Trend()
+        timeSeriesContext.getAnalysisValue(0) == true
+
+        timeSeriesContext.getTransformation(0) == new Vectorization()
 
         where:
         aggregations << [3]
@@ -69,7 +71,7 @@ class FunctionValueMapTest extends Specification {
     }
 
     @Shared
-    def functionValueMap = new FunctionValueMap(0, 0, 0)
+    def functionValueMap = new FunctionCtx(0, 0, 0)
 
     @Unroll
     def "test exception case for #function"() {
@@ -81,9 +83,9 @@ class FunctionValueMapTest extends Specification {
 
 
         where:
-        function << [{ -> functionValueMap.add(new Max(), 0.0) },
+        function << [{ -> functionValueMap.add(new Max(), 0.0d, "") },
                      { -> functionValueMap.add(new Trend(), true, "") },
-                     { -> functionValueMap.add(new Vectorization(["0.1"] as String[])) }]
+                     { -> functionValueMap.add(new Vectorization(), "") }]
 
     }
 }

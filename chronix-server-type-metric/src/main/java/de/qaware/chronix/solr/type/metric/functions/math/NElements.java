@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public final class NElements {
     /**
      * Helper class to represent values with belonging index
      */
-    private static final class Pair implements Comparable<Pair> {
+    public static final class Pair implements Comparable<Pair> {
         private int index;
         private double value;
 

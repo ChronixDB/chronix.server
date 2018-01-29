@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,36 +20,30 @@ import de.qaware.chronix.distance.DistanceFunctionEnum;
 import de.qaware.chronix.distance.DistanceFunctionFactory;
 import de.qaware.chronix.dtw.FastDTW;
 import de.qaware.chronix.dtw.TimeWarpInfo;
-import de.qaware.chronix.server.functions.ChronixPairAnalysis;
-import de.qaware.chronix.server.functions.FunctionValueMap;
+import de.qaware.chronix.server.functions.ChronixAnalysis;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.solr.common.util.Pair;
 
+import java.util.List;
+
 /**
  * The analysis implementation of the Fast DTW analysis
  *
+ * TODO: Fix this.
+ *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries, MetricTimeSeries>> {
+public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
 
-    private final DistanceFunction distanceFunction;
-    private final int searchRadius;
-    private final double maxNormalizedWarpingCost;
-    private final String subquery;
-
-    /**
-     * @param args The first argument is the subquery, the second is the search radius, the third is the maxNormalizedWarpingCost
-     */
-    public FastDtw(String[] args) {
-
-        this.subquery = removeBrackets(args[0]);
-        this.searchRadius = Integer.parseInt(args[1]);
-        this.maxNormalizedWarpingCost = Double.parseDouble(args[2]);
-        this.distanceFunction = DistanceFunctionFactory.getDistanceFunction(DistanceFunctionEnum.EUCLIDEAN);
-    }
+    private DistanceFunction distanceFunction;
+    private int searchRadius;
+    private double maxNormalizedWarpingCost;
+    private String subquery;
 
     private static String removeBrackets(String subQuery) {
         //remove the enfolding brackets
@@ -59,15 +53,16 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
         return subQuery;
     }
 
+    // original call public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionCtx functionCtx) {
     @Override
-    public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionValueMap functionValueMap) {
-        //We have to build a multivariate time series
+    public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
+        /*//We have to build a multivariate time series
         MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
         MultivariateTimeSeries other = buildMultiVariateTimeSeries(timeSeriesPair.second());
         //Call the fast dtw library
         TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
         //Check the result. If it lower equals the threshold, we can return the other time series
-        functionValueMap.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
+        */// functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
 
     }
 
@@ -115,6 +110,15 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
     }
 
     @Override
+    public void setArguments(String[] args) {
+
+        this.subquery = removeBrackets(args[0]);
+        this.searchRadius = Integer.parseInt(args[1]);
+        this.maxNormalizedWarpingCost = Double.parseDouble(args[2]);
+        this.distanceFunction = DistanceFunctionFactory.getDistanceFunction(DistanceFunctionEnum.EUCLIDEAN);
+    }
+
+    @Override
     public String[] getArguments() {
         return new String[]{"search radius=" + searchRadius,
                 "max warping cost=" + maxNormalizedWarpingCost,
@@ -123,24 +127,14 @@ public final class FastDtw implements ChronixPairAnalysis<Pair<MetricTimeSeries,
 
     @Override
     public String getQueryName() {
-        return "fastdtw";
+        return  "fastdtw";
     }
 
-
     @Override
-    public String getTimeSeriesType() {
+    public String getType() {
         return "metric";
     }
 
-    @Override
-    public boolean needSubquery() {
-        return true;
-    }
-
-    @Override
-    public String getSubquery() {
-        return subquery;
-    }
 
 
     @Override

@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'de.undercouch:gradle-download-task:3.1.1'
+        classpath 'de.undercouch:gradle-download-task:3.3.0'
     }
 }
 
@@ -32,51 +32,53 @@ dependencies {
 
 import de.undercouch.gradle.tasks.download.Download
 
+
 def solrVersion = "6.4.2"
+def chronixBuildDir = rootDir.path + "/chronix-server-bin/chronix-server"
+def confDir = rootDir.path + "/chronix-server-bin/config/chronix"
 
 //Apache archive
-//"http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
 task downloadZipFile(type: Download) {
     onlyIfNewer true
     src "http://archive.apache.org/dist/lucene/solr/${solrVersion}/solr-${solrVersion}.zip"
-    dest new File(buildDir, "solr-${solrVersion}.zip")
+    dest new File(chronixBuildDir, "solr-${solrVersion}.zip")
 }
 
 task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     from zipTree(downloadZipFile.dest)
-    into buildDir
+    into chronixBuildDir
 }
 task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/solr"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr"
+    from "$confDir/solr"
 }
 /**
  * Enable CORS per default otherwise Grafana won't work.
  */
 task copyWEBXMLToSolr(dependsOn: copyCoreToSolr, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/WEB-INF/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/WEB-INF/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr-webapp/webapp/WEB-INF/"
+    from "$confDir/solr-webapp/webapp/WEB-INF/"
 }
 /**
  * Copy the modified contexts to activate gzip
  */
 task copyContextsWithGZIP(dependsOn: copyWEBXMLToSolr, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/contexts/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/contexts/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/contexts/"
+    from "$confDir/contexts/"
 }
 /**
  * Copy the related jetty ssl with the gzip stuff
  */
 task copyJettySSL(dependsOn: copyContextsWithGZIP, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/etc/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/etc/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/etc/"
+    from "$confDir/etc/"
 }
 /**
  * Copy some chronix icons
  */
 task copyFavicon(dependsOn: copyJettySSL, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr-webapp/webapp/"
+    from "$confDir/solr-webapp/webapp/"
     include("favicon.ico")
 }
 
@@ -84,22 +86,22 @@ task copyFavicon(dependsOn: copyJettySSL, type: Copy) {
  * Copy some chronix icons
  */
 task copyChronixLogo(dependsOn: copyFavicon, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/img/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/img/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr-webapp/webapp/img/"
+    from "$confDir/solr-webapp/webapp/img/"
 }
 
 /**
  * Copy some chronix icons
  */
 task copyModifiedCSS(dependsOn: copyChronixLogo, type: Copy) {
-    into "$buildDir/solr-${solrVersion}/server/solr-webapp/webapp/css/angular/"
-    from "$projectDir/src/inttest/resources/de/qaware/chronix/solr-webapp/webapp/css/angular/"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr-webapp/webapp/css/angular/"
+    from "$confDir/solr-webapp/webapp/css/angular/"
 }
 
 
 task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     from(configurations.testCompile + configurations.testRuntime)
-    into "$buildDir/solr-${solrVersion}/server/solr/chronix/lib"
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr/chronix/lib"
     include("*chronix-api*.jar")
     include("*chronix-timeseries*.jar")
     include("*chronix-server-query*.jar")
@@ -118,7 +120,33 @@ task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     include("*guice*.jar")
     include("*aopalliance*.jar")
     include("*javax.inject-1.jar")
+}
 
+task recopyApplicationLibs(type: Copy) {
+    from(configurations.testCompile + configurations.testRuntime)
+    into "$chronixBuildDir/solr-${solrVersion}/server/solr/chronix/lib"
+    include("*chronix-api*.jar")
+    include("*chronix-timeseries*.jar")
+    include("*chronix-server-query*.jar")
+    include("*chronix-server-ingestion*.jar")
+    include("*chronix-server-compaction*.jar")
+    include("*chronix-server-retention*.jar")
+    include("*chronix-server-plugin-management*.jar")
+    include("*chronix-server-function-metric*.jar")
+    include("*chronix-server-type-metric*.jar")
+    include("*chronix.fastdtw-*.jar")
+    include("*commons-lang3-*.jar")
+    include("*commons-math3-*.jar")
+    include("*quartz*.jar")
+    include("*gson*.jar")
+    include("*proto*.jar")
+    include("*guice*.jar")
+    include("*aopalliance*.jar")
+    include("*javax.inject-1.jar")
+}
+
+task downloadAndBuildChronix(dependsOn: copyIntegrationRuntimeLibs) {
+//nothing in here
 }
 
 /**
@@ -159,11 +187,11 @@ task startSolr(dependsOn: copyIntegrationRuntimeLibs, type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd start -m 512m -p 8913'
         ready "Started Solr server on port 8913. Happy searching!"
-        directory "$buildDir/solr-${solrVersion}/bin/"
+        directory "$chronixBuildDir/solr-${solrVersion}/bin/"
     } else {
         command 'bash solr start -m 512m -p 8913'
         ready "Started Solr server on port 8913. Happy searching!"
-        directory "$buildDir/solr-${solrVersion}/bin/"
+        directory "$chronixBuildDir/solr-${solrVersion}/bin/"
     }
 }
 
@@ -171,16 +199,42 @@ task stopSolr(type: ExecWait) {
     if (osName.contains("windows")) {
         command 'cmd.exe /C solr.cmd stop -p 8913'
         ready ""
-        directory "$buildDir/solr-${solrVersion}/bin/"
+        directory "$chronixBuildDir/solr-${solrVersion}/bin/"
     } else {
         command 'bash solr stop -p 8913'
         ready ""
-        directory "$buildDir/solr-${solrVersion}/bin/"
+        directory "$chronixBuildDir/solr-${solrVersion}/bin/"
     }
 }
 
 
-task intTest(dependsOn: copyIntegrationRuntimeLibs, type: Test) {
+task deleteUnusedDirs(type: Delete) {
+
+    //delete the following dirs
+    def solrDir = "$chronixBuildDir/solr-${solrVersion}/"
+
+    delete "$solrDir/docs"
+    delete "$solrDir/example"
+    delete "$solrDir/dist/solrj-lib"
+    delete "$solrDir/dist/test-framework"
+    delete "$solrDir/dist/solr-solrj-${solrVersion}.jar"
+    delete "$solrDir/dist/solr-test-framework-${solrVersion}.jar"
+
+    delete fileTree("$solrDir/server/logs").include("**/*")
+    delete "$solrDir/server/solr/configsets"
+    delete fileTree("$solrDir/server/solr").include("hsperfdata*")
+}
+
+task buildRelease(dependsOn: deleteUnusedDirs, type: Zip) {
+    def solrDir = "$chronixBuildDir/solr-${solrVersion}/"
+    from("$solrDir")
+    into "chronix-solr-${solrVersion}" // note that this specifies path *in* the archive
+    destinationDir file("chronix-${project.version}") // directory that you want your archive to be placed in
+    baseName = "chronix"
+}
+
+
+task intTest(type: Test) {
     //group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = 'Runs the integration tests.'
 
@@ -210,7 +264,6 @@ gradle.projectsEvaluated {
         project.tasks.intTest.mustRunAfter task
     }
 }
-
 intTest.dependsOn startSolr
 
 intTest.finalizedBy stopSolr

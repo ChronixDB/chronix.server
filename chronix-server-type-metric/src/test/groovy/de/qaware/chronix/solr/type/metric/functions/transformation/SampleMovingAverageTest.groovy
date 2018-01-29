@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 QAware GmbH
+ * Copyright (C) 2018 QAware GmbH
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package de.qaware.chronix.solr.type.metric.functions.transformation
 
-import de.qaware.chronix.server.functions.FunctionValueMap
+import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -30,7 +31,8 @@ class SampleMovingAverageTest extends Specification {
     def "test transform with last window contains only one point"() {
         given:
         def timeSeriesBuilder = new MetricTimeSeries.Builder("Sample Moving average","metric")
-        def movAvg = new SampleMovingAverage(["5"] as String[])
+        def movAvg = new SampleMovingAverage()
+        movAvg.setArguments(["5"] as String[])
 
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:00.000Z"), 5)
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:01.000Z"), 4)
@@ -46,29 +48,29 @@ class SampleMovingAverageTest extends Specification {
         timeSeriesBuilder.point(dateOf("2016-05-23T10:51:10.500Z"), 13)
 
 
-        def timeSeries = timeSeriesBuilder.build()
-        def analysisResult = new FunctionValueMap(1, 1, 1)
+        def timeSeries = new ChronixMetricTimeSeries("", timeSeriesBuilder.build())
+        def analysisResult = new FunctionCtx(1, 1, 1)
 
         when:
-        movAvg.execute(timeSeries, analysisResult)
+        movAvg.execute(timeSeries as List, analysisResult)
         then:
-        timeSeries.size() == 8
-        timeSeries.getValue(0) == 4.8d
-        timeSeries.getTime(0) == dateOf("2016-05-23T10:51:02.000Z")
-        timeSeries.getValue(1) == 5.0d
-        timeSeries.getTime(1) == dateOf("2016-05-23T10:51:03.000Z")
-        timeSeries.getValue(2) == 6.2d
-        timeSeries.getTime(2) == dateOf("2016-05-23T10:51:04.000Z")
-        timeSeries.getValue(3) == 11.8d
-        timeSeries.getTime(3) == dateOf("2016-05-23T10:51:05.000Z")
-        timeSeries.getValue(4) == 12.0d
-        timeSeries.getTime(4) == dateOf("2016-05-23T10:51:06.000Z")
-        timeSeries.getValue(5) == 13.4d
-        timeSeries.getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
-        timeSeries.getValue(6) == 14.6d
-        timeSeries.getTime(6) == dateOf("2016-05-23T10:51:08.000Z")
-        timeSeries.getValue(7) == 15.2d
-        timeSeries.getTime(7) == dateOf("2016-05-23T10:51:08.900Z")
+        timeSeries.getRawTimeSeries().size() == 8
+        timeSeries.getRawTimeSeries().getValue(0) == 4.8d
+        timeSeries.getRawTimeSeries().getTime(0) == dateOf("2016-05-23T10:51:02.000Z")
+        timeSeries.getRawTimeSeries().getValue(1) == 5.0d
+        timeSeries.getRawTimeSeries().getTime(1) == dateOf("2016-05-23T10:51:03.000Z")
+        timeSeries.getRawTimeSeries().getValue(2) == 6.2d
+        timeSeries.getRawTimeSeries().getTime(2) == dateOf("2016-05-23T10:51:04.000Z")
+        timeSeries.getRawTimeSeries().getValue(3) == 11.8d
+        timeSeries.getRawTimeSeries().getTime(3) == dateOf("2016-05-23T10:51:05.000Z")
+        timeSeries.getRawTimeSeries().getValue(4) == 12.0d
+        timeSeries.getRawTimeSeries().getTime(4) == dateOf("2016-05-23T10:51:06.000Z")
+        timeSeries.getRawTimeSeries().getValue(5) == 13.4d
+        timeSeries.getRawTimeSeries().getTime(5) == dateOf("2016-05-23T10:51:07.000Z")
+        timeSeries.getRawTimeSeries().getValue(6) == 14.6d
+        timeSeries.getRawTimeSeries().getTime(6) == dateOf("2016-05-23T10:51:08.000Z")
+        timeSeries.getRawTimeSeries().getValue(7) == 15.2d
+        timeSeries.getRawTimeSeries().getTime(7) == dateOf("2016-05-23T10:51:08.900Z")
     }
 
 
@@ -78,7 +80,8 @@ class SampleMovingAverageTest extends Specification {
 
     def "test getType"() {
         when:
-        def movAvg = new SampleMovingAverage(["4"] as String[])
+        def movAvg = new SampleMovingAverage()
+        movAvg.setArguments(["4"] as String[])
 
         then:
         movAvg.getQueryName() == "smovavg"
@@ -86,25 +89,33 @@ class SampleMovingAverageTest extends Specification {
 
     def "test getArguments"() {
         when:
-        def movAvg = new SampleMovingAverage(["4"] as String[])
+        def movAvg = new SampleMovingAverage()
+        movAvg.setArguments(["4"] as String[])
         then:
         movAvg.getArguments()[0] == "samples=4"
     }
 
     def "test toString"() {
         expect:
-        def stringRepresentation = new SampleMovingAverage(["4"] as String[]).toString()
+        def movAvg = new SampleMovingAverage()
+        movAvg.setArguments(["4"] as String[])
+        def stringRepresentation = movAvg.toString()
         stringRepresentation.contains("samples")
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new SampleMovingAverage(["5"] as String[])
+        def function = new SampleMovingAverage()
+        def movAvg5 = new SampleMovingAverage()
+        def movAvg2 = new SampleMovingAverage()
+        function.setArguments(["5"] as String[])
+        movAvg5.setArguments(["5"] as String[])
+        movAvg2.setArguments(["2"] as String[])
         !function.equals(null)
         !function.equals(new Object())
         function.equals(function)
-        function.equals(new SampleMovingAverage(["5"] as String[]))
-        new SampleMovingAverage(["4"] as String[]).hashCode() == new SampleMovingAverage(["4"] as String[]).hashCode()
-        new SampleMovingAverage(["4"] as String[]).hashCode() != new SampleMovingAverage(["2"] as String[]).hashCode()
+        function.equals(movAvg5)
+        function.hashCode() == movAvg5.hashCode()
+        function.hashCode() != movAvg2.hashCode()
     }
 }
