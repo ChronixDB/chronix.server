@@ -194,6 +194,7 @@ Currently the following functions are available:
 - Distinct (metric{distinct}) (*Release 0.4*)
 - Integral (metric{integral}) (*Release 0.4*)
 - SAX (metric{sax:\*af\*,10,60,0.01})
+- Top Metrics (metric{topmetrics:10})
 
 Multiple analyses, aggregations, and transformations are allowed per query.
 If so, Chronix will first execute the transformations in the order they occur.
