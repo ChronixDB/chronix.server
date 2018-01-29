@@ -18,8 +18,6 @@ package de.qaware.chronix.solr.type.metric.functions.filter
 import de.qaware.chronix.server.functions.FunctionCtx
 import de.qaware.chronix.server.types.ChronixTimeSeries
 import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
-import de.qaware.chronix.solr.type.metric.functions.transformation.Bottom
-import de.qaware.chronix.solr.type.metric.functions.transformation.Top
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import spock.lang.Specification
 
@@ -28,56 +26,67 @@ import spock.lang.Specification
  * @author k.just
  */
 class TopMetricsTest extends Specification {
-    def "test transform"() {
+    def "test filter"() {
         given:
-        def top = new Top()
-        top.setArguments(["4"] as String[])
+        def topMetrics = new TopMetrics()
+        topMetrics.setArguments(["1"] as String[])
 
-        def timeSeriesBuilder = new MetricTimeSeries.Builder("Top","metric")
-        timeSeriesBuilder.point(1, 5d)
-        timeSeriesBuilder.point(2, 99d)
-        timeSeriesBuilder.point(3, 3d)
-        timeSeriesBuilder.point(4, 5d)
-        timeSeriesBuilder.point(5, 65d)
-        timeSeriesBuilder.point(6, 23d)
+        def timeSeriesBuilderLow = new MetricTimeSeries.Builder("TopMetricsLow","metric")
+        def timeSeriesBuilderHigh = new MetricTimeSeries.Builder("TopMetricsHigh", "metric")
 
-        def timeSeries = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>(Arrays.asList(new ChronixMetricTimeSeries("", timeSeriesBuilder.build())))
+        timeSeriesBuilderLow.point(1, 5d)
+        timeSeriesBuilderLow.point(2, 99d)
+        timeSeriesBuilderLow.point(3, 3d)
+        timeSeriesBuilderLow.point(4, 5d)
+        timeSeriesBuilderLow.point(5, 65d)
+        timeSeriesBuilderLow.point(6, 23d)
+
+        timeSeriesBuilderHigh.point(1, 10d)
+        timeSeriesBuilderHigh.point(2, 188d)
+        timeSeriesBuilderHigh.point(3, 6d)
+        timeSeriesBuilderHigh.point(4, 10d)
+        timeSeriesBuilderHigh.point(5, 130d)
+        timeSeriesBuilderHigh.point(6, 46d)
+
+        def timeSeriesLow = new ChronixMetricTimeSeries("Low", timeSeriesBuilderLow.build())
+        def timeSeriesHigh = new ChronixMetricTimeSeries("High", timeSeriesBuilderHigh.build())
+
+        def timeSeriesList = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>()
+        timeSeriesList.add(timeSeriesLow)
+        timeSeriesList.add(timeSeriesHigh)
+
         def analysisResult = new FunctionCtx(1, 1, 1, 1)
 
         when:
-        top.execute(timeSeries, analysisResult)
+        topMetrics.execute(timeSeriesList, analysisResult)
 
 
         then:
-        timeSeries.get(0).getRawTimeSeries().size() == 4
-        timeSeries.get(0).getRawTimeSeries().getValue(0) == 99d
-        timeSeries.get(0).getRawTimeSeries().getValue(1) == 65d
-        timeSeries.get(0).getRawTimeSeries().getValue(2) == 23d
-        timeSeries.get(0).getRawTimeSeries().getValue(3) == 5d
+        timeSeriesList.size() == 1
+        timeSeriesList.get(0).getJoinKey() == "High"
 
     }
 
     def "test getType"() {
         when:
-        def bottom = new Bottom()
-        bottom.setArguments(["2"] as String[])
+        def topMetrics = new TopMetrics()
         then:
-        bottom.getQueryName() == "bottom"
+        topMetrics.getQueryName() == "topmetrics"
     }
 
     def "test getArguments"() {
         when:
-        def bottom = new Bottom()
-        bottom.setArguments(["2"] as String[])
+        def topMetrics = new TopMetrics()
+        topMetrics.setArguments(["2"] as String[])
         then:
-        bottom.getArguments()[0] == "value=2"
+        topMetrics.getArguments()[0] == "value=2"
     }
 
     def "test equals and hash code"() {
         expect:
-        def function = new Top()
-        def test_func4 = new Top()
-        def test_func2 = new Top()
+        def function = new TopMetrics()
+        def test_func4 = new TopMetrics()
+        def test_func2 = new TopMetrics()
         function.setArguments(["4"] as String[])
         test_func4.setArguments(["4"] as String[])
         test_func2.setArguments(["2"] as String[])
@@ -92,9 +101,9 @@ class TopMetricsTest extends Specification {
 
     def "test string representation"() {
         expect:
-        def top = new Top()
-        top.setArguments(["4"] as String[])
-        def string = top.toString()
+        def topMetrics = new TopMetrics()
+        topMetrics.setArguments(["4"] as String[])
+        def string = topMetrics.toString()
         string.contains("value")
     }
 }

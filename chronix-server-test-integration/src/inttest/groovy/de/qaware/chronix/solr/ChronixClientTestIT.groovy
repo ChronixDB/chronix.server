@@ -20,6 +20,7 @@ import de.qaware.chronix.converter.MetricTimeSeriesConverter
 import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.solr.client.ChronixSolrStorage
 import de.qaware.chronix.solr.query.ChronixQueryParams
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.solr.util.CSVImporter
 import de.qaware.chronix.solr.util.ChronixTestFunctions
 import de.qaware.chronix.timeseries.MetricTimeSeries
@@ -213,6 +214,27 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute("0_function_fastdtw_\\Load\\max") == true
         selectedTimeSeries.attribute("0_function_arguments_fastdtw_\\Load\\max") == ["search radius=5", "max warping cost=0.8", "distance function=EUCLIDEAN"]
 
+    }
+
+    @Unroll
+    def "test filter query #filter"() {
+        when:
+        def query = new SolrQuery("*:*")
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, filter)
+        List<MetricTimeSeries> timeSeriesList = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeriesList.size() == size
+
+        def selectedTimeSeries = timeSeriesList.get(0)
+
+        selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
+
+        where:
+        filter << ["metric{topmetrics:1}", "metric{topmetrics:2}"]
+        attributeKeys << ["0_function_topmetrics", "0_function_topmetrics"]
+        attributeValues << ["value=1", "value=2"]
+        size << [1, 2]
     }
 
     def "test function query with data as json"() {

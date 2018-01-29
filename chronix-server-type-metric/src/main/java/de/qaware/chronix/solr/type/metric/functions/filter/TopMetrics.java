@@ -71,6 +71,11 @@ public final class TopMetrics implements ChronixFilter<MetricTimeSeries> {
             }
         }
 
+        //replace the current list with the filtered one
+        timeSeriesList.clear();
+        timeSeriesList.addAll(filteredList);
+
+        // add the joinKeys of the new lists to ghe function context
         for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
             functionCtx.add(this, chronixTimeSeries.getJoinKey());
         }

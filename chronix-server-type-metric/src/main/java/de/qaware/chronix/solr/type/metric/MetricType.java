@@ -22,7 +22,7 @@ import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Outlier;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend;
-import de.qaware.chronix.solr.type.metric.functions.filter.TopMetrics;
+import de.qaware.chronix.solr.type.metric.functions.filter.*;
 import de.qaware.chronix.solr.type.metric.functions.transformation.*;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
