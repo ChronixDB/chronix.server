@@ -154,10 +154,6 @@ tasks.coveralls {
     onlyIf { isCI }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.3.0'
-}
-
 sonarqube {
     def sonarUser = project.hasProperty('sonarUser') ? project.sonarUser : 'unknown'
     def sonarPw = project.hasProperty('sonarPw') ? project.sonarPw : 'unknown'
