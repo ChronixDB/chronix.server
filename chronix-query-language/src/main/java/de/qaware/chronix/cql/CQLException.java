@@ -16,8 +16,9 @@
 package de.qaware.chronix.cql;
 
 
-public class CQLException extends Throwable {
-    public CQLException(String message, Exception e) {
-        super(message, e);
+class CQLException extends RuntimeException {
+
+    CQLException(String message) {
+        super(message, null, true, false);
     }
 }

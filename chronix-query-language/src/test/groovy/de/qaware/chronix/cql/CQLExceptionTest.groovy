@@ -13,32 +13,22 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.cql;
+package de.qaware.chronix.cql
 
-import java.util.List;
+import spock.lang.Specification
 
-public class ChronixFunction {
+class CQLExceptionTest extends Specification {
 
-    private String name;
-    private List<String> arguments;
+    def "test cql exception"() {
 
-    public ChronixFunction(String name, List<String> parameters) {
-        this.name = name;
-        this.arguments = parameters;
-    }
+        given:
+        def exception = new CQLException("Test Exception")
 
-    public String getName() {
-        return this.name;
-    }
+        expect:
+        exception.message == "Test Exception"
+        exception.cause == null
+        exception.suppressed == new Throwable[0]
+        exception.stackTrace == new StackTraceElement[0]
 
-    public List<String> getArguments() {
-        return this.arguments;
-    }
-
-    @Override
-    public String toString() {
-        return "ChronixFunction{" + "name='" + name + '\'' +
-                ", arguments=" + arguments +
-                '}';
     }
 }

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-// Generated from ../src/main/antlr/CQL.g4 by ANTLR 4.7.1
+// Generated from ../src/main/antlr/CQLCF.g4 by ANTLR 4.7.1
 package de.qaware.chronix.cql.antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -21,18 +21,18 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
- * This class provides an empty implementation of {@link CQLListener},
+ * This class provides an empty implementation of {@link CQLCFListener},
  * which can be extended to create a listener which only needs to handle a subset
  * of the available methods.
  */
-public class CQLBaseListener implements CQLListener {
+public class CQLCFBaseListener implements CQLCFListener {
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterCql(CQLParser.CqlContext ctx) {
+    public void enterCqlcf(CQLCFParser.CqlcfContext ctx) {
     }
 
     /**
@@ -41,7 +41,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitCql(CQLParser.CqlContext ctx) {
+    public void exitCqlcf(CQLCFParser.CqlcfContext ctx) {
     }
 
     /**
@@ -50,7 +50,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixJoinParameter(CQLParser.ChronixJoinParameterContext ctx) {
+    public void enterChronixTypedFunctions(CQLCFParser.ChronixTypedFunctionsContext ctx) {
     }
 
     /**
@@ -59,7 +59,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixJoinParameter(CQLParser.ChronixJoinParameterContext ctx) {
+    public void exitChronixTypedFunctions(CQLCFParser.ChronixTypedFunctionsContext ctx) {
     }
 
     /**
@@ -68,7 +68,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixJoinFields(CQLParser.ChronixJoinFieldsContext ctx) {
+    public void enterChronixTypedFunction(CQLCFParser.ChronixTypedFunctionContext ctx) {
     }
 
     /**
@@ -77,7 +77,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixJoinFields(CQLParser.ChronixJoinFieldsContext ctx) {
+    public void exitChronixTypedFunction(CQLCFParser.ChronixTypedFunctionContext ctx) {
     }
 
     /**
@@ -86,7 +86,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixJoinField(CQLParser.ChronixJoinFieldContext ctx) {
+    public void enterChronixfunction(CQLCFParser.ChronixfunctionContext ctx) {
     }
 
     /**
@@ -95,7 +95,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixJoinField(CQLParser.ChronixJoinFieldContext ctx) {
+    public void exitChronixfunction(CQLCFParser.ChronixfunctionContext ctx) {
     }
 
     /**
@@ -104,7 +104,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixFunctionParameter(CQLParser.ChronixFunctionParameterContext ctx) {
+    public void enterName(CQLCFParser.NameContext ctx) {
     }
 
     /**
@@ -113,7 +113,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixFunctionParameter(CQLParser.ChronixFunctionParameterContext ctx) {
+    public void exitName(CQLCFParser.NameContext ctx) {
     }
 
     /**
@@ -122,7 +122,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixTypedFunctions(CQLParser.ChronixTypedFunctionsContext ctx) {
+    public void enterParameter(CQLCFParser.ParameterContext ctx) {
     }
 
     /**
@@ -131,7 +131,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixTypedFunctions(CQLParser.ChronixTypedFunctionsContext ctx) {
+    public void exitParameter(CQLCFParser.ParameterContext ctx) {
     }
 
     /**
@@ -140,7 +140,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void enterChronixTypedFunction(CQLParser.ChronixTypedFunctionContext ctx) {
+    public void enterChronixType(CQLCFParser.ChronixTypeContext ctx) {
     }
 
     /**
@@ -149,79 +149,7 @@ public class CQLBaseListener implements CQLListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
-    public void exitChronixTypedFunction(CQLParser.ChronixTypedFunctionContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void enterChronixfunction(CQLParser.ChronixfunctionContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void exitChronixfunction(CQLParser.ChronixfunctionContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void enterName(CQLParser.NameContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void exitName(CQLParser.NameContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void enterParameter(CQLParser.ParameterContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void exitParameter(CQLParser.ParameterContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void enterChronixType(CQLParser.ChronixTypeContext ctx) {
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void exitChronixType(CQLParser.ChronixTypeContext ctx) {
+    public void exitChronixType(CQLCFParser.ChronixTypeContext ctx) {
     }
 
     /**

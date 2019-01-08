@@ -19,10 +19,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import de.qaware.chronix.Schema;
+import de.qaware.chronix.cql.CQL;
+import de.qaware.chronix.cql.CQLCFResult;
+import de.qaware.chronix.cql.CQLJoinFunction;
+import de.qaware.chronix.cql.ChronixFunctions;
 import de.qaware.chronix.server.ChronixPluginLoader;
 import de.qaware.chronix.server.functions.*;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
-import de.qaware.chronix.server.functions.plugin.ChronixFunctions;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypePlugin;
@@ -61,7 +64,10 @@ public class AnalysisHandler extends SearchHandler {
             ChronixPluginLoader.of(ChronixFunctionPlugin.class));
 
     private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
-    private static final ChronixFunctions FUNCTIONS = INJECTOR.getInstance(ChronixFunctions.class);
+    private static final de.qaware.chronix.server.functions.plugin.ChronixFunctions FUNCTIONS = INJECTOR.getInstance(de.qaware.chronix.server.functions.plugin.ChronixFunctions.class);
+
+    //Chronix query language
+    private final CQL cql = new CQL(TYPES, FUNCTIONS);
 
     /**
      * Constructs an isAggregation handler
@@ -196,11 +202,12 @@ public class AnalysisHandler extends SearchHandler {
         }
 
         SolrDocumentList results = new SolrDocumentList();
-        String[] chronixFunctions = req.getParams().getParams(ChronixQueryParams.CHRONIX_FUNCTION);
+
+        //get the chronix join parameter
         String chronixJoin = req.getParams().get(ChronixQueryParams.CHRONIX_JOIN);
+        final CQLJoinFunction key = cql.parseCJ(chronixJoin);
 
         //Do a query and collect them on the join function
-        JoinFunction key = new JoinFunction(chronixJoin);
         HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = collectDocuments(req, key);
 
         //If no rows should returned, we only return the num found
@@ -208,8 +215,11 @@ public class AnalysisHandler extends SearchHandler {
             results.setNumFound(collectedDocs.keySet().size());
         } else {
             //Otherwise return the analyzed time series
-            final TypeFunctions typeFunctions = QueryEvaluator.extractFunctions(chronixFunctions, TYPES, FUNCTIONS);
-            final List<SolrDocument> resultDocuments = analyze(req, typeFunctions, collectedDocs, !JoinFunction.isDefaultJoinFunction(key));
+
+            String chronixFunctions = req.getParams().get(ChronixQueryParams.CHRONIX_FUNCTION);
+            final CQLCFResult result = cql.parseCF(chronixFunctions);
+
+            final List<SolrDocument> resultDocuments = analyze(req, result, collectedDocs, !CQLJoinFunction.isDefaultJoinFunction(key));
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -231,7 +241,7 @@ public class AnalysisHandler extends SearchHandler {
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    public List<SolrDocument> analyze(SolrQueryRequest req, TypeFunctions functions, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
+    public List<SolrDocument> analyze(SolrQueryRequest req, CQLCFResult functions, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -267,7 +277,7 @@ public class AnalysisHandler extends SearchHandler {
             collectedDocs.get(type).clear();
 
             //validate the functions
-            QueryFunctions typeFunctions = functions.getTypeFunctions(type);
+            ChronixFunctions typeFunctions = functions.getChronixFunctionsForType(type);
             final FunctionCtx functionCtx = typeFunctions == null ? null : new FunctionCtx(
                     typeFunctions.sizeOfAggregations(),
                     typeFunctions.sizeOfAnalyses(),
@@ -359,7 +369,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
+    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
         String query = req.getParams().get(CommonParams.Q);
         //query and collect all documents
         return collectDocuments(query, req, collectionKey);
@@ -374,7 +384,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(String query, SolrQueryRequest req, JoinFunction collectionKey) throws IOException {
+    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(String query, SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
         //query and collect all documents
         Set<String> fields = getFields(req.getParams().get(CommonParams.FL), req.getSchema().getFields());
 
