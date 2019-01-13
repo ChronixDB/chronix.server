@@ -173,6 +173,7 @@ sonarqube {
         property "sonar.projectName", "ChronixDB-Server"
         property "sonar.projectKey", "de.qaware.chronix:chronix.server"
         property "sonar.projectVersion", "$project.version"
+        property "sonar.exclusions","src/main/de/qaware/chronix/cql/antlr/*"
 
     }
 }
