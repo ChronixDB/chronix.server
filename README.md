@@ -1,11 +1,8 @@
 [![Build Status](https://travis-ci.org/ChronixDB/chronix.server.svg?branch=master)](https://travis-ci.org/ChronixDB/chronix.server)
 [![Coverage Status](https://coveralls.io/repos/ChronixDB/chronix.server/badge.svg?branch=master&service=github)](https://coveralls.io/github/ChronixDB/chronix.server?branch=master)
 [![Sputnik](https://sputnik.ci/conf/badge)](https://sputnik.ci/app#/builds/ChronixDB/chronix.server)
-[![Stories in Ready](https://badge.waffle.io/ChronixDB/chronix.server.png?label=ready&title=Ready)](https://waffle.io/ChronixDB/chronix.server)
 [![Apache License 2](http://img.shields.io/badge/license-ASF2-blue.svg)](https://github.com/ChronixDB/chronix.server/blob/master/LICENSE)
-[![Join the chat at https://gitter.im/ChronixDB/chronix.server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ChronixDB/chronix.server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [ ![Download](https://api.bintray.com/packages/chronix/maven/chronix-server-client/images/download.svg) ](https://bintray.com/chronix/maven/chronix-server-client/_latestVersion)
-[![Dependency Status](https://dependencyci.com/github/ChronixDB/chronix.server/badge)](https://dependencyci.com/github/ChronixDB/chronix.server)
 
 # Chronix Server
 The Chronix Server is an implementation of the Chronix API that stores time series in [Apache Solr](http://lucene.apache.org/solr/).
