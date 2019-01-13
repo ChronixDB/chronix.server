@@ -27,42 +27,94 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 import de.qaware.chronix.timeseries.MultivariateTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.solr.common.util.Pair;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The analysis implementation of the Fast DTW analysis
- *
- * TODO: Fix this.
+ * <p>
+ * This analysis is called with the following cql query: metric{fastdtw:compare(field=value;field=value),5,0.4}
  *
  * @author f.lautenschlager
  */
-public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
+public final class FastDtw implements ChronixAnalysis<MetricTimeSeries> {
 
     private DistanceFunction distanceFunction;
     private int searchRadius;
     private double maxNormalizedWarpingCost;
-    private String subquery;
 
-    private static String removeBrackets(String subQuery) {
+    //format: compare:field=value;field=value;field=value
+    private Map<String, String> leftSideValues;
+
+    private static String removeBrackets(String compareFields) {
         //remove the enfolding brackets
-        if (subQuery.indexOf('(') == 0 && subQuery.lastIndexOf(')') == subQuery.length() - 1) {
-            return subQuery.substring(1, subQuery.length() - 1);
+        //Todo make nice
+        if (compareFields.startsWith("compare(") && compareFields.lastIndexOf(')') == compareFields.length() - 1) {
+            return compareFields.substring("compare(".length(), compareFields.length() - 1);
         }
-        return subQuery;
+        return compareFields;
     }
 
     // original call public void execute(Pair<MetricTimeSeries, MetricTimeSeries> timeSeriesPair, FunctionCtx functionCtx) {
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
-        /*//We have to build a multivariate time series
-        MultivariateTimeSeries origin = buildMultiVariateTimeSeries(timeSeriesPair.first());
-        MultivariateTimeSeries other = buildMultiVariateTimeSeries(timeSeriesPair.second());
-        //Call the fast dtw library
-        TimeWarpInfo result = FastDTW.getWarpInfoBetween(origin, other, searchRadius, distanceFunction);
-        //Check the result. If it lower equals the threshold, we can return the other time series
-        */// functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, timeSeriesPair.second().getName());
+
+        //these time series are compared with
+        List<ChronixTimeSeries<MetricTimeSeries>> leftSide = new ArrayList<>();
+        //these time series
+        List<ChronixTimeSeries<MetricTimeSeries>> rightSide = new ArrayList<>();
+
+        splitTimeSeries(timeSeriesList, leftSide, rightSide);
+
+
+        for (ChronixTimeSeries<MetricTimeSeries> leftSideTs : leftSide) {
+
+            MultivariateTimeSeries compare = buildMultiVariateTimeSeries(leftSideTs);
+            for (ChronixTimeSeries<MetricTimeSeries> rightSideTs : rightSide) {
+                MultivariateTimeSeries with = buildMultiVariateTimeSeries(rightSideTs);
+
+                //Call the fast dtw library
+                TimeWarpInfo result = FastDTW.getWarpInfoBetween(compare, with, searchRadius, distanceFunction);
+                //Check the result. If it lower equals the threshold, we can return the other time series
+                functionCtx.add(this, result.getNormalizedDistance() <= maxNormalizedWarpingCost, leftSideTs.getJoinKey());
+            }
+        }
+
+    }
+
+    private void splitTimeSeries(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, List<ChronixTimeSeries<MetricTimeSeries>> leftSide, List<ChronixTimeSeries<MetricTimeSeries>> rightSide) {
+        for (ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries : timeSeriesList) {
+
+            Map attributes = chronixTimeSeries.getAttributes();
+            boolean isLeftSide = true;
+
+            //Left side
+            for (Map.Entry<String, String> field : leftSideValues.entrySet()) {
+                Object value = attributes.get(field.getKey());
+                //Key does not exists in time series, move it to the right
+                if (value == null) {
+                    isLeftSide = false;
+                    break;
+                }
+
+                //Values is different, move it to the right
+                if (!value.equals(field.getValue())) {
+                    isLeftSide = false;
+                    break;
+                }
+
+            }
+            if (isLeftSide) {
+                //if we get here, time series is on the left
+                leftSide.add(chronixTimeSeries);
+            } else {
+                rightSide.add(chronixTimeSeries);
+            }
+
+        }
 
     }
 
@@ -70,10 +122,11 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
      * Builds a multivariate time series of the given univariate time series.
      * If two or more timestamps are the same, the values are aggregated using the average.
      *
-     * @param timeSeries the metric time series
+     * @param chronixTimeSeries the chronix time series
      * @return a multivariate time series for the fast dtw analysis
      */
-    private MultivariateTimeSeries buildMultiVariateTimeSeries(MetricTimeSeries timeSeries) {
+    private MultivariateTimeSeries buildMultiVariateTimeSeries(ChronixTimeSeries<MetricTimeSeries> chronixTimeSeries) {
+        MetricTimeSeries timeSeries = chronixTimeSeries.getRawTimeSeries();
         MultivariateTimeSeries multivariateTimeSeries = new MultivariateTimeSeries(1);
 
         if (timeSeries.size() > 0) {
@@ -112,10 +165,26 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
     @Override
     public void setArguments(String[] args) {
 
-        this.subquery = removeBrackets(args[0]);
+        //Used to split the list with time series into two groups.
+        this.leftSideValues = splitFieldValues(args[0]);
+
         this.searchRadius = Integer.parseInt(args[1]);
         this.maxNormalizedWarpingCost = Double.parseDouble(args[2]);
+
+        //Make this configurable some time.
         this.distanceFunction = DistanceFunctionFactory.getDistanceFunction(DistanceFunctionEnum.EUCLIDEAN);
+    }
+
+    private Map<String, String> splitFieldValues(String fieldValues) {
+        String[] fieldValuePairs = removeBrackets(fieldValues).split(";");
+        Map<String, String> result = new HashMap<>(fieldValuePairs.length);
+
+        for (String fieldValuePair : fieldValuePairs) {
+            String[] fieldAndValue = fieldValuePair.split("=");
+            result.put(fieldAndValue[0], fieldAndValue[1]);
+        }
+
+        return result;
     }
 
     @Override
@@ -127,14 +196,13 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
 
     @Override
     public String getQueryName() {
-        return  "fastdtw";
+        return "fastdtw";
     }
 
     @Override
     public String getType() {
         return "metric";
     }
-
 
 
     @Override
@@ -153,7 +221,6 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
                 .append(this.distanceFunction, rhs.distanceFunction)
                 .append(this.searchRadius, rhs.searchRadius)
                 .append(this.maxNormalizedWarpingCost, rhs.maxNormalizedWarpingCost)
-                .append(this.subquery, rhs.subquery)
                 .isEquals();
     }
 
@@ -163,7 +230,6 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
                 .append(distanceFunction)
                 .append(searchRadius)
                 .append(maxNormalizedWarpingCost)
-                .append(subquery)
                 .toHashCode();
     }
 
@@ -173,7 +239,6 @@ public final class FastDtw implements ChronixAnalysis<MetricTimeSeries>  {
                 "distanceFunction=" + distanceFunction +
                 ", searchRadius=" + searchRadius +
                 ", maxNormalizedWarpingCost=" + maxNormalizedWarpingCost +
-                ", subquery='" + subquery + '\'' +
                 '}';
     }
 }

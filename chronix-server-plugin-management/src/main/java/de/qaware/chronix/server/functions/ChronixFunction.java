@@ -28,9 +28,10 @@ public interface ChronixFunction<T> {
     /**
      * Executes a Chronix function on the given time series. The result should be added to the function value map.
      *
+     * @param functionCtx    context holding the function values
      * @param timeSeriesList the time series list with all time series
      */
-    void execute(List<ChronixTimeSeries<T>> timeSeriesList, FunctionCtx functionValueMap);
+    void execute(List<ChronixTimeSeries<T>> timeSeriesList, FunctionCtx functionCtx);
 
     /**
      * The arguments

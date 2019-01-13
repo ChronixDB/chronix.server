@@ -16,6 +16,8 @@
 package de.qaware.chronix.solr.type.metric.functions.analyses
 
 import de.qaware.chronix.server.functions.FunctionCtx
+import de.qaware.chronix.server.types.ChronixTimeSeries
+import de.qaware.chronix.solr.type.metric.ChronixMetricTimeSeries
 import de.qaware.chronix.timeseries.MetricTimeSeries
 import org.apache.solr.common.util.Pair
 import spock.lang.Ignore
@@ -25,27 +27,46 @@ import spock.lang.Specification
  * Unit test for the fast dtw analysis
  * @author f.lautenschlager
  */
-@Ignore
+
 class FastDtwTest extends Specification {
     def "test execute"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW","metric")
+        MetricTimeSeries.Builder timeSeries1 = new MetricTimeSeries.Builder("FastDTW-1", "metric")
+        MetricTimeSeries.Builder timeSeries2 = new MetricTimeSeries.Builder("FastDTW-2", "metric")
         10.times {
-            timeSeries.point(it, it + 10)
+            timeSeries1.point(it, it + 10)
+            timeSeries2.point(it, it + 10)
         }
-        timeSeries.point(11, 9999)
-        MetricTimeSeries ts1 = timeSeries.build()
-        MetricTimeSeries ts2 = timeSeries.build()
-        def analysisResult = new FunctionCtx(1, 1, 1)
+        timeSeries1.point(11, 9999)
+        timeSeries2.point(11, 9999)
+
+        timeSeries1.attribute("host", "production-01")
+        MetricTimeSeries ts1 = timeSeries1.build()
+
+        timeSeries2.attribute("host", "production-02")
+        MetricTimeSeries ts2 = timeSeries2.build()
+
+        def timeSeriesList = new ArrayList<ChronixTimeSeries<MetricTimeSeries>>()
+        timeSeriesList.add(new ChronixMetricTimeSeries("production-01", ts1))
+        timeSeriesList.add(new ChronixMetricTimeSeries("production-02", ts2))
+
+        def analysisResult = new FunctionCtx(0, 1, 0)
 
         when:
-        FastDtw fastDtw = new FastDtw(["", "5", "20"] as String[]).execute(new Pair(ts1, ts2), analysisResult)
+        FastDtw fastDtw = new FastDtw()
+        fastDtw.setArguments(["compare(host=production-01)", "5", "20"] as String[])
+
+        fastDtw.execute(timeSeriesList, analysisResult)
         then:
-        analysisResult.getAnalysisValue(0)
+        def entry = analysisResult.getContextFor("production-01")
+
+        //expect this is true
+        entry.getAnalysisValue(0)
     }
 
+    @Ignore
     def "test time series with equal timestamps"() {
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1","metric")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1", "metric")
         timeSeries.point(0, 2)
         3.times {
             timeSeries.point(1, it)
@@ -63,10 +84,11 @@ class FastDtwTest extends Specification {
 
     }
 
+    @Ignore
     def "test execute for -1 as result"() {
         given:
-        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1","metric")
-        MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2","metric")
+        MetricTimeSeries.Builder timeSeries = new MetricTimeSeries.Builder("FastDTW-1", "metric")
+        MetricTimeSeries.Builder secondTimeSeries = new MetricTimeSeries.Builder("FastDTW-2", "metric")
         10.times {
             timeSeries.point(it, it * 10)
             secondTimeSeries.point(it, it * -10)
@@ -82,23 +104,19 @@ class FastDtwTest extends Specification {
     }
 
 
-    def "test subquery"() {
-        expect:
-        new FastDtw(["", "5", "20"] as String[]).needSubquery()
-        new FastDtw(["", "5", "20"] as String[]).getArguments().size() == 3
-        new FastDtw(["(query)", "5", "20"] as String[]).getSubquery().equals("query")
-    }
-
+    @Ignore
     def "test arguments"() {
         expect:
-        new Outlier().getArguments().length == 0
+        new FastDtw().getArguments().length == 0
     }
 
+    @Ignore
     def "test type"() {
         expect:
         new FastDtw(["(query)", "5", "20"] as String[]).getQueryName() == "fastdtw"
     }
 
+    @Ignore
     def "test equals and hash code"() {
         when:
         def equals = dtw1.equals(dtw2)
@@ -119,6 +137,7 @@ class FastDtwTest extends Specification {
         result << [true, false, false, false]
     }
 
+    @Ignore
     def "test to string"() {
         when:
         def stringRepresentation = new FastDtw(["metric:a", "5", "20"] as String[]).toString()

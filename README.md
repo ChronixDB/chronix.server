@@ -186,7 +186,7 @@ Currently the following functions are available:
 - A linear trend detection (metric{trend})
 - Outlier detection (metric{outlier})
 - Frequency detection (metric{frequency:10,6})
-- Time series similarity search (metric{fastdtw:(metric:\*Load\*),1,0.8})
+- Time series similarity search (metric{fastdtw:compare(metric=Load),1,0.8})
 - Timeshift (metric{timeshift:[+/-]10,DAYS}) (*Release 0.3*)
 - Distinct (metric{distinct}) (*Release 0.4*)
 - Integral (metric{integral}) (*Release 0.4*)

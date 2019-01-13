@@ -46,9 +46,6 @@ public final class Frequency implements ChronixAnalysis<MetricTimeSeries> {
      * between two windows is above a predefined threshold.
      * <p>
      * The frequency detector splits a time series using the constructor argument.
-     *
-     * @param functionCtx
-     * @return true if the time series has a pair of windows 1 and 2 where 2 has th
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {
