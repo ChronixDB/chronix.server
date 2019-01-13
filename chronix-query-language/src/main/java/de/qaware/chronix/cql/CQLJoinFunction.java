@@ -56,13 +56,13 @@ public final class CQLJoinFunction implements Function<SolrDocument, String> {
     /**
      * Validates if the given join function is (==) the default join function
      *
-     * @param CQLJoinFunction the join function given by the callee
+     * @param cqlJoinFunction the join function given by the callee
      * @return true if it is the same as the default join function (default = join on metric field)
      */
-    public static boolean isDefaultJoinFunction(CQLJoinFunction CQLJoinFunction) {
-        return CQLJoinFunction.involvedFields.length == 2
-                && CQLJoinFunction.involvedFields[0].equals(DEFAULT_JOIN_FIELD_1)
-                && CQLJoinFunction.involvedFields[1].equals(DEFAULT_JOIN_FIELD_2);
+    public static boolean isDefaultJoinFunction(CQLJoinFunction cqlJoinFunction) {
+        return cqlJoinFunction.involvedFields.length == 2
+                && cqlJoinFunction.involvedFields[0].equals(DEFAULT_JOIN_FIELD_1)
+                && cqlJoinFunction.involvedFields[1].equals(DEFAULT_JOIN_FIELD_2);
     }
 
     @Override
