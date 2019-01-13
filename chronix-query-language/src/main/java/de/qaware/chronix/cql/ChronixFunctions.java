@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis;
+package de.qaware.chronix.cql;
 
 import de.qaware.chronix.server.functions.ChronixAggregation;
 import de.qaware.chronix.server.functions.ChronixAnalysis;
@@ -25,20 +25,20 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Class that holds the query functions
+ * Class that holds the chronix functions per function type
  * - aggregations
  * - analyses
  * - transformations
  *
  * @author f.lautenschlager
  */
-class QueryFunctions {
+public class ChronixFunctions {
 
     private Set<ChronixAnalysis> analyses;
     private Set<ChronixAggregation> aggregations;
     private List<ChronixTransformation> transformations;
 
-    QueryFunctions() {
+    ChronixFunctions() {
         analyses = new HashSet<>();
         aggregations = new HashSet<>();
         transformations = new ArrayList<>();
@@ -151,7 +151,7 @@ class QueryFunctions {
     /**
      * @param functions the other query functions
      */
-    public void merge(QueryFunctions functions) {
+    public void addAll(ChronixFunctions functions) {
         aggregations.addAll(functions.aggregations);
         transformations.addAll(functions.transformations);
         analyses.addAll(functions.analyses);

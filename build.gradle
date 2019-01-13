@@ -115,7 +115,7 @@ subprojects {
 
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: 'de/qaware/chronix/converter/dt/**')
+                fileTree(dir: it, exclude: ['de/qaware/chronix/converter/dt/**','de/qaware/chronix/cql/antlr/**'])
             })
         }
     }
@@ -154,10 +154,6 @@ tasks.coveralls {
     onlyIf { isCI }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.3.0'
-}
-
 sonarqube {
     def sonarUser = project.hasProperty('sonarUser') ? project.sonarUser : 'unknown'
     def sonarPw = project.hasProperty('sonarPw') ? project.sonarPw : 'unknown'
@@ -177,6 +173,7 @@ sonarqube {
         property "sonar.projectName", "ChronixDB-Server"
         property "sonar.projectKey", "de.qaware.chronix:chronix.server"
         property "sonar.projectVersion", "$project.version"
+        property "sonar.exclusions","src/main/de/qaware/chronix/cql/antlr/*"
 
     }
 }

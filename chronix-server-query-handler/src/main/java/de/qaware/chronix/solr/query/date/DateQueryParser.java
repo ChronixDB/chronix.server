@@ -197,11 +197,11 @@ public class DateQueryParser {
     private String getDateRangeQuery(long value, String field) {
 
         if ("start:".equals(field)) {
-            //We don`t need documents, that have and end before our start
+            //We don`t need documents, that have an end before our start
             // q = -end[* TO (START-1)]
             return "-end:[* TO " + (value - 1) + "]";
         } else {
-            //We don`t need documents, that have and start after our end
+            //We don`t need documents, that have a start after our end
             // q = -start[* TO (START-1)]
             return "-start:[" + (value - 1) + " TO *]";
         }

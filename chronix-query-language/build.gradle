@@ -1,0 +1,13 @@
+sonarqube {
+    properties {
+        property "sonar.projectName", "de.qaware.chronix:chronix-query-language"
+    }
+}
+
+dependencies {
+    compile group: 'org.antlr', name: 'antlr4', version: '4.7.1'
+    compile project(':chronix-server-plugin-management')
+
+    testCompile project(':chronix-server-function-metric')
+    testCompile project(':chronix-server-type-metric')
+}

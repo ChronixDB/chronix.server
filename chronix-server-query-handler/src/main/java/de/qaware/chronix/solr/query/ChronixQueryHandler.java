@@ -17,6 +17,7 @@ package de.qaware.chronix.solr.query;
 
 import com.google.common.base.Strings;
 import de.qaware.chronix.Schema;
+import de.qaware.chronix.cql.CQLJoinFunction;
 import de.qaware.chronix.solr.query.analysis.AnalysisHandler;
 import de.qaware.chronix.solr.query.analysis.providers.SolrDocListProvider;
 import de.qaware.chronix.solr.query.date.DateQueryParser;
@@ -162,10 +163,10 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
         //the user wants a single additional field
         if (fl.indexOf('-') == -1 && fl.indexOf('+') == -1) {
             //hence we return the required fields and the requested fields
-            return fl + ChronixQueryParams.JOIN_SEPARATOR + String.join(ChronixQueryParams.JOIN_SEPARATOR, REQUIRED_FIELDS);
+            return fl + CQLJoinFunction.JOIN_SEPARATOR + String.join(CQLJoinFunction.JOIN_SEPARATOR, REQUIRED_FIELDS);
         } else {
             //the user removes or adds a field to all fields
-            Set<String> fields = new HashSet<>(Arrays.asList(fl.split(ChronixQueryParams.JOIN_SEPARATOR)));
+            Set<String> fields = new HashSet<>(Arrays.asList(fl.split(CQLJoinFunction.JOIN_SEPARATOR)));
 
             //Check if we have only fields to remove
             Set<String> resultingFields = new HashSet<>(schema);
@@ -185,7 +186,7 @@ public class ChronixQueryHandler extends RequestHandlerBase implements SolrCoreA
                 }
 
             }
-            return String.join(ChronixQueryParams.JOIN_SEPARATOR, resultingFields);
+            return String.join(CQLJoinFunction.JOIN_SEPARATOR, resultingFields);
 
         }
     }

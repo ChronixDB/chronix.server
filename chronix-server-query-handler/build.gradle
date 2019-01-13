@@ -12,6 +12,8 @@ dependencies {
 
     //Plugins and functions
     compile project(':chronix-server-plugin-management')
+    compile project(':chronix-query-language')
+
 
     testCompile 'de.qaware.chronix:chronix.fastdtw:0.3'
 

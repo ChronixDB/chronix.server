@@ -17,6 +17,8 @@ package de.qaware.chronix.solr.query.analysis
 
 import de.qaware.chronix.converter.common.Compression
 import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesSerializer
+import de.qaware.chronix.cql.CQLCFResult
+import de.qaware.chronix.cql.ChronixFunctions
 import de.qaware.chronix.server.functions.ChronixTransformation
 import de.qaware.chronix.server.types.ChronixType
 import de.qaware.chronix.solr.query.ChronixQueryParams
@@ -104,7 +106,7 @@ class AnalysisHandlerTest extends Specification {
     }
 
     @Shared
-    def functions = new QueryFunctions<>()
+    def functions = new ChronixFunctions()
 
     @Unroll
     def "test single time series for #queryFunction"() {
@@ -127,8 +129,8 @@ class AnalysisHandlerTest extends Specification {
         //execute function
         function()
 
-        def typeFunctions = new TypeFunctions()
-        typeFunctions.setTypeFunctions(new MetricType(), functions)
+        def typeFunctions = new CQLCFResult()
+        typeFunctions.addChronixFunctionsForType(new MetricType(), functions)
         def result = analysisHandler.analyze(request, typeFunctions, timeSeriesRecords, false)
 
         then:

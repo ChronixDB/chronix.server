@@ -13,11 +13,10 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis;
+package de.qaware.chronix.cql;
 
-import de.qaware.chronix.solr.query.ChronixQueryParams;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.StringUtils;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -27,7 +26,15 @@ import java.util.function.Function;
  *
  * @author f.lautenschlager
  */
-public final class JoinFunction implements Function<SolrDocument, String> {
+public final class CQLJoinFunction implements Function<SolrDocument, String> {
+
+    /**
+     * The default join field
+     */
+    public static final String DEFAULT_JOIN_FIELD_1 = "name";
+    public static final String DEFAULT_JOIN_FIELD_2 = "type";
+    public static final String JOIN_SEPARATOR = ",";
+
 
     private String[] involvedFields;
 
@@ -38,24 +45,24 @@ public final class JoinFunction implements Function<SolrDocument, String> {
      *
      * @param joinFields - the chronix join parameter
      */
-    public JoinFunction(String joinFields) {
+    public CQLJoinFunction(String joinFields) {
         if (StringUtils.isEmpty(joinFields)) {
-            involvedFields = new String[]{ChronixQueryParams.DEFAULT_JOIN_FIELD_1, ChronixQueryParams.DEFAULT_JOIN_FIELD_2};
+            involvedFields = new String[]{DEFAULT_JOIN_FIELD_1, DEFAULT_JOIN_FIELD_2};
         } else {
-            involvedFields = joinFields.split(ChronixQueryParams.JOIN_SEPARATOR);
+            involvedFields = joinFields.split(JOIN_SEPARATOR);
         }
     }
 
     /**
      * Validates if the given join function is (==) the default join function
      *
-     * @param joinFunction the join function given by the callee
+     * @param cqlJoinFunction the join function given by the callee
      * @return true if it is the same as the default join function (default = join on metric field)
      */
-    public static boolean isDefaultJoinFunction(JoinFunction joinFunction) {
-        return joinFunction.involvedFields.length == 2
-                && joinFunction.involvedFields[0].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD_1)
-                && joinFunction.involvedFields[1].equals(ChronixQueryParams.DEFAULT_JOIN_FIELD_2);
+    public static boolean isDefaultJoinFunction(CQLJoinFunction cqlJoinFunction) {
+        return cqlJoinFunction.involvedFields.length == 2
+                && cqlJoinFunction.involvedFields[0].equals(DEFAULT_JOIN_FIELD_1)
+                && cqlJoinFunction.involvedFields[1].equals(DEFAULT_JOIN_FIELD_2);
     }
 
     @Override

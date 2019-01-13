@@ -1,5 +1,6 @@
 
 dependencies {
+    compile 'de.qaware.chronix:chronix-api:0.2-beta'
     compile 'de.qaware.chronix:chronix-timeseries:0.3.2-beta'
     compile 'de.qaware.chronix:chronix-timeseries-converter:0.3.2-beta'
     compile 'de.qaware.chronix:chronix-timeseries-common:0.3.2-beta'

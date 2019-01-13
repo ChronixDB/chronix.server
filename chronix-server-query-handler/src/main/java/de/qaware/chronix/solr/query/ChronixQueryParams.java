@@ -63,16 +63,10 @@ public final class ChronixQueryParams {
      */
     public static final String DATE_END_FIELD = "end:";
 
-    /**
-     * The default join field
-     */
-    public static final String DEFAULT_JOIN_FIELD_1 = "name";
-    public static final String DEFAULT_JOIN_FIELD_2 = "type";
 
     /**
      * The character used to split fields in join filter query
      */
-    public static final String JOIN_SEPARATOR = ",";
 
     public static final String DATA_AS_JSON = "dataAsJson";
 

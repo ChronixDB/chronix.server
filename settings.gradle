@@ -13,3 +13,4 @@ include 'chronix-server-type-metric'
 include 'chronix-server-function-metric'
 
 include 'chronix-server-bin'
+include 'chronix-query-language'

@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package de.qaware.chronix.solr.query.analysis
+package de.qaware.chronix.cql
 
 import org.apache.solr.common.SolrDocument
 import spock.lang.Specification
@@ -22,8 +22,8 @@ import spock.lang.Specification
  * Unit test for the join function QUERY_EVALUATOR
  * @author f.lautenschlager
  */
-class JoinFunctionTest extends Specification {
-    def "test join function"() {
+class CQLJoinFunctionTest extends Specification {
+    def "test cql join function"() {
         given:
         def doc = new SolrDocument()
         doc.addField("host", "laptop")
@@ -33,11 +33,11 @@ class JoinFunctionTest extends Specification {
 
 
         when:
-        def joinFunction = new JoinFunction(joinOn)
+        def joinFunction = new CQLJoinFunction(joinOn)
         def joinKey = joinFunction.apply(doc)
         then:
         joinKey == result
-        JoinFunction.isDefaultJoinFunction(joinFunction) == isDefault
+        CQLJoinFunction.isDefaultJoinFunction(joinFunction) == isDefault
 
         where:
         joinOn << ["host, name, source", "", null]
@@ -47,7 +47,7 @@ class JoinFunctionTest extends Specification {
 
     def "test private constructor"() {
         when:
-        JoinFunction.newInstance()
+        CQLJoinFunction.newInstance()
         then:
         noExceptionThrown()
     }
