@@ -115,7 +115,7 @@ subprojects {
 
         afterEvaluate {
             classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: ['de/qaware/chronix/converter/dt/**','de/qaware/chronix/cql/antlr'])
+                fileTree(dir: it, exclude: ['de/qaware/chronix/converter/dt/**','de/qaware/chronix/cql/antlr/**'])
             })
         }
     }
