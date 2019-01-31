@@ -345,8 +345,11 @@ public class AnalysisHandler extends SearchHandler {
         doc.addField(Schema.TYPE, timeSeries.getType());
 
         //TODO: Fix this. It is expensive to calculate this based on the points. This is already stored.
-        doc.addField(Schema.START, timeSeries.getStart());
-        doc.addField(Schema.END, timeSeries.getEnd());
+        //Optimization: Transformations should return the first an the last point
+        //Aggregations / Analyses does not need to return this.
+
+        //doc.addField(Schema.START, timeSeries.getStart());
+        //doc.addField(Schema.END, timeSeries.getEnd());
 
         if (dataShouldReturned) {
             //ensure that the returned data is sorted

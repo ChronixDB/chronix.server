@@ -22,6 +22,7 @@ configurations {
 
 dependencies {
     testCompile project(':chronix-server-query-handler')
+    testCompile project(':chronix-server-query-language')
     testCompile project(':chronix-server-ingestion-handler')
     testCompile project(':chronix-server-compaction-handler')
     testCompile project(':chronix-server-retention')
@@ -33,7 +34,7 @@ dependencies {
 import de.undercouch.gradle.tasks.download.Download
 
 
-def solrVersion = "6.4.2"
+def solrVersion = "7.6.0"
 def chronixBuildDir = rootDir.path + "/chronix-server-bin/chronix-server"
 def confDir = rootDir.path + "/chronix-server-bin/config/chronix"
 
@@ -104,7 +105,8 @@ task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     into "$chronixBuildDir/solr-${solrVersion}/server/solr/chronix/lib"
     include("*chronix-api*.jar")
     include("*chronix-timeseries*.jar")
-    include("*chronix-server-query*.jar")
+    include("*chronix-server-query-language*.jar")
+    include("*chronix-server-query-handler*.jar")
     include("*chronix-server-ingestion*.jar")
     include("*chronix-server-compaction*.jar")
     include("*chronix-server-retention*.jar")
@@ -120,6 +122,7 @@ task copyIntegrationRuntimeLibs(dependsOn: copyModifiedCSS, type: Copy) {
     include("*guice*.jar")
     include("*aopalliance*.jar")
     include("*javax.inject-1.jar")
+    include("*antlr4-4.5.1-1.jar")
 }
 
 task recopyApplicationLibs(type: Copy) {
@@ -127,7 +130,8 @@ task recopyApplicationLibs(type: Copy) {
     into "$chronixBuildDir/solr-${solrVersion}/server/solr/chronix/lib"
     include("*chronix-api*.jar")
     include("*chronix-timeseries*.jar")
-    include("*chronix-server-query*.jar")
+    include("*chronix-server-query-language*.jar")
+    include("*chronix-server-query-handler*.jar")
     include("*chronix-server-ingestion*.jar")
     include("*chronix-server-compaction*.jar")
     include("*chronix-server-retention*.jar")
@@ -143,6 +147,7 @@ task recopyApplicationLibs(type: Copy) {
     include("*guice*.jar")
     include("*aopalliance*.jar")
     include("*javax.inject-1.jar")
+    include("*antlr4-4.5.1-1.jar")
 }
 
 task downloadAndBuildChronix(dependsOn: copyIntegrationRuntimeLibs) {

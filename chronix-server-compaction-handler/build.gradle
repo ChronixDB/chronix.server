@@ -6,7 +6,7 @@ sonarqube {
 
 
 dependencies {
-    compile "org.apache.solr:solr-core:7.1.0"
+    compile "org.apache.solr:solr-core:7.6.0"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.2-beta'

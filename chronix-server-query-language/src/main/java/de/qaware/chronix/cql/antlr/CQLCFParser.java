@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-// Generated from ../src/main/antlr/CQLCF.g4 by ANTLR 4.7.1
+// Generated from ../src/main/antlr/CQLCF.g4 by ANTLR 4.5.1
 package de.qaware.chronix.cql.antlr;
 
 import org.antlr.v4.runtime.*;
@@ -44,23 +44,23 @@ public class CQLCFParser extends Parser {
     @Deprecated
     public static final String[] tokenNames;
     public static final String _serializedATN =
-            "\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\tA\4\2\t\2\4\3\t" +
+            "\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3\tA\4\2\t\2\4\3\t" +
                     "\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\3\2\3\2\3\3\3\3\5\3\25\n\3" +
                     "\3\3\7\3\30\n\3\f\3\16\3\33\13\3\3\4\3\4\3\4\3\4\5\4!\n\4\3\4\7\4$\n\4" +
                     "\f\4\16\4\'\13\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5\3\5\7\5\61\n\5\f\5\16\5\64" +
                     "\13\5\5\5\66\n\5\3\6\3\6\3\7\6\7;\n\7\r\7\16\7<\3\b\3\b\3\b\2\2\t\2\4" +
-                    "\6\b\n\f\16\2\2\2@\2\20\3\2\2\2\4\22\3\2\2\2\6\34\3\2\2\2\b\65\3\2\2\2" +
-                    "\n\67\3\2\2\2\f:\3\2\2\2\16>\3\2\2\2\20\21\5\4\3\2\21\3\3\2\2\2\22\31" +
-                    "\5\6\4\2\23\25\7\3\2\2\24\23\3\2\2\2\24\25\3\2\2\2\25\26\3\2\2\2\26\30" +
-                    "\5\6\4\2\27\24\3\2\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2\2\32\5" +
-                    "\3\2\2\2\33\31\3\2\2\2\34\35\5\16\b\2\35\36\7\4\2\2\36%\5\b\5\2\37!\7" +
-                    "\3\2\2 \37\3\2\2\2 !\3\2\2\2!\"\3\2\2\2\"$\5\b\5\2# \3\2\2\2$\'\3\2\2" +
-                    "\2%#\3\2\2\2%&\3\2\2\2&(\3\2\2\2\'%\3\2\2\2()\7\5\2\2)\7\3\2\2\2*\66\5" +
-                    "\n\6\2+,\5\n\6\2,-\7\6\2\2-\62\5\f\7\2./\7\7\2\2/\61\5\f\7\2\60.\3\2\2" +
-                    "\2\61\64\3\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63\66\3\2\2\2\64\62\3\2\2" +
-                    "\2\65*\3\2\2\2\65+\3\2\2\2\66\t\3\2\2\2\678\7\b\2\28\13\3\2\2\29;\7\t" +
-                    "\2\2:9\3\2\2\2;<\3\2\2\2<:\3\2\2\2<=\3\2\2\2=\r\3\2\2\2>?\7\b\2\2?\17" +
-                    "\3\2\2\2\t\24\31 %\62\65<";
+                    "\6\b\n\f\16\2\2@\2\20\3\2\2\2\4\22\3\2\2\2\6\34\3\2\2\2\b\65\3\2\2\2\n" +
+                    "\67\3\2\2\2\f:\3\2\2\2\16>\3\2\2\2\20\21\5\4\3\2\21\3\3\2\2\2\22\31\5" +
+                    "\6\4\2\23\25\7\3\2\2\24\23\3\2\2\2\24\25\3\2\2\2\25\26\3\2\2\2\26\30\5" +
+                    "\6\4\2\27\24\3\2\2\2\30\33\3\2\2\2\31\27\3\2\2\2\31\32\3\2\2\2\32\5\3" +
+                    "\2\2\2\33\31\3\2\2\2\34\35\5\16\b\2\35\36\7\4\2\2\36%\5\b\5\2\37!\7\3" +
+                    "\2\2 \37\3\2\2\2 !\3\2\2\2!\"\3\2\2\2\"$\5\b\5\2# \3\2\2\2$\'\3\2\2\2" +
+                    "%#\3\2\2\2%&\3\2\2\2&(\3\2\2\2\'%\3\2\2\2()\7\5\2\2)\7\3\2\2\2*\66\5\n" +
+                    "\6\2+,\5\n\6\2,-\7\6\2\2-\62\5\f\7\2./\7\7\2\2/\61\5\f\7\2\60.\3\2\2\2" +
+                    "\61\64\3\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63\66\3\2\2\2\64\62\3\2\2\2" +
+                    "\65*\3\2\2\2\65+\3\2\2\2\66\t\3\2\2\2\678\7\b\2\28\13\3\2\2\29;\7\t\2" +
+                    "\2:9\3\2\2\2;<\3\2\2\2<:\3\2\2\2<=\3\2\2\2=\r\3\2\2\2>?\7\b\2\2?\17\3" +
+                    "\2\2\2\t\24\31 %\62\65<";
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
@@ -75,7 +75,7 @@ public class CQLCFParser extends Parser {
     public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
 
     static {
-        RuntimeMetaData.checkVersion("4.7.1", RuntimeMetaData.VERSION);
+        RuntimeMetaData.checkVersion("4.5.1", RuntimeMetaData.VERSION);
     }
 
     static {
@@ -171,7 +171,6 @@ public class CQLCFParser extends Parser {
                     {
                         {
                             setState(18);
-                            _errHandler.sync(this);
                             _la = _input.LA(1);
                             if (_la == T__0) {
                                 {
@@ -219,7 +218,6 @@ public class CQLCFParser extends Parser {
                     {
                         {
                             setState(30);
-                            _errHandler.sync(this);
                             _la = _input.LA(1);
                             if (_la == T__0) {
                                 {
@@ -255,7 +253,6 @@ public class CQLCFParser extends Parser {
         int _la;
         try {
             setState(51);
-            _errHandler.sync(this);
             switch (getInterpreter().adaptivePredict(_input, 5, _ctx)) {
                 case 1:
                     enterOuterAlt(_localctx, 1);

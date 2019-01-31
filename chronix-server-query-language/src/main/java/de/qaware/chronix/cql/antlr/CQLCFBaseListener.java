@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-// Generated from ../src/main/antlr/CQLCF.g4 by ANTLR 4.7.1
+// Generated from ../src/main/antlr/CQLCF.g4 by ANTLR 4.5.1
 package de.qaware.chronix.cql.antlr;
 
 import org.antlr.v4.runtime.ParserRuleContext;

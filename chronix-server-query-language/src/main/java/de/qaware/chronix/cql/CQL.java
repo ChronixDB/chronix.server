@@ -72,6 +72,9 @@ public class CQL {
      * @throws CQLException if the given query string (value of cf) is invalid
      */
     public CQLCFResult parseCF(String cf) throws CQLException {
+        if (cf == null || cf.isEmpty()) {
+            return new CQLCFResult();
+        }
         init(cf);
 
         return parseChronixFunctionParameter(this.parser.cqlcf());
@@ -80,10 +83,13 @@ public class CQL {
     private void init(String cql) {
         this.errorListener.setQuery(cql);
 
-        CodePointCharStream input = CharStreams.fromString(cql);
+        // Antlr 4.7.1
+        // CodePointCharStream input = CharStreams.fromString(cql);
 
+        CharStream charStream = new ANTLRInputStream(cql);
 
-        this.lexer.setInputStream(input);
+        this.lexer.setInputStream(charStream);
+        // Antlr 4.7.1
         //this.tokenStream.setTokenSource(lexer);
 
         UnbufferedTokenStream tokenStream = new UnbufferedTokenStream(lexer);

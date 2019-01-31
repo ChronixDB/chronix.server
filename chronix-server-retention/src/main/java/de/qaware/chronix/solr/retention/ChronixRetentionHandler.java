@@ -248,7 +248,7 @@ public class ChronixRetentionHandler extends RequestHandlerBase {
     }
 
     @Override
-    public String getSource() {
+    public String getName() {
         return "www.chronix.io";
     }
 }

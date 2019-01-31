@@ -5,14 +5,14 @@ sonarqube {
 }
 
 dependencies {
-    compile "org.apache.solr:solr-core:6.4.2"
+    compile "org.apache.solr:solr-core:7.6.0"
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 
     compile 'de.qaware.chronix:chronix-api:0.2-beta'
 
     //Plugins and functions
     compile project(':chronix-server-plugin-management')
-    compile project(':chronix-query-language')
+    compile project(':chronix-server-query-language')
 
 
     testCompile 'de.qaware.chronix:chronix.fastdtw:0.3'

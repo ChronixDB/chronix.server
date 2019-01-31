@@ -52,11 +52,13 @@ class ChronixClientTestIT extends Specification {
     HttpSolrClient solr
     @Shared
     ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix
+    @Shared
+    String solrBaseUrl = "http://localhost:8983/solr/chronix/"
 
     def setupSpec() {
         given:
         LOGGER.info("Setting up the integration test.")
-        solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/").build()
+        solr = new HttpSolrClient.Builder(solrBaseUrl).build()
         chronix = new ChronixClient(
                 new MetricTimeSeriesConverter<>(),
                 new ChronixSolrStorage(200, ChronixTestFunctions.GROUP_BY, ChronixTestFunctions.REDUCE))
@@ -332,7 +334,7 @@ class ChronixClientTestIT extends Specification {
         when:
         def query = new SolrQuery("*:*")
         //Enable server side compression
-        HttpSolrClient test_solr = new HttpSolrClient.Builder("http://localhost:8913/solr/chronix/")
+        HttpSolrClient test_solr = new HttpSolrClient.Builder(solrBaseUrl)
                 .allowCompression(true).build()
         //query all documents
         List<MetricTimeSeries> timeSeries = chronix.stream(test_solr, query).collect(Collectors.toList())
@@ -348,7 +350,7 @@ class ChronixClientTestIT extends Specification {
     @Unroll
     def "Test raw query with compression activated: #withCompression"() {
         when:
-        def connection = "http://localhost:8913/solr/chronix/select?indent=on&q=*:*&wt=json".toURL().openConnection()
+        def connection = (solrBaseUrl + "select?indent=on&q=*:*&wt=json").toURL().openConnection()
         connection.setRequestProperty("Accept-Encoding", "gzip")
         def result = Compression.decompress(connection.getInputStream().bytes)
 

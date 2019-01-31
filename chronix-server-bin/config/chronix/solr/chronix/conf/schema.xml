@@ -45,6 +45,5 @@
     </fields>
 
     <uniqueKey>id</uniqueKey>
-    <solrQueryParser defaultOperator="OR"/>
 
 </schema>

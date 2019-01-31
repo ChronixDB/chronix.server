@@ -23,6 +23,7 @@ import de.qaware.chronix.converter.serializer.protobuf.ProtoBufMetricTimeSeriesS
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.util.Pair;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -61,8 +62,11 @@ public final class SolrDocumentBuilder {
         String name = null;
         String type = null;
 
+        long[] keys = new long[documents.size()];
+        Map<Long, Pair<long[], double[]>> firstTimeStampToRecord = new HashMap<>();
 
-        for (SolrDocument doc : documents) {
+        for (int i = 0; i < documents.size(); i++) {
+            SolrDocument doc = documents.get(i);
             MetricTimeSeries ts = convert(doc, queryStart, queryEnd, decompress);
 
             //only if we decompress the data.
@@ -79,9 +83,11 @@ public final class SolrDocumentBuilder {
                     values = new DoubleList(calcAmountOfPoints);
                 }
 
-                timestamps.addAll(ts.getTimestampsAsArray());
-                values.addAll(ts.getValuesAsArray());
+                //Note: chunks are sorted, every ts represents a chunk at this point
+                firstTimeStampToRecord.put(ts.getTime(0), new Pair<>(ts.getTimestampsAsArray(), ts.getValuesAsArray()));
+                keys[i] = ts.getTime(0);
             }
+
 
             //we use the metric of the first time series.
             //metric is the default join key.
@@ -94,6 +100,16 @@ public final class SolrDocumentBuilder {
             }
             //Todo: Fix field selection (attributes) Avoid this if necessary
             merge(attributes, ts.getAttributesReference());
+        }
+
+        //Add everything to the timestamps
+        if (decompress) {
+            Arrays.sort(keys);
+            for (long key : keys) {
+                Pair<long[], double[]> record = firstTimeStampToRecord.get(key);
+                timestamps.addAll(record.first());
+                values.addAll(record.second());
+            }
         }
 
         return new MetricTimeSeries.Builder(name, type)

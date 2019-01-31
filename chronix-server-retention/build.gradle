@@ -5,7 +5,7 @@ sonarqube {
 }
 
 dependencies {
-    compile "org.apache.solr:solr-core:6.4.2"
+    compile "org.apache.solr:solr-core:7.6.0"
     compile 'org.quartz-scheduler:quartz:2.2.2'
     runtime 'org.restlet.osgi:org.restlet.ext.servlet:2.3.0'
 

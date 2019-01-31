@@ -16,9 +16,14 @@
 package de.qaware.chronix.solr.query.analysis.providers;
 
 import de.qaware.chronix.solr.query.analysis.DocListProvider;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.request.SolrQueryRequest;
+import org.apache.solr.schema.IndexSchema;
+import org.apache.solr.schema.SchemaField;
+import org.apache.solr.search.DocIterator;
 import org.apache.solr.search.DocList;
 import org.apache.solr.search.SolrIndexSearcher;
 import org.apache.solr.util.SolrPluginUtils;
@@ -60,6 +65,42 @@ public class SolrDocListProvider implements DocListProvider {
      */
     @Override
     public SolrDocumentList docListToSolrDocumentList(DocList docs, SolrIndexSearcher searcher, Set<String> fields, Map<SolrDocument, Integer> ids) throws IOException {
-        return SolrPluginUtils.docListToSolrDocumentList(docs, searcher, fields, ids);
+
+        //TODO: We can optimize here.
+        //Also do the collection / grouping
+        //Remove unused code
+        IndexSchema schema = searcher.getSchema();
+
+        SolrDocumentList list = new SolrDocumentList();
+        list.setNumFound(docs.matches());
+        list.setMaxScore(docs.maxScore());
+        list.setStart(docs.offset());
+
+        DocIterator dit = docs.iterator();
+
+        while (dit.hasNext()) {
+            int docid = dit.nextDoc();
+
+            Document luceneDoc = searcher.doc(docid, fields);
+            SolrDocument doc = new SolrDocument();
+
+            for (IndexableField field : luceneDoc) {
+                if (null == fields || fields.contains(field.name())) {
+                    SchemaField sf = schema.getField(field.name());
+                    doc.addField(field.name(), sf.getType().toObject(field));
+                }
+            }
+            if (docs.hasScores() && (null == fields || fields.contains("score"))) {
+                doc.addField("score", dit.score());
+            }
+
+            list.add(doc);
+
+            if (ids != null) {
+                ids.put(doc, docid);
+            }
+        }
+        return list;
     }
+
 }

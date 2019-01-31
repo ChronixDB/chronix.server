@@ -76,13 +76,13 @@ class ChronixRetentionHandlerTest extends Specification {
         thrown NullPointerException
     }
 
-    def "test get description and source"() {
+    def "test get description and name"() {
         given:
         def chronixRetentionHandler = new ChronixRetentionHandler();
 
         when:
         def description = chronixRetentionHandler.getDescription()
-        def source = chronixRetentionHandler.getSource()
+        def source = chronixRetentionHandler.getName()
 
         then:
         description == "The Chronix retention plugin."
