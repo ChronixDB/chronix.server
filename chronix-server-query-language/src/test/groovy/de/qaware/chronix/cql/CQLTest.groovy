@@ -141,7 +141,7 @@ class CQLTest extends Specification {
         then:
         def transformation = functions.getChronixFunctionsForType(new MetricType()).getTransformations()[0]
         transformation.getQueryName() == expectedQueryName
-        transformation.getArguments()[0] == expectedArgs
+        transformation.getArguments() == expectedArgs as String[]
 
         where:
         cf << ["metric{vector:0.01}",
@@ -159,9 +159,9 @@ class CQLTest extends Specification {
         expectedQueryName << ["vector", "scale", "divide", "top",
                               "bottom", "movavg", "add", "sub",
                               "timeshift", "smovavg"]
-        expectedArgs << ["tolerance=0.01", "value=4.0", "value=4.0", "value=10",
-                         "value=10", "timeSpan=10", "value=10.0", "value=10.0",
-                         "amount=10", "samples=10"]
+        expectedArgs << [["tolerance=0.01"], ["value=4.0"], ["value=4.0"], ["value=10"],
+                         ["value=10"], ["timeSpan=10", "unit=MINUTES"], ["value=10.0"], ["value=10.0"],
+                         ["amount=10", "unit=SECONDS"], ["samples=10"]]
     }
 
     @Unroll

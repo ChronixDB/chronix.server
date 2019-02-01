@@ -53,7 +53,7 @@ class ChronixClientTestIT extends Specification {
     @Shared
     ChronixClient<MetricTimeSeries, SolrClient, SolrQuery> chronix
     @Shared
-    String solrBaseUrl = "http://localhost:8983/solr/chronix/"
+    String solrBaseUrl = "http://localhost:8913/solr/chronix/"
 
     def setupSpec() {
         given:
@@ -169,7 +169,7 @@ class ChronixClientTestIT extends Specification {
         selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
 
         where:
-        transformation << ["metric{vector:0.01}", "metric{scale:4}", "metric{divide:4}", "metric{movavg:4,minutes}",
+        transformation << ["metric{vector:0.01}", "metric{scale:4}", "metric{divide:4}", "metric{movavg:4,MINUTES}",
                            "metric{top:10}", "metric{bottom:10}", "metric{add:4}", "metric{sub:4}", "metric{timeshift:10,DAYS}", "metric{smovavg:5}"]
         attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
                           "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift", "0_function_smovavg"]

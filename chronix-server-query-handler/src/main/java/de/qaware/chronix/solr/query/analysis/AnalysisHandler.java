@@ -348,8 +348,8 @@ public class AnalysisHandler extends SearchHandler {
         //Optimization: Transformations should return the first an the last point
         //Aggregations / Analyses does not need to return this.
 
-        //doc.addField(Schema.START, timeSeries.getStart());
-        //doc.addField(Schema.END, timeSeries.getEnd());
+        doc.addField(Schema.START, timeSeries.getStart());
+        doc.addField(Schema.END, timeSeries.getEnd());
 
         if (dataShouldReturned) {
             //ensure that the returned data is sorted

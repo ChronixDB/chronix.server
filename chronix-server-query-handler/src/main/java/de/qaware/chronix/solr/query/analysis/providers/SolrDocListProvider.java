@@ -69,6 +69,7 @@ public class SolrDocListProvider implements DocListProvider {
         //TODO: We can optimize here.
         //Also do the collection / grouping
         //Remove unused code
+        //We can convert lucene docs directly into time series
         IndexSchema schema = searcher.getSchema();
 
         SolrDocumentList list = new SolrDocumentList();

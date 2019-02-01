@@ -11,8 +11,8 @@ apply plugin: 'de.undercouch.download'
 
 sourceSets {
     intTest {
-        groovy.srcDir 'src/inttest/groovy'
-        resources.srcDir 'src/inttest/resources'
+        groovy.srcDir 'src/intTest/groovy'
+        resources.srcDir 'src/intTest/resources'
     }
 }
 configurations {
@@ -49,7 +49,7 @@ task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     from zipTree(downloadZipFile.dest)
     into chronixBuildDir
 }
-task copyCoreToSolr(dependsOn: downloadAndUnzipFile, type: Copy) {
+task copyCoreToSolr(type: Copy) {
     into "$chronixBuildDir/solr-${solrVersion}/server/solr"
     from "$confDir/solr"
 }
