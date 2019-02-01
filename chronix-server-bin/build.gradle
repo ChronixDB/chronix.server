@@ -49,7 +49,7 @@ task downloadAndUnzipFile(dependsOn: downloadZipFile, type: Copy) {
     from zipTree(downloadZipFile.dest)
     into chronixBuildDir
 }
-task copyCoreToSolr(type: Copy) {
+task copyCoreToSolr(dependsOn: downloadAndUnzipFile,type: Copy) {
     into "$chronixBuildDir/solr-${solrVersion}/server/solr"
     from "$confDir/solr"
 }
