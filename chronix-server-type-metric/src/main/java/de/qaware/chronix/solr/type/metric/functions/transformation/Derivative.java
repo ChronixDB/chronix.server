@@ -35,7 +35,8 @@ public final class Derivative implements ChronixTransformation<MetricTimeSeries>
      * Calculates the derivative of the values per second.
      * Returns a time series holding that values.
      *
-     * @param timeSeries the time series that is transformed
+     * @param timeSeriesList a list of time series that are transformed
+     * @param functionCtx    the function context
      */
     @Override
     public void execute(List<ChronixTimeSeries<MetricTimeSeries>> timeSeriesList, FunctionCtx functionCtx) {

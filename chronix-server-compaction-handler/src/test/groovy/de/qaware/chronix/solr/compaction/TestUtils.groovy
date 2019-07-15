@@ -21,6 +21,7 @@ import de.qaware.chronix.timeseries.dts.Point
 import org.apache.lucene.document.*
 import org.apache.lucene.search.ScoreDoc
 import org.apache.lucene.search.TopDocs
+import org.apache.lucene.search.TotalHits
 import org.apache.solr.common.SolrInputDocument
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeDiagnosingMatcher
@@ -120,6 +121,6 @@ final class TestUtils {
      * @return top docs containing given score docs
      */
     public static TopDocs asTopDocs(def docs) {
-        new TopDocs(3, docs as ScoreDoc[], 0)
+        new TopDocs(new TotalHits(3, TotalHits.Relation.EQUAL_TO), docs as ScoreDoc[])
     }
 }

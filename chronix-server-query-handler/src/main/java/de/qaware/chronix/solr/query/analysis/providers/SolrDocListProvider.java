@@ -83,6 +83,9 @@ public class SolrDocListProvider implements DocListProvider {
             int docid = dit.nextDoc();
 
             Document luceneDoc = searcher.doc(docid, fields);
+
+            //Instead of creating a SolrDocument, we should create a ChronixTimeSeries
+            
             SolrDocument doc = new SolrDocument();
 
             for (IndexableField field : luceneDoc) {

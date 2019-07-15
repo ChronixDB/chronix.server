@@ -15,7 +15,7 @@
  */
 package de.qaware.chronix.solr.query.date;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.util.DateMathParser;
 
 import java.text.ParseException;

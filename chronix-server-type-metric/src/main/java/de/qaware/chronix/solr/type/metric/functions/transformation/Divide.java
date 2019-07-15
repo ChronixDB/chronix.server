@@ -19,8 +19,8 @@ import de.qaware.chronix.server.functions.ChronixTransformation;
 import de.qaware.chronix.server.functions.FunctionCtx;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.List;
 

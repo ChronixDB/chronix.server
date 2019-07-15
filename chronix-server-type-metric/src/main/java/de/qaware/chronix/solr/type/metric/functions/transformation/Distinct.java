@@ -24,9 +24,7 @@ import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The distinct transformation.
@@ -38,7 +36,7 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
      * Transforms a time series into a representation with distinct values.
      * The distinct operation uses the first occurrence of a point.
      *
-     * @param timeSeries        the time series that is transformed
+     * @param timeSeriesList  a list with time series
      * @param functionCtx the function value map
      */
     @Override
@@ -57,15 +55,13 @@ public final class Distinct implements ChronixTransformation<MetricTimeSeries> {
             DoubleList valueList = new DoubleList(timeSeries.size());
 
             //We should use a other data structure...
-            Set<Double> distinct = new HashSet<>();
 
             for (int i = 0; i < timeSeries.size(); i++) {
                 double value = timeSeries.getValue(i);
 
-                if (!distinct.contains(value)) {
+                if (!valueList.contains(value)) {
                     timeList.add(timeSeries.getTime(i));
                     valueList.add(value);
-                    distinct.add(value);
                 }
             }
             timeSeries.clear();

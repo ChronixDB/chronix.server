@@ -32,10 +32,14 @@ import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,7 +54,7 @@ public final class CSVImporter {
     public static final List<Integer> LIST_INT_FIELD = Lists.newArrayList(1, 2);
     public static final List<Long> LIST_LONG_FIELD = Lists.newArrayList(11L, 25L);
     public static final List<Double> LIST_DOUBLE_FIELD = Lists.newArrayList(1.5D, 2.6D);
-    public static final String BYTES = "String as byte";
+    public static final byte[] BYTES = "String as byte".getBytes();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVImporter.class);
 
@@ -78,12 +82,13 @@ public final class CSVImporter {
             LOGGER.warn("No files found. Returning");
             return;
         }
+        Arrays.sort(files);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS", Locale.GERMAN);
+        DateTimeFormatter sdf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss.SSS");
 
         for (File file : files) {
             LOGGER.info("Processing file {}", file);
-            HashMap<Integer, MetricTimeSeries> documents = new HashMap<>();
+            Map<Integer, MetricTimeSeries> documents = new HashMap<>();
 
             String[] attributes = file.getName().split("_");
             NumberFormat nf = DecimalFormat.getInstance(Locale.ENGLISH);
@@ -108,7 +113,7 @@ public final class CSVImporter {
                                     .attribute("myIntField", 5)
                                     .attribute("myLongField", 8L)
                                     .attribute("myDoubleField", 5.5D)
-                                    .attribute("myByteField", BYTES.getBytes())
+                                    .attribute("myByteField", BYTES)
                                     .attribute("myStringList", LIST_STRING_FIELD)
                                     .attribute("myIntList", LIST_INT_FIELD)
                                     .attribute("myLongList", LIST_LONG_FIELD)
@@ -122,10 +127,13 @@ public final class CSVImporter {
                 } else {
                     //First field is the timestamp: 26.08.2013 00:00:17.361
                     try {
-                        long date = sdf.parse(fields[0]).getTime();
+                        long date = LocalDateTime.parse(fields[0], sdf).toInstant(ZoneOffset.UTC).toEpochMilli();
 
                         for (int j = 1; j < fields.length; j++) {
-                            documents.get(j).add(date, nf.parse(fields[j]).doubleValue());
+
+                            double value = nf.parse(fields[j]).doubleValue();
+
+                            documents.get(j).add(date, value);
                         }
                         filePoints.addAndGet(fields.length);
 

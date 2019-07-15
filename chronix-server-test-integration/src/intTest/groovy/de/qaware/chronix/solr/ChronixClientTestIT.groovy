@@ -33,6 +33,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.time.Instant
 import java.util.stream.Collectors
 
 /**
@@ -66,10 +67,9 @@ class ChronixClientTestIT extends Specification {
         when: "We clean the index to ensure that no old data is loaded."
         sleep(10_000)
         solr.deleteByQuery("*:*")
-        def result = solr.commit()
+        def result = solr.commit(true, true)
 
         and: "We add new data"
-
         LOGGER.info("Adding data to Chronix.")
         CSVImporter.readAndImportCSV(chronix, solr);
         //we do a hart commit - only for testing purposes
@@ -81,125 +81,157 @@ class ChronixClientTestIT extends Specification {
 
     }
 
-    def "Test add and query time series to Chronix with Solr"() {
+    def "Query all time series from Chronix"() {
         when:
-        //query all documents
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, new SolrQuery("*:*")).collect(Collectors.toList());
 
         then:
         timeSeries.size() == 26i
-        def selectedTimeSeries = timeSeries.get(0)
+    }
 
-        selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attribute("myIntField") == 5
-        selectedTimeSeries.attribute("myLongField") == 8L
-        selectedTimeSeries.attribute("myDoubleField") == 5.5D
-        selectedTimeSeries.attribute("myByteField") == CSVImporter.BYTES.getBytes()
-        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
-        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
-        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
-        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
+    def "Query one specific time series (Swap\\free) from Chronix"() {
+        when:
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, new SolrQuery("name:\\\\Swap\\\\free")).collect(Collectors.toList());
+
+        then:
+        timeSeries.size() == 1i
+        def swapFree = timeSeries.get(0)
+        swapFree.sort()
+
+        swapFree.getName() == "\\Swap\\free"
+        swapFree.getStart() == Instant.parse("2013-08-26T00:00:17.361Z").toEpochMilli()
+        swapFree.getEnd() == Instant.parse("2013-09-01T23:59:18.096Z").toEpochMilli()
+        swapFree.size() == 9693
+        swapFree.getType() == "metric"
+
+        //TODO: remove the version attribute (then 12)
+        swapFree.attributes().size() == 13
+        testAttributes(swapFree)
+
     }
 
     @Unroll
-    def "Test aggregation query #aggregation"() {
+    def "Aggregation query #aggregation"() {
         when:
         def query = new SolrQuery("name:\\\\Load\\\\avg")
-        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, aggregation)
+
+        def aggregationQuery = "metric{$aggregation}"
+        if (withArgs != null) {
+            aggregationQuery = "metric{$aggregation:$withArgs}"
+        }
+
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, aggregationQuery)
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
         then:
         timeSeries.size() == 1
         def selectedTimeSeries = timeSeries.get(0)
 
         selectedTimeSeries.size() <= 0
-        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
-        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
-        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
-        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
-        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
-        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
-        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
-        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
+        testAttributes(selectedTimeSeries)
+
+        selectedTimeSeries.attribute("0_function_${aggregation}") as double == hasResult
 
         where:
-        aggregation << ["metric{max}", "metric{min}", "metric{avg}", "metric{p:0.25}", "metric{dev}", "metric{sum}",
-                        "metric{count}", "metric{diff}", "metric{sdiff}", "metric{first}", "metric{last}", "metric{range}",
-                        "metric{integral}"
-        ]
+        aggregation | withArgs | hasResult
+        "max"       | null     | 5.47
+        "min"       | null     | 0.04
+        "avg"       | null     | 0.5883163107397165
+        "p"         | 0.25     | 0.16
+        "dev"       | null     | 0.7073607542900465
+        "sum"       | null     | 5702.550000000072
+        "count"     | null     | 9693
+        "diff"      | null     | 0.6699999999999999
+        "sdiff"     | null     | 0.6699999999999999
+        "first"     | null     | 0.17
+        "last"      | null     | 0.84
+        "range"     | null     | 5.43
+        "integral"  | null     | 5701.709725985112
+
     }
 
     @Unroll
-    def "Test analysis query #analysis"() {
+    def "Analysis query: metric{#analysis:#withArgs}"() {
         when:
         def query = new SolrQuery("name:\\\\Load\\\\avg")
-        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, analysis)
-        query.setFields("+data")
-        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
-        then:
-        timeSeries.size() == 1
-        def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= points
-        selectedTimeSeries.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
-        selectedTimeSeries.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
-        selectedTimeSeries.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
-        (selectedTimeSeries.attribute("myByteField") as List).size() == 7
-        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
-        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
-        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
-        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
+        def analysisQuery = "metric{$analysis}"
+        if (withArgs != null) {
+            analysisQuery = "metric{$analysis:$withArgs}"
+        }
 
-        where:
-        analysis << ["metric{trend}", "metric{outlier}", "metric{frequency:10,1}"] //, "metric{fastdtw:(name:*Load*max),5,0.8}"]
-        points << [7000, 7000, 7000]// , 7000]
-    }
-
-    @Unroll
-    def "test transformation query: #transformation"() {
-        when:
-        def query = new SolrQuery("name:\\\\Tasks\\\\running")
-        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, transformation)
-        query.setFields("+data")
-        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
-        then:
-        timeSeries.size() == 1
-        def selectedTimeSeries = timeSeries.get(0)
-
-        selectedTimeSeries.size() == points
-        selectedTimeSeries.attribute(attributeKeys)[0] == attributeValues
-
-        where:
-        transformation << ["metric{vector:0.01}", "metric{scale:4}", "metric{divide:4}", "metric{movavg:4,MINUTES}",
-                           "metric{top:10}", "metric{bottom:10}", "metric{add:4}", "metric{sub:4}", "metric{timeshift:10,DAYS}", "metric{smovavg:5}"]
-        attributeKeys << ["0_function_vector", "0_function_scale", "0_function_divide", "0_function_movavg",
-                          "0_function_top", "0_function_bottom", "0_function_add", "0_function_sub", "0_function_timeshift", "0_function_smovavg"]
-        attributeValues << ["tolerance=0.01", "value=4.0", "value=4.0", "timeSpan=4", "value=10", "value=10",
-                            "value=4.0", "value=4.0", "amount=10", "samples=5"]
-        points << [7074, 9693, 9693, 9690, 10, 10, 9693, 9693, 9693, 9689]
-    }
-
-    @Unroll
-    def "test transformation query #analysisQuery with empty arguments"() {
-        when:
-        def query = new SolrQuery("name:\\\\Tasks\\\\running")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, analysisQuery)
-        query.setFields("+data")
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
         then:
         timeSeries.size() == 1
-        def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() == points
+        timeSeries.get(0).size() <= 0
+        timeSeries.get(0).attribute("0_function_${analysis}") as boolean == hasResult
+        testAttributes(timeSeries.get(0))
 
         where:
-        analysisQuery << ["metric{derivative}", "metric{nnderivative}", "metric{distinct}"]
-        attributeKeys << ["0_function_derivative", "0_function_nnderivative", "0_function_distinct"]
 
-        points << [9691, 7302, 15]
+        analysis    | withArgs | hasResult
+        "trend"     | null     | true
+        "outlier"   | null     | true
+        "frequency" | "10,5"   | false
+
+    }
+
+    @Unroll
+    def "Transformation query: metric{#transformation:#withArgs}"() {
+
+        when:
+        def query = new SolrQuery("name:\\\\Tasks\\\\running")
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{$transformation:$withArgs}")
+        query.setFields("data")
+
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == points
+        def functionAttribute = timeSeries.get(0).attribute("0_function_${transformation}") as List<String>
+        functionAttribute.contains(attributeValue)
+
+        where:
+        transformation | withArgs    | attributeValue   | points
+        "top"          | 10          | "value=10"       | 10
+        "bottom"       | 10          | "value=10"       | 10
+        "scale"        | 4           | "value=4.0"      | 9693
+        "divide"       | 4           | "value=4.0"      | 9693
+        "sub"          | 4           | "value=4.0"      | 9693
+        "timeshift"    | "10,DAYS"   | "amount=10"      | 9693
+        "vector"       | 0.01        | "tolerance=0.01" | 7074
+        "smovavg"      | 5           | "samples=5"      | 9689
+        "movavg"       | "4,MINUTES" | "timeSpan=4"     | 9690
+
+    }
+
+    @Unroll
+    def "Transformation query without args: metric{#transformation}"() {
+        when:
+        def query = new SolrQuery("name:\\\\Tasks\\\\running")
+        def transformationQuery = "metric{$transformation}"
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, transformationQuery)
+        query.setFields("data")
+        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
+        then:
+        timeSeries.size() == 1
+        timeSeries.get(0).size() == points
+        timeSeries.get(0).attributes().containsKey("0_function_${transformation}" as String)
+
+        where:
+        transformation | points
+        "derivative"   | 9691
+        "nnderivative" | 7302
+        "distinct"     | 15
+        "noop"         | 9693
     }
 
     @Ignore
-    def "Test analysis fastdtw"() {
+    def "Analysis fastdtw"() {
         when:
         def query = new SolrQuery("name:*Load*min")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{fastdtw:(name:*Load*max),5,0.8}")
@@ -217,7 +249,7 @@ class ChronixClientTestIT extends Specification {
 
     }
 
-    def "test function query with data as json"() {
+    def "Function query with data as json"() {
         when:
         def query = new SolrQuery("name:\\\\Cpu\\\\sy")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{vector:0.1}")
@@ -228,7 +260,7 @@ class ChronixClientTestIT extends Specification {
         timeSeries.get(0).size() == 2
     }
 
-    def "test function query with dataAsJson and join"() {
+    def "Function query with dataAsJson and join"() {
         when:
         def query = new SolrQuery("name:\\\\Cpu*")
         query.setParam(ChronixQueryParams.CHRONIX_JOIN, "dynamic_s,name")
@@ -243,57 +275,48 @@ class ChronixClientTestIT extends Specification {
         timeSeries.get(0).attribute("join_key") == joinKey
     }
 
-    @Unroll
-    def "test join documents with data: #ifData on dynamic field"() {
+    def "Join documents with data: #data on dynamic field"() {
         when:
         def query = new SolrQuery("name:\\\\Cpu*")
         query.setParam(ChronixQueryParams.CHRONIX_JOIN, "dynamic_s")
+        query.setFields(data)
+
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
         then:
         timeSeries.size() == 1
-        if (ifData) {
-            timeSeries.get(0).size() == 77544
-        } else {
-            timeSeries.get(0).size() == 0
-        }
+        timeSeries.get(0).attributes().size() == attributeSize
+        timeSeries.get(0).size() == 77544
 
         where:
-        data << ["", "+data"]
-        ifData << [false, true]
+        data    | attributeSize
+        "data"  | 2
+        "+data" | 13
+
     }
 
-
     @Unroll
-    def "test join documents with data: #ifData"() {
+    def "Join documents with data: #data"() {
         when:
         def query = new SolrQuery("name:\\\\Cpu*")
         query.setParam(ChronixQueryParams.CHRONIX_JOIN, "group")
+        query.setFields(data)
+
         List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
+
         then:
         timeSeries.size() == 1
-        if (ifData) {
-            timeSeries.get(0).size() == 77544
-        } else {
-            timeSeries.get(0).size() == 0
-        }
+        timeSeries.get(0).attributes().size() == attributeSize
+        timeSeries.get(0).size() == 77544
 
         where:
-        data << ["", "+data"]
-        ifData << [false, true]
-    }
-
-    def "test analysis with empty result"() {
-        when:
-        def query = new SolrQuery("name:\\\\Load\\\\min")
-        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{frequency:10,9}")
-        List<MetricTimeSeries> timeSeries = chronix.stream(solr, query).collect(Collectors.toList())
-        then:
-        timeSeries.size() == 1
-        timeSeries.get(0).attribute("0_function_frequency") == false
+        data    | attributeSize
+        "data"  | 2
+        "+data" | 12
     }
 
 
-    def "Test query raw time series"() {
+    def "Query raw time series"() {
         when:
         def query = new SolrQuery("*:*")
         query.addField("dataAsJson,myIntField,myLongField,myDoubleField,myByteField,myStringList,myIntList,myLongList,myDoubleList")
@@ -304,18 +327,11 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 26i
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attribute("myIntField")[0] == 5
-        selectedTimeSeries.attribute("myLongField")[0] == 8L
-        selectedTimeSeries.attribute("myDoubleField")[0] == 5.5d
-        selectedTimeSeries.attribute("myByteField")[0] == CSVImporter.BYTES.getBytes()
-        selectedTimeSeries.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
-        selectedTimeSeries.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
-        selectedTimeSeries.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
-        selectedTimeSeries.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
+        selectedTimeSeries.size() == 9693
+        testAttributes(selectedTimeSeries)
     }
 
-    def "Test query raw time series with +dataAsJson"() {
+    def "Query raw time series with +dataAsJson"() {
         when:
         def query = new SolrQuery("*:*")
         query.addField("+dataAsJson")
@@ -326,11 +342,11 @@ class ChronixClientTestIT extends Specification {
         timeSeries.size() == 26i
         def selectedTimeSeries = timeSeries.get(0)
 
-        selectedTimeSeries.size() >= 7000
+        selectedTimeSeries.size() == 9693
         selectedTimeSeries.attributes().size() == 13
     }
 
-    def "Test query with compression result"() {
+    def "Query with compression result"() {
         when:
         def query = new SolrQuery("*:*")
         //Enable server side compression
@@ -341,27 +357,32 @@ class ChronixClientTestIT extends Specification {
 
         then:
         timeSeries.size() == 26i
-        def selectedTimeSeries = timeSeries.get(0)
+        for (int i = 0; i < timeSeries.size(); i++) {
+            timeSeries.get(i).size() == 9693
+            timeSeries.get(i).attributes().size() == 13
+        }
 
-        selectedTimeSeries.size() >= 7000
-        selectedTimeSeries.attributes().size() == 13
     }
 
     @Unroll
-    def "Test raw query with compression activated: #withCompression"() {
+    def "Raw query with compression activated"() {
         when:
         def connection = (solrBaseUrl + "select?indent=on&q=*:*&wt=json").toURL().openConnection()
         connection.setRequestProperty("Accept-Encoding", "gzip")
         def result = Compression.decompress(connection.getInputStream().bytes)
 
         then:
-        if (withCompression) {
-            result.length > 0
-        } else {
-            result.length == 0
-        }
+        result.length != 0
+    }
 
-        where:
-        withCompression << [true, false]
+    def testAttributes(MetricTimeSeries series) {
+        series.attribute("myIntField") as Set<Integer> == [5] as Set<Integer>
+        series.attribute("myLongField") as Set<Long> == [8L] as Set<Long>
+        series.attribute("myDoubleField") as Set<Double> == [5.5D] as Set<Double>
+        (series.attribute("myByteField") as List).size() == 7
+        series.attribute("myStringList") == CSVImporter.LIST_STRING_FIELD
+        series.attribute("myIntList") == CSVImporter.LIST_INT_FIELD
+        series.attribute("myLongList") == CSVImporter.LIST_LONG_FIELD
+        series.attribute("myDoubleList") == CSVImporter.LIST_DOUBLE_FIELD
     }
 }

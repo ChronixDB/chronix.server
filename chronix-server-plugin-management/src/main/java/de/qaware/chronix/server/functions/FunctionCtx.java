@@ -85,7 +85,10 @@ public class FunctionCtx {
         }
     }
 
-
+    /**
+     * @param joinKey used to create groups time series chunks
+     * @return the entry in the function context for this time series
+     */
     public FunctionCtxEntry getContextFor(String joinKey) {
         return functionCtxEntries.get(joinKey);
     }

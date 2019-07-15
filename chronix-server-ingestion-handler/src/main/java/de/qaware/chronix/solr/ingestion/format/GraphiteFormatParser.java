@@ -16,7 +16,7 @@
 package de.qaware.chronix.solr.ingestion.format;
 
 import de.qaware.chronix.timeseries.MetricTimeSeries;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

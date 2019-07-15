@@ -24,7 +24,12 @@ import de.qaware.chronix.cql.CQLCFResult;
 import de.qaware.chronix.cql.CQLJoinFunction;
 import de.qaware.chronix.cql.ChronixFunctions;
 import de.qaware.chronix.server.ChronixPluginLoader;
-import de.qaware.chronix.server.functions.*;
+import de.qaware.chronix.server.functions.ChronixAggregation;
+import de.qaware.chronix.server.functions.ChronixAnalysis;
+import de.qaware.chronix.server.functions.ChronixFunction;
+import de.qaware.chronix.server.functions.ChronixTransformation;
+import de.qaware.chronix.server.functions.FunctionCtx;
+import de.qaware.chronix.server.functions.FunctionCtxEntry;
 import de.qaware.chronix.server.functions.plugin.ChronixFunctionPlugin;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
@@ -45,7 +50,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -148,7 +159,7 @@ public class AnalysisHandler extends SearchHandler {
      * @param joinFunction the join function
      * @return the grouped documents
      */
-    private static HashMap<ChronixType, Map<String, List<SolrDocument>>> collect(SolrDocumentList docs, Function<SolrDocument, String> joinFunction) {
+    private static Map<ChronixType, Map<String, List<SolrDocument>>> collect(SolrDocumentList docs, Function<SolrDocument, String> joinFunction) {
         HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = new HashMap<>();
 
         for (SolrDocument doc : docs) {
@@ -208,7 +219,7 @@ public class AnalysisHandler extends SearchHandler {
         final CQLJoinFunction key = cql.parseCJ(chronixJoin);
 
         //Do a query and collect them on the join function
-        HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = collectDocuments(req, key);
+        Map<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = collectDocuments(req, key);
 
         //If no rows should returned, we only return the num found
         if (rows == 0) {
@@ -219,7 +230,7 @@ public class AnalysisHandler extends SearchHandler {
             String chronixFunctions = req.getParams().get(ChronixQueryParams.CHRONIX_FUNCTION);
             final CQLCFResult result = cql.parseCF(chronixFunctions);
 
-            final List<SolrDocument> resultDocuments = analyze(req, result, collectedDocs, !CQLJoinFunction.isDefaultJoinFunction(key));
+            final List<SolrDocument> resultDocuments = analyze(req, result, collectedDocs);
             results.addAll(resultDocuments);
             //As we have to analyze all docs in the query at once,
             // the number of documents is also the number of documents found
@@ -235,13 +246,12 @@ public class AnalysisHandler extends SearchHandler {
      * @param req           the solr request with all information
      * @param functions     the chronix analysis that is applied
      * @param collectedDocs the prior collected documents of the query
-     * @param isJoined      true if the documents are joined on a user defined attribute combination
      * @return a list containing the analyzed time series as solr documents
      * @throws IOException              if bad things happen in querying the documents
      * @throws IllegalArgumentException if the given analysis is not defined
      * @throws ParseException           when the start / end within the sub query could not be parsed
      */
-    public List<SolrDocument> analyze(SolrQueryRequest req, CQLCFResult functions, HashMap<ChronixType, Map<String, List<SolrDocument>>> collectedDocs, boolean isJoined) throws IOException, IllegalStateException, ParseException {
+    public List<SolrDocument> analyze(SolrQueryRequest req, CQLCFResult functions, Map<ChronixType, Map<String, List<SolrDocument>>> collectedDocs) throws IOException, IllegalStateException, ParseException {
 
         final SolrParams params = req.getParams();
         final long queryStart = Long.parseLong(params.get(ChronixQueryParams.QUERY_START_LONG));
@@ -263,7 +273,7 @@ public class AnalysisHandler extends SearchHandler {
 
             List<ChronixTimeSeries> timeSeriesList = new ArrayList<>(collectedDocs.get(type).size());
 
-            //do this in parallel
+            //do this in parallel as it contains deserialization
             collectedDocs.get(type).entrySet().parallelStream().forEach(docs -> {
                 //convert the documents into a time series
                 timeSeriesList.add(type.convert(
@@ -291,40 +301,43 @@ public class AnalysisHandler extends SearchHandler {
                     }
                 }
 
+                //add all aggregations
                 List<ChronixFunction> aggregationsAndAnalyses = new ArrayList<>(typeFunctions.sizeOfAggregations() + typeFunctions.sizeOfAnalyses());
                 if (typeFunctions.containsAggregations()) {
                     aggregationsAndAnalyses.addAll(typeFunctions.getAggregations());
                 }
 
+                //add all analyses
                 if (typeFunctions.containsAnalyses()) {
                     aggregationsAndAnalyses.addAll(typeFunctions.getAnalyses());
                 }
 
-                //do aggregations and analyses parallel
+                //now, run them all parallel
                 if (!aggregationsAndAnalyses.isEmpty()) {
                     aggregationsAndAnalyses.parallelStream().forEach(function -> function.execute(timeSeriesList, functionCtx));
                 }
             }
 
-            //build the result
-            for (ChronixTimeSeries timeSeries : timeSeriesList) {
+            //build the result (serialization) in parallel again.
+            timeSeriesList.parallelStream().forEach(timeSeries -> {
+                        //We return the time series if
+                        // 1) the data is explicit requested as json
+                        // 2) there are aggregations / transformations
+                        // 3) there are matching analyses
+                        //Here we have to build the document with the results of the analyses
+                        SolrDocument doc = solrDocumentWithOutTimeSeriesFunctionResults(dataShouldReturned, dataAsJson, timeSeries);
 
-                //We return the time series if
-                // 1) the data is explicit requested as json
-                // 2) there are aggregations / transformations
-                // 3) there are matching analyses
-                //Here we have to build the document with the results of the analyses
-                SolrDocument doc = solrDocumentWithOutTimeSeriesFunctionResults(dataShouldReturned, dataAsJson, timeSeries);
-
-                if (functionCtx != null) {
-                    FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
-                    if (hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx)) {
-                        //Add the function results
-                        addAnalysesAndResults(timeSeriesFunctionCtx, doc);
+                        if (functionCtx != null) {
+                            FunctionCtxEntry timeSeriesFunctionCtx = functionCtx.getContextFor(timeSeries.getJoinKey());
+                            if (hasTransformationsOrAggregations(timeSeriesFunctionCtx) || hasMatchingAnalyses(timeSeriesFunctionCtx)) {
+                                //Add the function results
+                                addAnalysesAndResults(timeSeriesFunctionCtx, doc);
+                            }
+                        }
+                        resultDocuments.add(doc);
                     }
-                }
-                resultDocuments.add(doc);
-            }
+
+            );
 
         }
         return resultDocuments;
@@ -344,13 +357,6 @@ public class AnalysisHandler extends SearchHandler {
         doc.addField(Schema.NAME, timeSeries.getName());
         doc.addField(Schema.TYPE, timeSeries.getType());
 
-        //TODO: Fix this. It is expensive to calculate this based on the points. This is already stored.
-        //Optimization: Transformations should return the first an the last point
-        //Aggregations / Analyses does not need to return this.
-
-        doc.addField(Schema.START, timeSeries.getStart());
-        doc.addField(Schema.END, timeSeries.getEnd());
-
         if (dataShouldReturned) {
             //ensure that the returned data is sorted
             timeSeries.sort();
@@ -361,6 +367,14 @@ public class AnalysisHandler extends SearchHandler {
                 doc.addField(Schema.DATA, timeSeries.dataAsBlob());
             }
         }
+
+        //TODO: Fix this. It is expensive to calculate this based on the points.
+        // How can we avoid this?
+        // Optimization: Transformations should return the first an the last point
+        // Aggregations / Analyses does not need to return this.
+        doc.addField(Schema.START, timeSeries.getStart());
+        doc.addField(Schema.END, timeSeries.getEnd());
+
         return doc;
     }
 
@@ -372,7 +386,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
+    private Map<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
         String query = req.getParams().get(CommonParams.Q);
         //query and collect all documents
         return collectDocuments(query, req, collectionKey);
@@ -387,7 +401,7 @@ public class AnalysisHandler extends SearchHandler {
      * @return the collected and grouped documents
      * @throws IOException if bad things happen
      */
-    private HashMap<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(String query, SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
+    private Map<ChronixType, Map<String, List<SolrDocument>>> collectDocuments(String query, SolrQueryRequest req, CQLJoinFunction collectionKey) throws IOException {
         //query and collect all documents
         Set<String> fields = getFields(req.getParams().get(CommonParams.FL), req.getSchema().getFields());
 

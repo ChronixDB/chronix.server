@@ -18,11 +18,35 @@ package de.qaware.chronix.solr.type.metric;
 import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.types.ChronixTimeSeries;
 import de.qaware.chronix.server.types.ChronixType;
-import de.qaware.chronix.solr.type.metric.functions.aggregations.*;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Avg;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Count;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Difference;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.First;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Integral;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Last;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Max;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Min;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Percentile;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Range;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.SignedDifference;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.StdDev;
+import de.qaware.chronix.solr.type.metric.functions.aggregations.Sum;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Frequency;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Outlier;
 import de.qaware.chronix.solr.type.metric.functions.analyses.Trend;
-import de.qaware.chronix.solr.type.metric.functions.transformation.*;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Add;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Bottom;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Derivative;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Distinct;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Divide;
+import de.qaware.chronix.solr.type.metric.functions.transformation.MovingAverage;
+import de.qaware.chronix.solr.type.metric.functions.transformation.NonNegativeDerivative;
+import de.qaware.chronix.solr.type.metric.functions.transformation.SampleMovingAverage;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Scale;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Subtract;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Timeshift;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Top;
+import de.qaware.chronix.solr.type.metric.functions.transformation.Vectorization;
 import de.qaware.chronix.timeseries.MetricTimeSeries;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -117,10 +141,11 @@ public class MetricType implements ChronixType<MetricTimeSeries> {
                 return new Outlier();
             case "frequency":
                 return new Frequency();
-            case "fastdtw":
-                //return new FastDtw(args);
+            //TODO: fix this for future releases
+            // case "fastdtw":
+            // return new FastDtw(args);
             default:
-                LOGGER.warn("Ignoring {} as an aggregation. {} is unknown", function, function);
+                LOGGER.warn("{} is not part of the MetricType. Return 'null'. Maybe its a plugin?", function);
                 return null;
         }
     }

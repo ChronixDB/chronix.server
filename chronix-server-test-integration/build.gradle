@@ -7,9 +7,9 @@ sonarqube {
 apply from: "$rootDir/chronix-server-bin/build.gradle"
 
 dependencies {
-    compile 'org.apache.commons:commons-lang3:3.1'
+    compile 'org.apache.commons:commons-lang3:3.8.1'
     compile 'commons-codec:commons-codec:1.10'
-    compile 'org.apache.solr:solr-solrj:7.6.0'
+    compile 'org.apache.solr:solr-solrj:8.1.1'
 
     compile 'de.qaware.chronix:chronix-api:0.2-beta'
     compile 'de.qaware.chronix:chronix-timeseries:0.3.2-beta'

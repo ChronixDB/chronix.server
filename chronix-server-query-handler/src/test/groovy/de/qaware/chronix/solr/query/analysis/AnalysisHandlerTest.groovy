@@ -131,7 +131,7 @@ class AnalysisHandlerTest extends Specification {
 
         def typeFunctions = new CQLCFResult()
         typeFunctions.addChronixFunctionsForType(new MetricType(), functions)
-        def result = analysisHandler.analyze(request, typeFunctions, timeSeriesRecords, false)
+        def result = analysisHandler.analyze(request, typeFunctions, timeSeriesRecords)
 
         then:
         result.size() == 1

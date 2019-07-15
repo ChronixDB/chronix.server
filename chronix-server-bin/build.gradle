@@ -29,12 +29,13 @@ dependencies {
     testCompile project(':chronix-server-type-metric')
     testCompile project(':chronix-server-function-metric')
     testCompile project(':chronix-server-plugin-management')
+    testCompile project(':chronix-server-function-metric')
 }
 
 import de.undercouch.gradle.tasks.download.Download
 
 
-def solrVersion = "7.6.0"
+def solrVersion = "8.1.1"
 def chronixBuildDir = rootDir.path + "/chronix-server-bin/chronix-server"
 def confDir = rootDir.path + "/chronix-server-bin/config/chronix"
 
