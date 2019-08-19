@@ -19,7 +19,7 @@ import org.apache.solr.common.SolrDocument
 import spock.lang.Specification
 
 /**
- * Unit test for the join function QUERY_EVALUATOR
+ * Unit test for the join function
  * @author f.lautenschlager
  */
 class CQLJoinFunctionTest extends Specification {

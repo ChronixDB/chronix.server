@@ -4,12 +4,30 @@ sonarqube {
     }
 }
 
+sourceSets {
+    jmh {
+        java.srcDirs = ['src/test/java']
+        resources.srcDirs = ['src/test/resources']
+        compileClasspath += sourceSets.test.runtimeClasspath
+    }
+}
+
+task jmhCQLBenchmark(type: JavaExec, dependsOn: jmhClasses) {
+    main = 'org.openjdk.jmh.Main'
+    classpath = sourceSets.jmh.compileClasspath + sourceSets.jmh.runtimeClasspath
+}
+
+classes.finalizedBy(jmhClasses)
+
 dependencies {
     compile group: 'org.antlr', name: 'antlr4', version: '4.5.1-1'
     compile project(':chronix-server-plugin-management')
 
     testCompile project(':chronix-server-function-metric')
     testCompile project(':chronix-server-type-metric')
+
+    testCompile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
+    testCompile group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version: '1.21'
 }
 
 task copyTestResources(type: Copy) {
