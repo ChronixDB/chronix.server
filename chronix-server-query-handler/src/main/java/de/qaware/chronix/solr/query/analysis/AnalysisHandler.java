@@ -77,9 +77,6 @@ public class AnalysisHandler extends SearchHandler {
     private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
     private static final de.qaware.chronix.server.functions.plugin.ChronixFunctions FUNCTIONS = INJECTOR.getInstance(de.qaware.chronix.server.functions.plugin.ChronixFunctions.class);
 
-    //Chronix query language
-    private final CQL cql = new CQL(TYPES, FUNCTIONS);
-
     /**
      * Constructs an isAggregation handler
      *
@@ -206,7 +203,7 @@ public class AnalysisHandler extends SearchHandler {
     public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
         LOGGER.debug("Handling analysis request {}", req);
         //First check if the request should return documents => rows > 0
-        String rowsParam = req.getParams().get(CommonParams.ROWS, null);
+        final String rowsParam = req.getParams().get(CommonParams.ROWS, null);
         int rows = -1;
         if (rowsParam != null) {
             rows = Integer.parseInt(rowsParam);
@@ -214,12 +211,14 @@ public class AnalysisHandler extends SearchHandler {
 
         SolrDocumentList results = new SolrDocumentList();
 
+        final CQL cql = new CQL(TYPES, FUNCTIONS);
+
         //get the chronix join parameter
-        String chronixJoin = req.getParams().get(ChronixQueryParams.CHRONIX_JOIN);
+        final String chronixJoin = req.getParams().get(ChronixQueryParams.CHRONIX_JOIN);
         final CQLJoinFunction key = cql.parseCJ(chronixJoin);
 
         //Do a query and collect them on the join function
-        Map<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = collectDocuments(req, key);
+        final Map<ChronixType, Map<String, List<SolrDocument>>> collectedDocs = collectDocuments(req, key);
 
         //If no rows should returned, we only return the num found
         if (rows == 0) {
@@ -227,7 +226,7 @@ public class AnalysisHandler extends SearchHandler {
         } else {
             //Otherwise return the analyzed time series
 
-            String chronixFunctions = req.getParams().get(ChronixQueryParams.CHRONIX_FUNCTION);
+            final String chronixFunctions = req.getParams().get(ChronixQueryParams.CHRONIX_FUNCTION);
             final CQLCFResult result = cql.parseCF(chronixFunctions);
 
             final List<SolrDocument> resultDocuments = analyze(req, result, collectedDocs);

@@ -24,7 +24,15 @@ import de.qaware.chronix.server.functions.ChronixFunction;
 import de.qaware.chronix.server.functions.ChronixTransformation;
 import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypes;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.UnbufferedTokenStream;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 
@@ -167,7 +175,7 @@ public class CQL {
     }
 
 
-    private final class CQLErrorListener implements ANTLRErrorListener {
+    private static final class CQLErrorListener implements ANTLRErrorListener {
         private String cql;
 
         @Override
