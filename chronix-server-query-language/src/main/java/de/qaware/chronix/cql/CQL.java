@@ -41,24 +41,12 @@ import java.util.List;
 
 public class CQL {
 
-    //First parsing is faster.
-    private final CQLCFLexer lexer = new CQLCFLexer(null);
-    private final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-    private final CQLCFParser parser = new CQLCFParser(tokenStream);
     private final ChronixTypes knownChronixTypes;
     private final de.qaware.chronix.server.functions.plugin.ChronixFunctions knownChronixFunctions;
-    private final CQLErrorListener errorListener;
-
 
     public CQL(ChronixTypes plugInTypes, de.qaware.chronix.server.functions.plugin.ChronixFunctions plugInFunctions) {
         this.knownChronixTypes = plugInTypes;
         this.knownChronixFunctions = plugInFunctions;
-        this.errorListener = new CQLErrorListener();
-        parser.removeErrorListeners();
-        lexer.removeErrorListeners();
-
-        this.parser.addErrorListener(errorListener);
-        this.lexer.addErrorListener(errorListener);
     }
 
     /**
@@ -83,30 +71,19 @@ public class CQL {
         if (cf == null || cf.isEmpty()) {
             return new CQLCFResult();
         }
-        init(cf);
-
-        return parseChronixFunctionParameter(this.parser.cqlcf());
-    }
-
-    private void init(String cql) {
-        this.errorListener.setQuery(cql);
-
         // Antlr 4.7.1
         // CodePointCharStream input = CharStreams.fromString(cql);
+        CQLCFLexer lexer = new CQLCFLexer(new ANTLRInputStream(cf));
+        CQLCFParser parser = new CQLCFParser(new UnbufferedTokenStream(lexer));
+        CQLErrorListener errorListener = new CQLErrorListener();
+        errorListener.setQuery(cf);
+        parser.addErrorListener(errorListener);
+        lexer.addErrorListener(errorListener);
 
-        CharStream charStream = new ANTLRInputStream(cql);
-
-        this.lexer.setInputStream(charStream);
-        // Antlr 4.7.1
-        //this.tokenStream.setTokenSource(lexer);
-
-        UnbufferedTokenStream tokenStream = new UnbufferedTokenStream(lexer);
-
-        this.parser.setTokenStream(tokenStream);
-
+        return parseChronixFunctionParameter(parser.cqlcf(), errorListener);
     }
 
-    private CQLCFResult parseChronixFunctionParameter(CQLCFParser.CqlcfContext tree) throws CQLException {
+    private CQLCFResult parseChronixFunctionParameter(CQLCFParser.CqlcfContext tree, CQLErrorListener errorListener) throws CQLException {
 
         CQLCFParser.ChronixTypedFunctionsContext chronixTypedFunctions = tree.chronixTypedFunctions();
         List<CQLCFParser.ChronixTypedFunctionContext> chronixTypedFunction = chronixTypedFunctions.chronixTypedFunction();
@@ -119,7 +96,7 @@ public class CQL {
             //Check if Chronix knows the type
             ChronixType chronixType = knownChronixTypes.getTypeForName(type);
             if (chronixType == null) {
-                throw new CQLException("Type '" + type + "' in query '" + this.errorListener.cql + "' is unknown.");
+                throw new CQLException("Type '" + type + "' in query '" + errorListener.cql + "' is unknown.");
             }
 
             ChronixFunctions resultingTypeFunctions = new ChronixFunctions();
@@ -134,7 +111,7 @@ public class CQL {
                     //check the plugin functions
                     function = knownChronixFunctions.getFunctionForQueryName(type, name);
                     if (function == null) {
-                        throw new CQLException("Function '" + name + "' in query '" + this.errorListener.cql + "' is unknown.");
+                        throw new CQLException("Function '" + name + "' in query '" + errorListener.cql + "' is unknown.");
                     }
                 }
 

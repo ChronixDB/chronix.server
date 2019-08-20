@@ -24,6 +24,8 @@ import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -62,7 +64,7 @@ public class CQLCFParser extends Parser {
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
-    protected static final PredictionContextCache _sharedContextCache =
+    protected final PredictionContextCache _sharedContextCache =
             new PredictionContextCache();
     private static final String[] _LITERAL_NAMES = {
             null, "';'", "'{'", "'}'", "':'", "','"
@@ -144,9 +146,13 @@ public class CQLCFParser extends Parser {
                 chronixTypedFunctions();
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("cqlcf Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
@@ -187,9 +193,13 @@ public class CQLCFParser extends Parser {
                 }
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("cfs Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
@@ -229,13 +239,21 @@ public class CQLCFParser extends Parser {
                 match(T__2);
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("ctf Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
         return _localctx;
+    }
+
+    private Logger logger() {
+        return LoggerFactory.getLogger(this.getClass());
     }
 
     public final ChronixTypeContext chronixType() throws RecognitionException {
@@ -248,9 +266,13 @@ public class CQLCFParser extends Parser {
                 match(LOWERCASE_STRING);
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("ct Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
@@ -300,9 +322,13 @@ public class CQLCFParser extends Parser {
                 break;
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("cf Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
@@ -319,9 +345,13 @@ public class CQLCFParser extends Parser {
                 match(LOWERCASE_STRING);
             }
         } catch (RecognitionException re) {
+            logger().info("re Exception: ", re.getMessage());
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("name Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }
@@ -338,9 +368,14 @@ public class CQLCFParser extends Parser {
                 match(STRING_AND_NUMBERS_UPPERCASE);
             }
         } catch (RecognitionException re) {
+            re.printStackTrace();
+            logger().info("re Exception: ");
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
+        } catch (Exception e) {
+            logger().info("parameter Exception: ", e);
+            throw e;
         } finally {
             exitRule();
         }

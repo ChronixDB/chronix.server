@@ -50,7 +50,7 @@ public class CQLCFLexer extends Lexer {
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
-    protected static final PredictionContextCache _sharedContextCache =
+    protected final PredictionContextCache _sharedContextCache =
             new PredictionContextCache();
     private static final String[] _LITERAL_NAMES = {
             null, "';'", "'{'", "'}'", "':'", "','"

@@ -77,6 +77,8 @@ public class AnalysisHandler extends SearchHandler {
     private static final ChronixTypes TYPES = INJECTOR.getInstance(ChronixTypes.class);
     private static final de.qaware.chronix.server.functions.plugin.ChronixFunctions FUNCTIONS = INJECTOR.getInstance(de.qaware.chronix.server.functions.plugin.ChronixFunctions.class);
 
+    private final CQL cql = new CQL(TYPES, FUNCTIONS);
+
     /**
      * Constructs an isAggregation handler
      *
@@ -208,10 +210,7 @@ public class AnalysisHandler extends SearchHandler {
         if (rowsParam != null) {
             rows = Integer.parseInt(rowsParam);
         }
-
         SolrDocumentList results = new SolrDocumentList();
-
-        final CQL cql = new CQL(TYPES, FUNCTIONS);
 
         //get the chronix join parameter
         final String chronixJoin = req.getParams().get(ChronixQueryParams.CHRONIX_JOIN);

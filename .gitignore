@@ -84,3 +84,5 @@ solr-*.zip
 #ignore solr extraced content
 chronix-server-bin/chronix-server/solr-*/
 .Rproj.user
+
+.DS_Store
