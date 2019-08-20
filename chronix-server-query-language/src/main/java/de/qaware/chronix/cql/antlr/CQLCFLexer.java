@@ -50,7 +50,7 @@ public class CQLCFLexer extends Lexer {
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
-    protected final PredictionContextCache _sharedContextCache =
+    private final PredictionContextCache sharedContextCache =
             new PredictionContextCache();
     private static final String[] _LITERAL_NAMES = {
             null, "';'", "'{'", "'}'", "':'", "','"
@@ -90,7 +90,7 @@ public class CQLCFLexer extends Lexer {
 
     public CQLCFLexer(CharStream input) {
         super(input);
-        _interp = new LexerATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);
+        _interp = new LexerATNSimulator(this, _ATN, _decisionToDFA, sharedContextCache);
     }
 
     @Override
