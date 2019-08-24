@@ -73,7 +73,6 @@ public class CQLCFParser extends Parser {
             null, null, null, null, null, null, "LOWERCASE_STRING", "STRING_AND_NUMBERS_UPPERCASE"
     };
     public static final Vocabulary VOCABULARY = new VocabularyImpl(_LITERAL_NAMES, _SYMBOLIC_NAMES);
-    private static final Logger logger = LoggerFactory.getLogger(CQLCFParser.class);
 
     static {
         RuntimeMetaData.checkVersion("4.5.1", RuntimeMetaData.VERSION);
@@ -150,9 +149,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("cqlcf exception", e);
-            throw e;
         } finally {
             exitRule();
         }
@@ -196,9 +192,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("chronixTypedFunctions exception", e);
-            throw e;
         } finally {
             exitRule();
         }
@@ -241,9 +234,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("chronixTypedFunction exception", e);
-            throw e;
         } finally {
             exitRule();
         }
@@ -263,9 +253,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("chronixType exception", e);
-            throw e;
         } finally {
             exitRule();
         }
@@ -318,9 +305,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("chronixfunction exception", e);
-            throw e;
         } finally {
             exitRule();
         }
@@ -362,9 +346,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("parameter exception", e);
-            throw e;
         } finally {
             exitRule();
         }
