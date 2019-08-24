@@ -26,7 +26,6 @@ import de.qaware.chronix.server.types.ChronixType;
 import de.qaware.chronix.server.types.ChronixTypes;
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
@@ -83,27 +82,11 @@ public class CQL {
         if (cf == null || cf.isEmpty()) {
             return new CQLCFResult();
         }
-        init(cf);
+        this.errorListener.setQuery(cf);
+        this.lexer.setInputStream(new ANTLRInputStream(cf));
+        this.parser.setTokenStream(new UnbufferedTokenStream(lexer));
 
         return parseChronixFunctionParameter(this.parser.cqlcf());
-    }
-
-    private void init(String cql) {
-        this.errorListener.setQuery(cql);
-
-        // Antlr 4.7.1
-        // CodePointCharStream input = CharStreams.fromString(cql);
-
-        CharStream charStream = new ANTLRInputStream(cql);
-
-        this.lexer.setInputStream(charStream);
-        // Antlr 4.7.1
-        //this.tokenStream.setTokenSource(lexer);
-
-        UnbufferedTokenStream tokenStream = new UnbufferedTokenStream(lexer);
-
-        this.parser.setTokenStream(tokenStream);
-
     }
 
     private CQLCFResult parseChronixFunctionParameter(CQLCFParser.CqlcfContext tree) throws CQLException {
