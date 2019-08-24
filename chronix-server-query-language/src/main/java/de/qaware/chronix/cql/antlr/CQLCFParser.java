@@ -24,8 +24,6 @@ import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -324,9 +322,6 @@ public class CQLCFParser extends Parser {
             _localctx.exception = re;
             _errHandler.reportError(this, re);
             _errHandler.recover(this, re);
-        } catch (Exception e) {
-            logger.error("name exception", e);
-            throw e;
         } finally {
             exitRule();
         }
