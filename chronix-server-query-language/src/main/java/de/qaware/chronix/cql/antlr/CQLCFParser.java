@@ -64,7 +64,7 @@ public class CQLCFParser extends Parser {
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
-    private final PredictionContextCache sharedContextCache =
+    protected static final PredictionContextCache _sharedContextCache =
             new PredictionContextCache();
     private static final String[] _LITERAL_NAMES = {
             null, "';'", "'{'", "'}'", "':'", "','"
@@ -102,7 +102,7 @@ public class CQLCFParser extends Parser {
 
     public CQLCFParser(TokenStream input) {
         super(input);
-        _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, sharedContextCache);
+        _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);
     }
 
     @Override
