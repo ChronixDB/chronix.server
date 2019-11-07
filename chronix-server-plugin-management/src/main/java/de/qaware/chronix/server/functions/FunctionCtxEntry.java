@@ -72,7 +72,7 @@ public class FunctionCtxEntry {
         return analysisSize + transformationSize + aggregationSize;
     }
 
-    public void add(ChronixAggregation aggregation, double value) {
+    public synchronized void add(ChronixAggregation aggregation, double value) {
 
         if (aggregationSize < aggregations.length) {
             aggregations[aggregationSize] = aggregation;

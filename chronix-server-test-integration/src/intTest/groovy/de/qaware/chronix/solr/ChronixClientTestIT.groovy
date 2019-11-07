@@ -364,7 +364,7 @@ class ChronixClientTestIT extends Specification {
 
     }
 
-    @Unroll
+
     def "Raw query with compression activated"() {
         when:
         def connection = (solrBaseUrl + "select?indent=on&q=*:*&wt=json").toURL().openConnection()
@@ -373,6 +373,43 @@ class ChronixClientTestIT extends Specification {
 
         then:
         result.length != 0
+    }
+
+    def "Test all aggregations are executed 50 times (ticket #153)"() {
+        given:
+        def query = new SolrQuery("*:*")
+        query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{avg;max}")
+        query.addField("-data")
+
+        def test = true
+        def success = true
+        def iteration = 50
+        when:
+        while (test && iteration > 0) {
+            List<MetricTimeSeries> timeSeriesList = chronix.stream(solr, query).collect(Collectors.toList())
+            iteration = iteration - 1;
+
+            for (MetricTimeSeries timeSeries in timeSeriesList) {
+                def avg = timeSeries.attribute("0_function_avg")
+                if (avg == null) {
+                    avg = timeSeries.attribute("1_function_avg")
+                }
+                def max = timeSeries.attribute("1_function_max")
+                if (max == null) {
+                    max = timeSeries.attribute("0_function_max")
+                }
+
+                if (max == null || avg == null) {
+                    test = false
+                    success = false
+                }
+            }
+        }
+
+
+        then:
+        success
+
     }
 
     def testAttributes(MetricTimeSeries series) {

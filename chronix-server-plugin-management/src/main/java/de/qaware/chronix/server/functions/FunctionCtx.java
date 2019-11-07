@@ -79,7 +79,7 @@ public class FunctionCtx {
         functionCtxEntries.get(joinKey).add(transformation);
     }
 
-    private void addEntryIfNotExist(String joinKey) {
+    private synchronized void addEntryIfNotExist(String joinKey) {
         if (!functionCtxEntries.containsKey(joinKey)) {
             functionCtxEntries.put(joinKey, new FunctionCtxEntry(maxAmountOfTransformations, maxAmountOfAggregations, maxAmountOfAnalyses));
         }
