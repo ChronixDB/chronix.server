@@ -10,7 +10,7 @@ dependencies {
     compile 'de.qaware.chronix:chronix.fastdtw:0.3'
     compile 'org.apache.commons:commons-math3:3.6.1'
 
-    compile "org.apache.solr:solr-core:8.1.1"
+    compile "org.apache.solr:solr-core:8.3.0"
 
     compile 'com.google.inject:guice:4.1.0'
     compile 'com.google.inject.extensions:guice-multibindings:4.1.0'
