@@ -270,7 +270,7 @@ public class AnalysisHandler extends SearchHandler {
         //loop over the types
         for (ChronixType type : collectedDocs.keySet()) {
 
-            List<ChronixTimeSeries> timeSeriesList = new ArrayList<>(collectedDocs.get(type).size());
+            List<ChronixTimeSeries> timeSeriesList = Collections.synchronizedList(new ArrayList<>(collectedDocs.get(type).size()));
 
             //do this in parallel as it contains deserialization
             collectedDocs.get(type).entrySet().parallelStream().forEach(docs -> {

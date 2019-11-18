@@ -375,17 +375,16 @@ class ChronixClientTestIT extends Specification {
         result.length != 0
     }
 
-    def "Test all aggregations are executed 50 times (ticket #153)"() {
+    def "Test all aggregations are executed 50 times (ticket #153,#155)"() {
         given:
         def query = new SolrQuery("*:*")
         query.setParam(ChronixQueryParams.CHRONIX_FUNCTION, "metric{avg;max}")
         query.addField("-data")
 
-        def test = true
         def success = true
         def iteration = 50
         when:
-        while (test && iteration > 0) {
+        while (success && iteration > 0) {
             List<MetricTimeSeries> timeSeriesList = chronix.stream(solr, query).collect(Collectors.toList())
             iteration = iteration - 1;
 
@@ -400,9 +399,13 @@ class ChronixClientTestIT extends Specification {
                 }
 
                 if (max == null || avg == null) {
-                    test = false
                     success = false
                 }
+            }
+
+            //ensure we got 26 every time
+            if (timeSeriesList.size() != 26i) {
+                success = false
             }
         }
 
